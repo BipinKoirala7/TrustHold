@@ -1,10 +1,7 @@
 package com.trusthold.user;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -20,7 +17,7 @@ import java.util.UUID;
 public class User {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @GeneratedValue(strategy = GenerationType.UUID)
   @Column(name = "id", nullable = false, updatable = false)
   private UUID id;
 
@@ -29,14 +26,12 @@ public class User {
   private String providerId;
 
   @NotNull
-  @Max(value = 50)
-  @Min(value = 3)
+  @Size(min = 3, max = 50)
   @Column(nullable = false)
   private String firstName;
 
   @NotNull
-  @Max(value = 50)
-  @Min(value = 3)
+  @Size(min = 3, max = 50)
   @Column(nullable = false)
   private String lastName;
 
@@ -48,8 +43,6 @@ public class User {
   // Password field is required for users registered with LOCAL auth provider.
   // For users registered via oauth providers (e.g., Google), this field can be null.
   // Hash password are stored in this field for security reasons.
-  @NotNull
-  @Column(nullable = false)
   private String password;
 
   @NotNull
