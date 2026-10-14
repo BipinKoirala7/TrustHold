@@ -11,7 +11,13 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users", uniqueConstraints = @UniqueConstraint(name = "uk_user_email", columnNames = "email"))
+@Table(
+    name = "users",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_user_email", columnNames = "email"),
+        @UniqueConstraint(name = "uk_user_username", columnNames = "username"),
+        @UniqueConstraint(name = "uk_user_provider_id", columnNames = "provider_id")
+    })
 @Getter
 @Setter
 public class User {
@@ -27,24 +33,24 @@ public class User {
 
   @NotNull
   @Size(min = 3, max = 50)
-  @Column(nullable = false)
+  @Column(nullable = false, length = 50)
   private String firstName;
 
   @NotNull
   @Size(min = 3, max = 50)
-  @Column(nullable = false)
+  @Column(nullable = false, length = 50)
   private String lastName;
 
   // Username would mostly be used for unique searching user without
   // having to type the whole email address.
   @NotNull
   @Size(min = 3, max = 50)
-  @Column(nullable = false, unique = true)
+  @Column(nullable = false, length = 50)
   private String username;
 
   @NotNull
   @Email
-  @Column(nullable = false, unique = true)
+  @Column(nullable = false)
   private String email;
 
   // Password field is required for users registered with LOCAL auth provider.

@@ -15,4 +15,8 @@ public class UpdateUserDto {
   @NotNull
   @Size(min = 3, max = 50)
   private String lastName;
+
+  @NotNull
+  @Size(min = 3, max = 50)
+  private String username;
 }

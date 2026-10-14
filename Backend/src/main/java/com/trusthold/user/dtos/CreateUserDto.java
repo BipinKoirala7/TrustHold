@@ -1,6 +1,5 @@
 package com.trusthold.user.dtos;
 
-import com.trusthold.user.Role;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,16 +17,17 @@ public class CreateUserDto {
   private String lastName;
 
   @NotNull
+  @Size(min = 3, max = 50)
+  private String username;
+
+  @NotNull
   @Email
   private String email;
 
-  @Size(min = 3, max = 100)
+  @Size(min = 8, max = 100)
   @Pattern(
       regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
       message = "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character."
   )
   private String password;
-
-  @NotNull
-  private Role role;
 }

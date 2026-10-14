@@ -8,5 +8,21 @@ package com.trusthold.user;
 public enum Role {
   TENANT,
   LANDLORD,
-  ADMIN
+  ADMIN;
+
+  /**
+   * Returns true if the role is TENANT or LANDLORD, false otherwise.
+   *
+   * @param role the role to validate
+   * @return true if the role is TENANT or LANDLORD, false otherwise
+   */
+  public boolean validateRegistrationRole(Role role) {
+    if (role != Role.TENANT && role != Role.LANDLORD) {
+      throw new IllegalArgumentException(
+          "Invalid registration role"
+      );
+    }
+
+    return true;
+  }
 }
