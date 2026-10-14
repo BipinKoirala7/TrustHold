@@ -2,13 +2,14 @@ package com.trusthold.user;
 
 import com.trusthold.user.dtos.CreateUserDto;
 import com.trusthold.user.dtos.PublicUserDto;
+import com.trusthold.user.dtos.UpdateUserDto;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE)
 public interface UserMapper {
 
   PublicUserDto userToPublicUserDto(User user);
   User createUserDtoToUser(CreateUserDto createUserDto);
-
+  void updateUserFromDto(UpdateUserDto updateUserDto, @MappingTarget User user);
 }

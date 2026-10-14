@@ -12,6 +12,7 @@ import java.time.Instant;
 public class PublicUserDto {
   private String firstName;
   private String lastName;
+  private String username;
   private String email;
   private Role role;
   private AuthProvider authProvider;

@@ -10,13 +10,11 @@ import lombok.Setter;
 public class CreateUserDto {
 
   @NotNull
-  @Max(value = 50)
-  @Min(value = 3)
+  @Size(min = 3, max = 50)
   private String firstName;
 
   @NotNull
-  @Max(value = 50)
-  @Min(value = 3)
+  @Size(min = 3, max = 50)
   private String lastName;
 
   @NotNull

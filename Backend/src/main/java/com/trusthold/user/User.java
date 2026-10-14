@@ -21,7 +21,7 @@ public class User {
   @Column(name = "id", nullable = false, updatable = false)
   private UUID id;
 
-  // Optional field to store the provider ID for users authenticated via oauth providers (e.g., Google).
+  // Optional field to store the provider ID (sub) for users authenticated via oauth providers (e.g., Google).
   @Column(name = "provider_id")
   private String providerId;
 
@@ -34,6 +34,13 @@ public class User {
   @Size(min = 3, max = 50)
   @Column(nullable = false)
   private String lastName;
+
+  // Username would mostly be used for unique searching user without
+  // having to type the whole email address.
+  @NotNull
+  @Size(min = 3, max = 50)
+  @Column(nullable = false, unique = true)
+  private String username;
 
   @NotNull
   @Email
@@ -59,10 +66,12 @@ public class User {
   @Column(name = "last_login", nullable = false)
   private Instant lastLogin;
 
+  @NotNull
   @Column(name = "created_at", nullable = false, updatable = false)
   @CreationTimestamp
   private Instant createdAt;
 
+  @NotNull
   @Column(name = "updated_at", nullable = false)
   @UpdateTimestamp
   private Instant updatedAt;
