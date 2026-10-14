@@ -60,7 +60,7 @@ public class User {
   @NotNull
   @Enumerated(EnumType.STRING)
   @Column(name = "auth_provider", nullable = false)
-  private AuthProvider authProvider;
+  private AuthProvider authProvider = AuthProvider.LOCAL;
 
   @NotNull
   @Column(name = "last_login", nullable = false)
