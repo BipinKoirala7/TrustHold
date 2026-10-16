@@ -1,5 +1,6 @@
 package com.trusthold.user;
 
+import com.trusthold.user.dtos.CreateUserDto;
 import com.trusthold.user.dtos.UpdateUserDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -21,6 +22,48 @@ public class UserMapperTests {
     user.setFirstName("Jane");
     user.setLastName("Smith");
     user.setUsername("jane_smith");
+  }
+
+  @Nested
+  class CreateUserDtoToUser {
+
+    @Test
+    void shouldMapCreateUserDtoToUser() {
+      // Arrange
+      CreateUserDto createUserDto = new CreateUserDto();
+      createUserDto.setFirstName("John");
+      createUserDto.setLastName("Doe");
+      createUserDto.setUsername("john_doe");
+      createUserDto.setEmail("john@example.com");
+
+      // Act
+      User result = underTest.createUserDtoToUser(createUserDto);
+
+      // Assert
+      assertThat(result.getFirstName()).isEqualTo("John");
+      assertThat(result.getLastName()).isEqualTo("Doe");
+      assertThat(result.getUsername()).isEqualTo("john_doe");
+      assertThat(result.getEmail()).isEqualTo("john@example.com");
+    }
+
+    @Test
+    void shouldMapCreateUserDtoToUserWithNullFields() {
+      // Arrange
+      CreateUserDto createUserDto = new CreateUserDto();
+      createUserDto.setFirstName(null);
+      createUserDto.setLastName(null);
+      createUserDto.setUsername(null);
+      createUserDto.setEmail(null);
+
+      // Act
+      User result = underTest.createUserDtoToUser(createUserDto);
+
+      // Assert
+      assertThat(result.getFirstName()).isNull();
+      assertThat(result.getLastName()).isNull();
+      assertThat(result.getUsername()).isNull();
+      assertThat(result.getEmail()).isNull();
+    }
   }
 
   @Nested
