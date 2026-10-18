@@ -8,22 +8,23 @@ import lombok.Setter;
 @Setter
 public class CreateUserDto {
 
-  @NotNull
+  @NotBlank
   @Size(min = 3, max = 50)
   private String firstName;
 
-  @NotNull
+  @NotBlank
   @Size(min = 3, max = 50)
   private String lastName;
 
-  @NotNull
+  @NotBlank
   @Size(min = 3, max = 50)
   private String username;
 
-  @NotNull
+  @NotBlank
   @Email
   private String email;
 
+  @NotBlank
   @Size(min = 8, max = 100)
   @Pattern(
       regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",

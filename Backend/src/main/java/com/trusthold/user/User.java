@@ -31,24 +31,24 @@ public class User {
   @Column(name = "provider_id")
   private String providerId;
 
-  @NotNull
+  @NotBlank
   @Size(min = 3, max = 50)
   @Column(nullable = false, length = 50)
   private String firstName;
 
-  @NotNull
+  @NotBlank
   @Size(min = 3, max = 50)
   @Column(nullable = false, length = 50)
   private String lastName;
 
   // Username would mostly be used for unique searching user without
   // having to type the whole email address.
-  @NotNull
+  @NotBlank
   @Size(min = 3, max = 50)
   @Column(nullable = false, length = 50)
   private String username;
 
-  @NotNull
+  @NotBlank
   @Email
   @Column(nullable = false)
   private String email;
@@ -68,16 +68,15 @@ public class User {
   @Column(name = "auth_provider", nullable = false)
   private AuthProvider authProvider = AuthProvider.LOCAL;
 
-  @NotNull
-  @Column(name = "last_login", nullable = false)
+  // When in development, we would log in the user automatically after registration.
+  // This field is used to track the last login time of the user.
+  @Column(name = "last_login")
   private Instant lastLogin;
 
-  @NotNull
   @Column(name = "created_at", nullable = false, updatable = false)
   @CreationTimestamp
   private Instant createdAt;
 
-  @NotNull
   @Column(name = "updated_at", nullable = false)
   @UpdateTimestamp
   private Instant updatedAt;
