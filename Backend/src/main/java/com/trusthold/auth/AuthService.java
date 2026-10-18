@@ -4,8 +4,10 @@ import com.trusthold.user.*;
 import com.trusthold.user.dtos.RegisterUserDto;
 import com.trusthold.user.exception.EmailAlreadyExists;
 import com.trusthold.user.exception.UsernameAlreadyExists;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -16,10 +18,10 @@ import org.springframework.validation.annotation.Validated;
 public class AuthService {
 
   private final UserMapper userMapper;
-  private final UserService userService;
   private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
 
-  public void registerLocalUser(RegisterUserDto registerUserDto) {
+  public void registerLocalUser(@NotNull RegisterUserDto registerUserDto) {
     if(userRepository.existsByUsername(registerUserDto.getUsername())) {
       log.warn("Attempt to create user with existing username: {}", registerUserDto.getUsername());
       throw new UsernameAlreadyExists("Username is already taken");
@@ -32,7 +34,7 @@ public class AuthService {
 
     User user = userMapper.createUserDtoToUser(registerUserDto);
     user.setAuthProvider(AuthProvider.LOCAL);
-
+    user.setPassword(passwordEncoder.encode(user.getPassword()));
     userRepository.save(user);
   }
 }
