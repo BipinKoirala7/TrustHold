@@ -62,7 +62,7 @@ public class GlobalExceptionHandler {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ApiResponse<Void> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex, HttpServletRequest req) {
     log.warn("{} {} -> {}", req.getMethod(), req.getRequestURI(), "Http message not readable", ex);
-    return ApiResponse.error("Request body is missing or malformed");
+    return ApiResponse.error("Please send a valid information");
   }
 
   @ExceptionHandler(MethodArgumentTypeMismatchException.class)
