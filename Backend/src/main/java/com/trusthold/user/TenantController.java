@@ -1,4 +1,4 @@
-package com.trusthold;
+package com.trusthold.user;
 
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.user.dtos.CreateUserDto;
@@ -9,14 +9,14 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/v1/tenant")
 @RequiredArgsConstructor
 @Validated
-public class UserController {
+public class TenantController {
 
   private final UserService userService;
 
-  @PostMapping("/")
+  @PostMapping()
   @ResponseStatus(code = HttpStatus.CREATED)
   public ApiResponse<Void> createUser(@RequestBody @Valid CreateUserDto createUserDto) {
     userService.createUser(createUserDto);

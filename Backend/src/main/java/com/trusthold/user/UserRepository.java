@@ -1,6 +1,5 @@
-package com.trusthold;
+package com.trusthold.user;
 
-import com.trusthold.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
