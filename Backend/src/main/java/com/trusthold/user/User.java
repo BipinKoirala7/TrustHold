@@ -31,53 +31,53 @@ public class User {
   @Column(name = "provider_id")
   private String providerId;
 
-  @NotNull
-  @Size(min = 3, max = 50)
+  @NotBlank(message = "First name is required")
+  @Size(min = 3, max = 50, message = "First name must be between 3 and 50 characters")
   @Column(nullable = false, length = 50)
   private String firstName;
 
-  @NotNull
-  @Size(min = 3, max = 50)
+  @NotBlank(message = "Last name is required")
+  @Size(min = 3, max = 50, message = "Last name must be between 3 and 50 characters")
   @Column(nullable = false, length = 50)
   private String lastName;
 
   // Username would mostly be used for unique searching user without
   // having to type the whole email address.
-  @NotNull
-  @Size(min = 3, max = 50)
+  @NotBlank(message = "Username is required")
+  @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
   @Column(nullable = false, length = 50)
   private String username;
 
-  @NotNull
-  @Email
+  @NotBlank(message = "Email is required")
+  @Email(message = "Email must be a valid email address")
   @Column(nullable = false)
   private String email;
 
-  // Password field is required for users registered with LOCAL auth provider.
+  // A password field is required for users registered with a LOCAL auth provider.
   // For users registered via oauth providers (e.g., Google), this field can be null.
-  // Hash password are stored in this field for security reasons.
+  // Hash passwords are stored in this field for security reasons.
   private String password;
 
-  @NotNull
+  @NotNull(message = "User role is required")
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private Role role;
 
-  @NotNull
+  @NotNull(message = "Auth provider is required")
   @Enumerated(EnumType.STRING)
   @Column(name = "auth_provider", nullable = false)
   private AuthProvider authProvider = AuthProvider.LOCAL;
 
-  @NotNull
-  @Column(name = "last_login", nullable = false)
+  // When in development, we would log in the user automatically after registration.
+  // This field is used to track the last login time of the user.
+  @NotNull(message = "Last login time is required")
+  @Column(name = "last_login")
   private Instant lastLogin;
 
-  @NotNull
   @Column(name = "created_at", nullable = false, updatable = false)
   @CreationTimestamp
   private Instant createdAt;
 
-  @NotNull
   @Column(name = "updated_at", nullable = false)
   @UpdateTimestamp
   private Instant updatedAt;
