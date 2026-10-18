@@ -12,19 +12,19 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Slf4j
-public class GlobalExceptionHandler {
+public class AuthExceptionHandler {
 
   @ExceptionHandler(EmailAlreadyExists.class)
   @ResponseStatus(HttpStatus.CONFLICT)
   public ApiResponse<Void> handleEmailAlreadyExists(EmailAlreadyExists ex) {
     log.warn("Email already exists", ex);
-    return ApiResponse.error("Email already exists");
+    return ApiResponse.error(ex.getMessage());
   }
 
   @ExceptionHandler(UsernameAlreadyExists.class)
   @ResponseStatus(HttpStatus.CONFLICT)
   public ApiResponse<Void> handleUsernameAlreadyExists(UsernameAlreadyExists ex) {
     log.warn("Username already exists", ex);
-    return ApiResponse.error("Username already exists");
+    return ApiResponse.error(ex.getMessage());
   }
 }
