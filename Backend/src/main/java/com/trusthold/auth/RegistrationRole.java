@@ -1,4 +1,4 @@
-package com.trusthold.user;
+package com.trusthold.auth;
 
 public enum RegistrationRole {
   TENANT, LANDLORD;

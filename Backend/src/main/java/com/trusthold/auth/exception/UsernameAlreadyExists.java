@@ -1,4 +1,4 @@
-package com.trusthold.user.exception;
+package com.trusthold.auth.exception;
 
 public class UsernameAlreadyExists extends RuntimeException {
   public UsernameAlreadyExists(String message) {

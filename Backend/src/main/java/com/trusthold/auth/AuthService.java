@@ -1,9 +1,9 @@
 package com.trusthold.auth;
 
 import com.trusthold.user.*;
-import com.trusthold.user.dtos.RegisterUserDto;
-import com.trusthold.user.exception.EmailAlreadyExists;
-import com.trusthold.user.exception.UsernameAlreadyExists;
+import com.trusthold.auth.dtos.RegisterUserDto;
+import com.trusthold.auth.exception.EmailAlreadyExists;
+import com.trusthold.auth.exception.UsernameAlreadyExists;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

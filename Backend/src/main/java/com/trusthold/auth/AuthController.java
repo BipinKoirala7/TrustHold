@@ -1,7 +1,7 @@
 package com.trusthold.auth;
 
 import com.trusthold.shared.dtos.ApiResponse;
-import com.trusthold.user.dtos.RegisterUserDto;
+import com.trusthold.auth.dtos.RegisterUserDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.trusthold.user;
 
-import com.trusthold.user.dtos.RegisterUserDto;
+import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.user.dtos.UpdateUserDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

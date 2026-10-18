@@ -1,6 +1,6 @@
-package com.trusthold.user.dtos;
+package com.trusthold.auth.dtos;
 
-import com.trusthold.user.RegistrationRole;
+import com.trusthold.auth.RegistrationRole;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
