@@ -3,7 +3,6 @@ package com.trusthold.auth;
 import com.trusthold.config.JwtConfig;
 import com.trusthold.user.User;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.validation.constraints.NotNull;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
 
@@ -20,7 +18,7 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class JwtService {
 
-  private JwtConfig jwtConfig;
+  private final JwtConfig jwtConfig;
 
   private final String ACCESS_TYPE = "ACCESS_TOKEN";
   private final String REFRESH_TYPE = "REFRESH_TOKEN";
@@ -58,7 +56,7 @@ public class JwtService {
         .compact();
   }
 
-  public Claims extractClaims(@NotNull String token){
+  public Claims extractClaims(String token){
     return Jwts
         .parser()
         .verifyWith(generateSignInKey())
@@ -69,7 +67,7 @@ public class JwtService {
         .getPayload();
   }
 
-  public boolean isAccessToken(@NotNull String token){
+  public boolean isAccessToken(String token){
     return extractClaims(token).get(TOKEN_TYPE, String.class).equals(ACCESS_TYPE);
   }
 
