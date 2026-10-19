@@ -1,5 +1,6 @@
 package com.trusthold.user;
 
+import com.trusthold.auth.RegistrationRole;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.user.dtos.UpdateUserDto;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +36,8 @@ public class UserMapperTests {
       registerUserDto.setLastName("Doe");
       registerUserDto.setUsername("john_doe");
       registerUserDto.setEmail("john@example.com");
+      registerUserDto.setPassword("password@123");
+      registerUserDto.setRegistrationRole(RegistrationRole.TENANT);
 
       // Act
       User result = underTest.createUserDtoToUser(registerUserDto);
@@ -44,6 +47,8 @@ public class UserMapperTests {
       assertThat(result.getLastName()).isEqualTo("Doe");
       assertThat(result.getUsername()).isEqualTo("john_doe");
       assertThat(result.getEmail()).isEqualTo("john@example.com");
+      assertThat(result.getPassword()).isEqualTo("password@123");
+      assertThat(result.getRole().toString()).isEqualTo(RegistrationRole.TENANT.toString());
     }
 
     @Test
