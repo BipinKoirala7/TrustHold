@@ -1,8 +1,5 @@
-package com.trusthold.user;
+package com.trusthold.auth;
 
-import com.trusthold.auth.AuthController;
-import com.trusthold.auth.AuthService;
-import com.trusthold.auth.RegistrationRole;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.auth.exception.EmailAlreadyExists;
 import com.trusthold.auth.exception.UsernameAlreadyExists;
