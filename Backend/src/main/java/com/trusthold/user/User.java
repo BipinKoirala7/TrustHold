@@ -70,7 +70,7 @@ public class User {
 
   // When in development, we would log in the user automatically after registration.
   // This field is used to track the last login time of the user.
-  @NotNull(message = "Last login time is required")
+//  @NotNull(message = "Last login time is required")
   @Column(name = "last_login")
   private Instant lastLogin;
 

@@ -3,7 +3,6 @@ package com.trusthold.auth;
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -18,7 +17,7 @@ public class AuthController {
 
   @PostMapping("/register")
   @ResponseStatus(HttpStatus.CREATED)
-  public ApiResponse<Void> registerLocalUser(@Valid @RequestBody @NotNull RegisterUserDto registerUserDto) {
+  public ApiResponse<Void> registerLocalUser(@Valid @RequestBody RegisterUserDto registerUserDto) {
     authService.registerLocalUser(registerUserDto);
     return ApiResponse.success("User registered successfully");
   }
