@@ -1,5 +1,6 @@
 package com.trusthold.auth;
 
+import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import jakarta.validation.Valid;
@@ -20,5 +21,12 @@ public class AuthController {
   public ApiResponse<Void> registerLocalUser(@Valid @RequestBody RegisterUserDto registerUserDto) {
     authService.registerLocalUser(registerUserDto);
     return ApiResponse.success("User registered successfully");
+  }
+
+  @PostMapping("/login")
+  @ResponseStatus(HttpStatus.OK)
+  public ApiResponse<Void> loginUser(@Valid @RequestBody LoginUserDto loginUserDto) {
+    authService.loginUser(loginUserDto);
+    return ApiResponse.success("User logged in successfully");
   }
 }

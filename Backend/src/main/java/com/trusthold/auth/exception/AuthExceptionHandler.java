@@ -14,17 +14,31 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 public class AuthExceptionHandler {
 
-  @ExceptionHandler(EmailAlreadyExists.class)
+  @ExceptionHandler(EmailAlreadyExistsException.class)
   @ResponseStatus(HttpStatus.CONFLICT)
-  public ApiResponse<Void> handleEmailAlreadyExists(EmailAlreadyExists ex) {
+  public ApiResponse<Void> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
     log.warn("Email already exists", ex);
     return ApiResponse.error(ex.getMessage());
   }
 
-  @ExceptionHandler(UsernameAlreadyExists.class)
+  @ExceptionHandler(UsernameAlreadyExistsException.class)
   @ResponseStatus(HttpStatus.CONFLICT)
-  public ApiResponse<Void> handleUsernameAlreadyExists(UsernameAlreadyExists ex) {
+  public ApiResponse<Void> handleUsernameAlreadyExists(UsernameAlreadyExistsException ex) {
     log.warn("Username already exists", ex);
+    return ApiResponse.error(ex.getMessage());
+  }
+
+  @ExceptionHandler(IncorrectCredentialsException.class)
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  public ApiResponse<Void> handleIncorrectCredentials(IncorrectCredentialsException ex) {
+    log.warn("Incorrect credentials", ex);
+    return ApiResponse.error(ex.getMessage());
+  }
+
+  @ExceptionHandler(UserNotFoundException.class)
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  public ApiResponse<Void> handleUserNotFound(UserNotFoundException ex) {
+    log.warn("User not found", ex);
     return ApiResponse.error(ex.getMessage());
   }
 }
