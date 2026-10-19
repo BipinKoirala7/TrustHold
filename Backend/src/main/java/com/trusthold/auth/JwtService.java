@@ -2,6 +2,9 @@ package com.trusthold.auth;
 
 import com.trusthold.config.JwtConfig;
 import com.trusthold.user.User;
+import static com.trusthold.config.JwtConfig.REFRESH_TYPE;
+import static com.trusthold.config.JwtConfig.TOKEN_TYPE;
+import static com.trusthold.config.JwtConfig.ACCESS_TYPE;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -19,10 +22,6 @@ import java.util.Date;
 public class JwtService {
 
   private final JwtConfig jwtConfig;
-
-  private final String ACCESS_TYPE = "ACCESS_TOKEN";
-  private final String REFRESH_TYPE = "REFRESH_TOKEN";
-  private final String TOKEN_TYPE = "TOKEN_TYPE";
 
   public SecretKey generateSignInKey(){
     return Keys.hmacShaKeyFor(jwtConfig.getApplicationSignature().getBytes(StandardCharsets.UTF_8));

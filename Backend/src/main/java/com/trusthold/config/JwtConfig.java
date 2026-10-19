@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties("app.jwt")
 @Getter
 public class JwtConfig {
+  public static final String REFRESH_TYPE = "refreshToken";
+  public static final String ACCESS_TYPE = "accessToken";
+  public static final String TOKEN_TYPE = "TOKEN_TYPE";
 
   private String applicationSignature;
   private long accessTokenExpiration;
