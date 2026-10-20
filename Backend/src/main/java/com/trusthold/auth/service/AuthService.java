@@ -1,4 +1,4 @@
-package com.trusthold.auth;
+package com.trusthold.auth.service;
 
 import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.exception.IncorrectCredentialsException;

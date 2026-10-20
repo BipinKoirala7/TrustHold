@@ -1,4 +1,4 @@
-package com.trusthold.auth;
+package com.trusthold.auth.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

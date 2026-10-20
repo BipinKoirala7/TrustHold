@@ -1,5 +1,6 @@
-package com.trusthold.auth;
+package com.trusthold.auth.controller;
 
+import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.auth.dtos.RegisterUserDto;

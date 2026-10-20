@@ -1,4 +1,4 @@
-package com.trusthold.auth;
+package com.trusthold.auth.service;
 
 import com.trusthold.config.CookieConfig;
 import com.trusthold.config.JwtConfig;
