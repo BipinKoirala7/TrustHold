@@ -29,6 +29,13 @@ public class AuthController {
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> loginUser(@Valid @RequestBody LoginUserDto loginUserDto, HttpServletResponse response) {
     authService.loginUser(loginUserDto, response);
-    return ApiResponse.success("User logged in successfully");
+    return ApiResponse.success("logged in successfully");
+  }
+
+  @PostMapping("/logout")
+  @ResponseStatus(HttpStatus.OK)
+  public ApiResponse<Void> logout(HttpServletResponse response){
+    authService.logoutUser(response);
+    return ApiResponse.success("Logged Out Successfully");
   }
 }

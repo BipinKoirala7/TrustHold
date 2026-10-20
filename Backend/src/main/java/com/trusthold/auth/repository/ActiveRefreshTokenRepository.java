@@ -11,4 +11,6 @@ public interface ActiveRefreshTokenRepository extends JpaRepository<ActiveRefres
   Optional<ActiveRefreshToken> findByUserIdAndRefreshToken(UUID userId, String refreshToken);
 
   boolean existsByRefreshToken(String token);
+
+  void deleteActiveRefreshTokenByUserIdAndRefreshToken(UUID userId, String refreshToken);
 }

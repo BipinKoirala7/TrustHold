@@ -36,8 +36,14 @@ public class ActiveRefreshTokenService {
     log.debug("Active refresh token stored for user with ID: {}", userId);
   }
 
-  public boolean isRefreshTokenActive(@NotBlank String token){
-    return activeRefreshTokenRepository.existsByRefreshToken(token);
+  @Transactional
+  public void removeActiveRefreshToken(@NotNull UUID userId, @NotBlank String refreshToken){
+    log.debug("Removing active refresh token for user with ID: {}", userId);
+    activeRefreshTokenRepository.deleteActiveRefreshTokenByUserIdAndRefreshToken(userId, refreshToken);
+  }
+
+  public boolean isRefreshTokenActive(@NotBlank String refreshToken){
+    return activeRefreshTokenRepository.existsByRefreshToken(refreshToken);
   }
 
 }

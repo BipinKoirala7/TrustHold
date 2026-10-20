@@ -28,6 +28,7 @@ import java.util.Date;
 public class JwtService {
 
   private final JwtConfig jwtConfig;
+  private final ActiveRefreshTokenService activeRefreshTokenService;
 
   public SecretKey generateSignInKey(){
     return Keys.hmacShaKeyFor(jwtConfig.getApplicationSignature().getBytes(StandardCharsets.UTF_8));
@@ -36,7 +37,7 @@ public class JwtService {
   public String generateRefreshToken(@NotNull User user){
     return Jwts
         .builder()
-        .signWith(generateSignInKey())
+        .signWith(generateSignInKey(), Jwts.SIG.HS256)
         .issuer(jwtConfig.getIssuer())
         .audience().add(jwtConfig.getAudience()).and()
         .subject(user.getId().toString())
@@ -49,13 +50,14 @@ public class JwtService {
   public String generateAccessToken(@NotNull User user){
     return Jwts
         .builder()
-        .signWith(generateSignInKey())
+        .signWith(generateSignInKey(), Jwts.SIG.HS256)
         .issuer(jwtConfig.getIssuer())
         .audience().add(jwtConfig.getAudience()).and()
         .subject(user.getId().toString())
         .claim(TOKEN_TYPE, ACCESS_TYPE)
         .claim("email", user.getEmail())
         .claim("username", user.getUsername())
+        .claim("role", user.getRole().toString())
         .issuedAt(new Date(Instant.now().toEpochMilli()))
         .expiration(new Date(Instant.now().plusSeconds(jwtConfig.getAccessTokenExpiration()).toEpochMilli()))
         .compact();
@@ -100,21 +102,34 @@ public class JwtService {
     return extractExpiration(token).isBefore(Instant.now());
   }
 
-  public boolean isRefreshTokenExpired(@NotBlank String token){
-    return isRefreshToken(token) && isExpired(token);
+  public boolean isRefreshTokenValid(@NotBlank String token){
+    return isRefreshToken(token) && !isExpired(token);
   }
 
-  public boolean isAccessTokenExpired(String token){
-    return isAccessToken(token) && isExpired(token);
+  public boolean isAccessTokenValid(String token){
+    return isAccessToken(token) && !isExpired(token);
   }
 
-  public void validateAccessToken(@NotBlank String token){
+  public String validateAccessToken(@NotBlank String accessToken){
     log.debug("Access Token Validation");
 
-    if(isAccessTokenExpired(token)){
-      log.debug("Access Token Validation Failed - Access token is expired");
+    if(isAccessTokenValid(accessToken)){
+      log.debug("Access Token Validation Failed - Access Token is expired");
       throw new InValidTokenException("Access token is expired");
     }
+
+    return accessToken;
+  }
+
+  public String validateRefreshToken(@NotBlank String refreshToken){
+    log.debug("Refresh Token Validation");
+
+    if(!isRefreshTokenValid(refreshToken) && activeRefreshTokenService.isRefreshTokenActive(refreshToken)){
+      log.debug("Refresh Token Validation Failed - Refresh Token is expired");
+      throw new InValidTokenException("Refresh Token is expired");
+    }
+
+    return refreshToken;
   }
 
 }

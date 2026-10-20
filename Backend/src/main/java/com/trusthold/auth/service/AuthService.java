@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Validated
@@ -83,5 +85,21 @@ public class AuthService {
     userService.updateUserLastLoginTime(user.getId());
 
     log.debug("User logged in successfully");
+  }
+
+  @Transactional
+  public void logoutUser(HttpServletResponse response){
+    log.debug("Logging Out User");
+
+    // replace it with User id and refresh Token from Security Context
+    UUID userId = UUID.randomUUID();
+    String refreshToken = "";
+
+    // Delete all the cookies from response
+    cookieService.deleteRefreshTokenCookie(response);
+    cookieService.deleteAccessTokenCookie(response);
+
+    // Remove the active refresh token
+    activeRefreshTokenService.removeActiveRefreshToken(userId, refreshToken);
   }
 }

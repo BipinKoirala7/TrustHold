@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 public class CookieConfig {
+  public static final String ACCESS_COOKIE = "accessToken";
+  public static final String REFRESH_COOKIE = "refreshToken";
+
   private String refreshCookiePath;
   private String accessCookiePath;
   private String sameSite;

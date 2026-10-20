@@ -9,8 +9,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import static com.trusthold.config.JwtConfig.ACCESS_TYPE;
-import static com.trusthold.config.JwtConfig.REFRESH_TYPE;
+import static com.trusthold.config.CookieConfig.ACCESS_COOKIE;
+import static com.trusthold.config.CookieConfig.REFRESH_COOKIE;
 
 @Service
 @RequiredArgsConstructor
@@ -21,8 +21,9 @@ public class CookieService {
 
   public String getAccessTokenCookie(HttpServletRequest request){
     Cookie[] cookies = request.getCookies();
+    if (cookies == null) return null;
     for(Cookie cookie : cookies){
-      if(cookie.getName().equals(ACCESS_TYPE)){
+      if(cookie.getName().equals(ACCESS_COOKIE)){
         return cookie.getValue();
       }
     }
@@ -31,8 +32,9 @@ public class CookieService {
 
   public String getRefreshTokenCookie(HttpServletRequest request){
     Cookie[] cookies = request.getCookies();
+    if (cookies == null) return null;
     for(Cookie cookie : cookies){
-      if(cookie.getName().equals(REFRESH_TYPE)){
+      if(cookie.getName().equals(REFRESH_COOKIE)){
         return cookie.getValue();
       }
     }
@@ -40,43 +42,29 @@ public class CookieService {
   }
 
   public Cookie createRefreshTokenCookie(@NotNull String refreshToken){
-    Cookie cookie = new Cookie(REFRESH_TYPE, refreshToken);
-    cookie.setPath(cookieConfig.getRefreshCookiePath());
-    cookie.setHttpOnly(cookieConfig.getHttpOnly());
-    cookie.setSecure(cookieConfig.getSecure());
-    cookie.setMaxAge((int) jwtConfig.getRefreshTokenExpiration());
-
-    return cookie;
+    return createCookie(REFRESH_COOKIE, refreshToken, cookieConfig.getRefreshCookiePath(), (int) jwtConfig.getRefreshTokenExpiration(), cookieConfig.getSameSite());
   }
 
   public Cookie createAccessTokenCookie(@NotNull String accessToken){
-    Cookie cookie = new Cookie(ACCESS_TYPE, accessToken);
-    cookie.setPath(cookieConfig.getAccessCookiePath());
-    cookie.setHttpOnly(cookieConfig.getHttpOnly());
-    cookie.setSecure(cookieConfig.getSecure());
-    cookie.setMaxAge((int) jwtConfig.getAccessTokenExpiration());
-
-    return cookie;
+    return createCookie(ACCESS_COOKIE, accessToken, cookieConfig.getAccessCookiePath(), (int) jwtConfig.getAccessTokenExpiration(), cookieConfig.getSameSite());
   }
 
   public void deleteRefreshTokenCookie(HttpServletResponse response){
-    Cookie cookie = new Cookie(REFRESH_TYPE, null);
-    cookie.setPath(cookieConfig.getRefreshCookiePath());
-    cookie.setHttpOnly(cookieConfig.getHttpOnly());
-    cookie.setSecure(cookieConfig.getSecure());
-    cookie.setMaxAge(0);
-
-    response.addCookie(cookie);
+    response.addCookie(createCookie(REFRESH_COOKIE, null, cookieConfig.getRefreshCookiePath(), 0, cookieConfig.getSameSite()));
   }
 
   public void deleteAccessTokenCookie(HttpServletResponse response){
-    Cookie cookie = new Cookie(ACCESS_TYPE, null);
-    cookie.setPath(cookieConfig.getAccessCookiePath());
-    cookie.setHttpOnly(cookieConfig.getHttpOnly());
-    cookie.setSecure(cookieConfig.getSecure());
-    cookie.setMaxAge(0);
+    response.addCookie(createCookie(ACCESS_COOKIE, null, cookieConfig.getAccessCookiePath(), 0, cookieConfig.getSameSite()));
+  }
 
-    response.addCookie(cookie);
+  private Cookie createCookie(String name, String value, String path, int maxAge, String sameSite) {
+    Cookie cookie = new Cookie(name, value);
+    cookie.setPath(path);
+    cookie.setHttpOnly(true);
+    cookie.setSecure(cookieConfig.getSecure());
+    cookie.setMaxAge(maxAge);
+    cookie.setAttribute("SameSite", sameSite);
+    return cookie;
   }
 
 }
