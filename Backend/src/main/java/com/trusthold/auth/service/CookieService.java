@@ -41,10 +41,9 @@ public class CookieService {
 
   public Cookie createRefreshTokenCookie(@NotNull String refreshToken){
     Cookie cookie = new Cookie(REFRESH_TYPE, refreshToken);
-    cookie.setPath(cookieConfig.getREFRESH_COOKIE_PATH());
+    cookie.setPath(cookieConfig.getRefreshCookiePath());
     cookie.setHttpOnly(cookieConfig.getHttpOnly());
     cookie.setSecure(cookieConfig.getSecure());
-    cookie.setDomain(cookieConfig.getDomain());
     cookie.setMaxAge((int) jwtConfig.getRefreshTokenExpiration());
 
     return cookie;
@@ -52,10 +51,9 @@ public class CookieService {
 
   public Cookie createAccessTokenCookie(@NotNull String accessToken){
     Cookie cookie = new Cookie(ACCESS_TYPE, accessToken);
-    cookie.setPath(cookieConfig.getACCESS_COOKIE_PATH());
+    cookie.setPath(cookieConfig.getAccessCookiePath());
     cookie.setHttpOnly(cookieConfig.getHttpOnly());
     cookie.setSecure(cookieConfig.getSecure());
-    cookie.setDomain(cookieConfig.getDomain());
     cookie.setMaxAge((int) jwtConfig.getAccessTokenExpiration());
 
     return cookie;
@@ -63,10 +61,9 @@ public class CookieService {
 
   public void deleteRefreshTokenCookie(HttpServletResponse response){
     Cookie cookie = new Cookie(REFRESH_TYPE, null);
-    cookie.setPath(cookieConfig.getREFRESH_COOKIE_PATH());
+    cookie.setPath(cookieConfig.getRefreshCookiePath());
     cookie.setHttpOnly(cookieConfig.getHttpOnly());
     cookie.setSecure(cookieConfig.getSecure());
-    cookie.setDomain(cookieConfig.getDomain());
     cookie.setMaxAge(0);
 
     response.addCookie(cookie);
@@ -74,10 +71,9 @@ public class CookieService {
 
   public void deleteAccessTokenCookie(HttpServletResponse response){
     Cookie cookie = new Cookie(ACCESS_TYPE, null);
-    cookie.setPath(cookieConfig.getACCESS_COOKIE_PATH());
+    cookie.setPath(cookieConfig.getAccessCookiePath());
     cookie.setHttpOnly(cookieConfig.getHttpOnly());
     cookie.setSecure(cookieConfig.getSecure());
-    cookie.setDomain(cookieConfig.getDomain());
     cookie.setMaxAge(0);
 
     response.addCookie(cookie);

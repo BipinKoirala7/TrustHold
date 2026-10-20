@@ -7,11 +7,13 @@ import com.trusthold.user.*;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.auth.exception.EmailAlreadyExistsException;
 import com.trusthold.auth.exception.UsernameAlreadyExistsException;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 @Service
@@ -21,9 +23,14 @@ import org.springframework.validation.annotation.Validated;
 public class AuthService {
 
   private final UserMapper userMapper;
+  private final UserService userService;
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
+  private final JwtService jwtService;
+  private final CookieService cookieService;
+  private final ActiveRefreshTokenService activeRefreshTokenService;
 
+  @Transactional
   public void registerLocalUser(@NotNull RegisterUserDto registerUserDto) {
     log.debug("Registering New Local User: {}", registerUserDto.getEmail());
 
@@ -45,22 +52,36 @@ public class AuthService {
     log.debug("User registered successfully: {}", user.getEmail());
   }
 
-  public void loginUser(@NotNull LoginUserDto loginUserDto) {
-    log.debug("Logging In Local User : {}", loginUserDto.getEmail());
+  @Transactional
+  public void loginUser(@NotNull LoginUserDto loginUserDto, HttpServletResponse response) {
+    log.debug("Logging In User : {}", loginUserDto.getEmail());
 
     User user = userRepository
         .findByEmail(loginUserDto.getEmail())
         .orElseThrow(() -> {
-          log.debug("User with given email doesn't exists");
+          log.debug("Logging In User Failed - User with given email doesn't exists");
           return new UserNotFoundException("User with given email doesn't exists");
         });
 
     if(!passwordEncoder.matches(loginUserDto.getPassword(), user.getPassword())) {
-      log.debug("Invalid password for user");
+      log.debug("Logging In User Failed - Invalid password for user");
       throw new IncorrectCredentialsException("Invalid password");
     }
 
-    // Todo: Create JWT token and create cookie and add that to response object and return
+    // Create Jwt Tokens
+    String newRefreshToken = jwtService.generateRefreshToken(user);
+    String newAccessToken = jwtService.generateAccessToken(user);
+
+    // Create and Add cookies to the response object with token inside them
+    response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
+    response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
+
+    // Storing active refresh token
+    activeRefreshTokenService.storeActiveRefreshToken(user.getId(), newRefreshToken);
+
+    // Update user's last login time
+    userService.updateUserLastLoginTime(user.getId());
+
     log.debug("User logged in successfully");
   }
 }

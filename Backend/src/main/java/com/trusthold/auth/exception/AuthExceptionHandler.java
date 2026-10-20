@@ -32,13 +32,13 @@ public class AuthExceptionHandler {
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   public ApiResponse<Void> handleIncorrectCredentials(IncorrectCredentialsException ex) {
     log.warn("Incorrect credentials", ex);
-    return ApiResponse.error(ex.getMessage());
+    return ApiResponse.error("Invalid email or password!");
   }
 
   @ExceptionHandler(UserNotFoundException.class)
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   public ApiResponse<Void> handleUserNotFound(UserNotFoundException ex) {
     log.warn("User not found", ex);
-    return ApiResponse.error(ex.getMessage());
+    return ApiResponse.error("Invalid email or password!");
   }
 }

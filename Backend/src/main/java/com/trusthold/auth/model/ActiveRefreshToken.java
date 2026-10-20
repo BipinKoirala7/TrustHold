@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -16,20 +16,18 @@ import java.util.UUID;
 public class ActiveRefreshToken {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
-  private UUID id;
-
   @NotNull
+  @Column(name = "user_id", nullable = false, unique = true)
   private UUID userId;
 
-  @Column(name = "refresh_token")
+  @Column(name = "refresh_token", columnDefinition = "TEXT")
   private String refreshToken;
 
   @Column(name = "created_at")
   @CreationTimestamp
-  private LocalDateTime createdAt;
+  private Instant createdAt;
 
+  @NotNull
   @Column(name = "expires_at")
-  @CreationTimestamp
-  private LocalDateTime expiresAt;
+  private Instant expiresAt;
 }

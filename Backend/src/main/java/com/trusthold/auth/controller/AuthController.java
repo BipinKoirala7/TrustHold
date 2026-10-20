@@ -4,6 +4,7 @@ import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.auth.dtos.RegisterUserDto;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,8 +27,8 @@ public class AuthController {
 
   @PostMapping("/login")
   @ResponseStatus(HttpStatus.OK)
-  public ApiResponse<Void> loginUser(@Valid @RequestBody LoginUserDto loginUserDto) {
-    authService.loginUser(loginUserDto);
+  public ApiResponse<Void> loginUser(@Valid @RequestBody LoginUserDto loginUserDto, HttpServletResponse response) {
+    authService.loginUser(loginUserDto, response);
     return ApiResponse.success("User logged in successfully");
   }
 }
