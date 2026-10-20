@@ -2,11 +2,13 @@ package com.trusthold.auth.service;
 
 import com.trusthold.auth.exception.InValidTokenException;
 import com.trusthold.config.JwtConfig;
+import com.trusthold.user.Role;
 import com.trusthold.user.User;
 import static com.trusthold.config.JwtConfig.REFRESH_TYPE;
 import static com.trusthold.config.JwtConfig.TOKEN_TYPE;
 import static com.trusthold.config.JwtConfig.ACCESS_TYPE;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.validation.constraints.NotBlank;
@@ -74,11 +76,19 @@ public class JwtService {
         .getPayload();
   }
 
-  public boolean isAccessToken(String token){
+  public Claims extractAccessClaims(String token) {
+    Claims claims = extractClaims(token);
+    if (!ACCESS_TYPE.equals(claims.get(TOKEN_TYPE, String.class))) {
+      throw new JwtException("Not an access token");
+    }
+    return claims;
+  }
+
+  public boolean isAccessTokenValid(@NotNull String token){
     return extractClaims(token).get(TOKEN_TYPE, String.class).equals(ACCESS_TYPE);
   }
 
-  public boolean isRefreshToken(String token){
+  public boolean isRefreshTokenValid(@NotNull String token){
     return extractClaims(token).get(TOKEN_TYPE, String.class).equals(REFRESH_TYPE);
   }
 
@@ -86,50 +96,26 @@ public class JwtService {
     return extractClaims(token).getSubject();
   }
 
-  public String extractEmail(@NotBlank String token){
-    return isAccessToken(token) ? extractClaims(token).get("email", String.class) : null;
+  public Role extractRole(@NotBlank String token){
+    return isAccessTokenValid(token) ? Role.valueOf(extractClaims(token).get("role", String.class)) : null;
   }
 
-  public String extractUsername(@NotBlank String token){
-    return isAccessToken(token) ? extractClaims(token).get("username", String.class) : null;
-  }
-
-  public Instant extractExpiration(String token){
-    return extractClaims(token).getExpiration().toInstant();
-  }
-
-  public boolean isExpired(String token){
-    return extractExpiration(token).isBefore(Instant.now());
-  }
-
-  public boolean isRefreshTokenValid(@NotBlank String token){
-    return isRefreshToken(token) && !isExpired(token);
-  }
-
-  public boolean isAccessTokenValid(String token){
-    return isAccessToken(token) && !isExpired(token);
-  }
-
-  public String validateAccessToken(@NotBlank String accessToken){
+  public void validateAccessToken(@NotBlank String accessToken){
     log.debug("Access Token Validation");
 
-    if(isAccessTokenValid(accessToken)){
-      log.debug("Access Token Validation Failed - Access Token is expired");
-      throw new InValidTokenException("Access token is expired");
+    Claims claims = extractClaims(accessToken);
+    if(!ACCESS_TYPE.equals(claims.get(TOKEN_TYPE, String.class))){
+      throw new InValidTokenException("Invalid access token");
     }
-
-    return accessToken;
   }
 
-  public String validateRefreshToken(@NotBlank String refreshToken){
+  public void validateRefreshToken(@NotBlank String refreshToken){
     log.debug("Refresh Token Validation");
 
-    if(!isRefreshTokenValid(refreshToken) && activeRefreshTokenService.isRefreshTokenActive(refreshToken)){
-      log.debug("Refresh Token Validation Failed - Refresh Token is expired");
-      throw new InValidTokenException("Refresh Token is expired");
+    Claims claims = extractClaims(refreshToken);
+    if (!REFRESH_TYPE.equals(claims.get(TOKEN_TYPE, String.class)) || !activeRefreshTokenService.isRefreshTokenActive(refreshToken)) {
+      throw new InValidTokenException("Invalid refresh token");
     }
-
-    return refreshToken;
   }
 
 }
