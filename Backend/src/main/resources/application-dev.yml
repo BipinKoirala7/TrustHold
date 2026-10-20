@@ -35,3 +35,4 @@ app:
 logging:
   level:
     org.hibernate.SQL: DEBUG
+    root: DEBUG

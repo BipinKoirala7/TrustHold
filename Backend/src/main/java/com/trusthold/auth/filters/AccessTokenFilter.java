@@ -34,7 +34,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   private final JwtService jwtService;
 
   private final List<String> SHOULD_NOT_FILTER = List.of(
-      "/auth/", "/oauth2/", "/login/", "/actuator", "/oauth/", "/swagger-ui/", "/swagger-ui.html", "v3/api-docs"
+      "/auth/", "/oauth2/", "/login/", "/actuator/", "/oauth/", "/swagger-ui/", "/swagger-ui.html", "v3/api-docs"
   );
 
   @Override
@@ -45,9 +45,14 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+    log.debug("Request Start ...");
+    log.debug("Request path: {}", request.getServletPath());
+
     try {
       String accessToken = cookieService.getAccessTokenCookie(request);
       if (accessToken == null) {
+        log.debug("Access token cookie not found");
         throw new JwtException("Access token cookie not found");
       }
 
@@ -60,10 +65,12 @@ public class AccessTokenFilter extends OncePerRequestFilter {
       Role role = Role.valueOf(roleClaim);
 
       SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(userId, accessToken, List.of(new SimpleGrantedAuthority("ROLE_" + role))));
-
+      log.debug("Access token validated and user authenticated");
     } catch (JwtException | InValidTokenException | IllegalArgumentException e) {
+      log.error("Error validating access token", e);
       SecurityContextHolder.clearContext();
       sendErrorResponse(response, "Please log in");
+      return;
     }
     filterChain.doFilter(request, response);
   }
@@ -74,6 +81,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
       return;
     }
 
+    log.debug("Sending error response: {}", message);
     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
