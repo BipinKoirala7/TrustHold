@@ -1,6 +1,8 @@
 package com.trusthold.config;
 
 import com.trusthold.auth.filters.AccessTokenFilter;
+import com.trusthold.auth.handlers.OAuthFailureHandler;
+import com.trusthold.auth.handlers.OAuthSuccessHandler;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
@@ -18,6 +20,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
   private final AccessTokenFilter accessTokenFilter;
+  private final OAuthSuccessHandler oAuthSuccessHandler;
+  private final OAuthFailureHandler oAuthFailureHandler;
   private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
   @Bean
@@ -29,7 +33,7 @@ public class SecurityConfig {
         .addFilterBefore(accessTokenFilter, UsernamePasswordAuthenticationFilter.class)
         .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
         .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(customAuthenticationEntryPoint))
-        .oauth2Login(Customizer.withDefaults())
+        .oauth2Login(oauth -> oauth.successHandler(oAuthSuccessHandler).failureHandler(oAuthFailureHandler))
         .build();
   }
 }

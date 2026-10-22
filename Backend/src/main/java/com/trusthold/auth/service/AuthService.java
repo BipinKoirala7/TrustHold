@@ -58,7 +58,7 @@ public class AuthService {
   }
 
   @Transactional
-  public void registerOAuthUser(@NotNull RegisterOAuthUserDto registerOAuthUserDto){
+  public User registerOAuthUser(@NotNull RegisterOAuthUserDto registerOAuthUserDto){
     log.debug("Registering OAuth User: {}", registerOAuthUserDto.getEmail());
 
     if(userRepository.existsByUsername(registerOAuthUserDto.getUsername())) {
@@ -73,9 +73,7 @@ public class AuthService {
 
     User user = userMapper.createOAuthUserDtoToUser(registerOAuthUserDto);
     user.setAuthProvider(AuthProvider.GOOGLE);
-    userRepository.save(user);
-
-    log.debug("OAuth User registered successfully: {}", user.getEmail());
+    return userRepository.save(user);
   }
 
   @Transactional

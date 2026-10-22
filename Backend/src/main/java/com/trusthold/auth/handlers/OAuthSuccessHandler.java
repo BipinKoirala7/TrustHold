@@ -46,7 +46,7 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       return;
     }
 
-    String providerId = oAuth2User.getAttribute("providerId");
+    String providerId = oAuth2User.getAttribute("sub");
 
     if (providerId == null) {
       log.warn("Provider ID is null");
@@ -93,22 +93,28 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       registerOAuthUserDto.setLastName(familyName);
       registerOAuthUserDto.setEmail(email);
 
-      authService.registerOAuthUser(registerOAuthUserDto);
+      User registerdOAuthUser = authService.registerOAuthUser(registerOAuthUserDto);
+
+      String newRefreshToken = jwtService.generateRefreshToken(registerdOAuthUser);
+      String newAccessToken = jwtService.generateAccessToken(registerdOAuthUser);
+
+      response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
+      response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
+
+      response.sendRedirect(frontendUrl + "/dashboard");
     } else {
       if(!Objects.equals(user.get().getProviderId(), providerId)){
         log.warn("Token is invalid");
         response.sendRedirect(frontendUrl + "/login");
         return;
       }
+      String newRefreshToken = jwtService.generateRefreshToken(user.get());
+      String newAccessToken = jwtService.generateAccessToken(user.get());
+
+      response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
+      response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
+
+      response.sendRedirect(frontendUrl + "/dashboard");
     }
-
-    String newRefreshToken = jwtService.generateRefreshToken(user.get());
-    String newAccessToken = jwtService.generateAccessToken(user.get());
-
-    response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
-    response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
-
-    response.sendRedirect(frontendUrl + "/dashboard");
-    log.warn("User found: {}", user.get().getEmail());
   }
 }
