@@ -34,6 +34,13 @@ public class AuthController {
     return ApiResponse.success("logged in successfully");
   }
 
+  @PostMapping("/token/refresh")
+  @ResponseStatus(HttpStatus.OK)
+  public ApiResponse<Void> refreshToken(HttpServletResponse response, @AuthenticationPrincipal AuthUser authUser){
+    authService.refreshToken(response, authUser);
+    return ApiResponse.success("Token refreshed successfully");
+  }
+
   @PostMapping("/logout")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> logout(HttpServletResponse response, @AuthenticationPrincipal AuthUser authUser){

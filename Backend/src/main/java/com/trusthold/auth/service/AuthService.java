@@ -56,12 +56,7 @@ public class AuthService {
   public void loginUser(@NotNull LoginUserDto loginUserDto, HttpServletResponse response) {
     log.debug("Logging In User : {}", loginUserDto.getEmail());
 
-    User user = userRepository
-        .findByEmail(loginUserDto.getEmail())
-        .orElseThrow(() -> {
-          log.debug("Logging In User Failed - User with given email doesn't exists");
-          return new UserNotFoundException("User with given email doesn't exists");
-        });
+    User user = userService.getUserByEmail(loginUserDto.getEmail());
 
     if(!passwordEncoder.matches(loginUserDto.getPassword(), user.getPassword())) {
       log.debug("Logging In User Failed - Invalid password for user");
@@ -83,6 +78,28 @@ public class AuthService {
     userService.updateUserLastLoginTime(user.getId());
 
     log.debug("User logged in successfully");
+  }
+
+  @Transactional
+  public void refreshToken(HttpServletResponse response, AuthUser authUser){
+    log.debug("Refreshing Token");
+
+    if(authUser == null){
+      log.warn("User is null, cannot refresh token");
+      throw new InValidTokenException("Token is invalid");
+    }
+
+    User user = userService.getUserById(authUser.id());
+    String newRefreshToken = jwtService.generateRefreshToken(user);
+    String newAccessToken = jwtService.generateAccessToken(user);
+
+    activeRefreshTokenService.removeActiveRefreshToken(user.getId());
+    activeRefreshTokenService.storeActiveRefreshToken(user.getId(), newRefreshToken);
+
+    response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
+    response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
+
+    log.debug("Token refreshed successfully");
   }
 
   @Transactional
