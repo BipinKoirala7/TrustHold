@@ -1,8 +1,10 @@
 package com.trusthold.auth;
 
 import com.trusthold.auth.dtos.RegisterUserDto;
-import com.trusthold.auth.exception.EmailAlreadyExists;
-import com.trusthold.auth.exception.UsernameAlreadyExists;
+import com.trusthold.auth.exception.EmailAlreadyExistsException;
+import com.trusthold.auth.exception.UsernameAlreadyExistsException;
+import com.trusthold.auth.model.RegistrationRole;
+import com.trusthold.auth.service.AuthService;
 import com.trusthold.user.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -71,7 +73,7 @@ public class AuthServiceTests {
       when(userRepository.existsByUsername(registerUserDto.getUsername())).thenReturn(true);
 
       // Act & Assert
-      assertThrows(UsernameAlreadyExists.class, () -> underTest.registerLocalUser(registerUserDto));
+      assertThrows(UsernameAlreadyExistsException.class, () -> underTest.registerLocalUser(registerUserDto));
       verify(userRepository).existsByUsername(registerUserDto.getUsername());
       verify(userRepository, never()).existsByEmail(registerUserDto.getEmail());
       verify(userMapper, never()).createUserDtoToUser(registerUserDto);
@@ -86,7 +88,7 @@ public class AuthServiceTests {
       when(userRepository.existsByEmail(registerUserDto.getEmail())).thenReturn(true);
 
       // Act & Assert
-      assertThrows(EmailAlreadyExists.class, () -> underTest.registerLocalUser(registerUserDto));
+      assertThrows(EmailAlreadyExistsException.class, () -> underTest.registerLocalUser(registerUserDto));
       verify(userRepository).existsByUsername(registerUserDto.getUsername());
       verify(userRepository).existsByEmail(registerUserDto.getEmail());
       verify(userMapper, never()).createUserDtoToUser(registerUserDto);

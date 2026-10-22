@@ -2,6 +2,7 @@ package com.trusthold.auth;
 
 import com.trusthold.TestcontainersConfiguration;
 import com.trusthold.auth.dtos.RegisterUserDto;
+import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.user.AuthProvider;
 import com.trusthold.user.User;

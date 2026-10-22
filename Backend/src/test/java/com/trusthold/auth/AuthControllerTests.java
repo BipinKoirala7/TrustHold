@@ -1,8 +1,11 @@
 package com.trusthold.auth;
 
+import com.trusthold.auth.controller.AuthController;
 import com.trusthold.auth.dtos.RegisterUserDto;
-import com.trusthold.auth.exception.EmailAlreadyExists;
-import com.trusthold.auth.exception.UsernameAlreadyExists;
+import com.trusthold.auth.exception.EmailAlreadyExistsException;
+import com.trusthold.auth.exception.UsernameAlreadyExistsException;
+import com.trusthold.auth.model.RegistrationRole;
+import com.trusthold.auth.service.AuthService;
 import com.trusthold.config.SecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -74,7 +77,7 @@ public class AuthControllerTests {
     @Test
     void shouldReturnConflict_whenUsernameAlreadyExists() throws Exception {
       // Arrange
-      doThrow(new UsernameAlreadyExists("Username already exists"))
+      doThrow(new UsernameAlreadyExistsException("Username already exists"))
           .when(authService)
           .registerLocalUser(any(RegisterUserDto.class));
 
@@ -88,7 +91,7 @@ public class AuthControllerTests {
     @Test
     void shouldReturnConflict_whenEmailAlreadyExists() throws Exception {
       // Arrange
-      doThrow(new EmailAlreadyExists("Email already exists"))
+      doThrow(new EmailAlreadyExistsException("Email already exists"))
           .when(authService)
           .registerLocalUser(any(RegisterUserDto.class));
 
