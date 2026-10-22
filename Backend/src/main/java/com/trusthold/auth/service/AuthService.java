@@ -1,6 +1,8 @@
 package com.trusthold.auth.service;
 
+import com.trusthold.auth.dtos.LoginOAuthUserDto;
 import com.trusthold.auth.dtos.LoginUserDto;
+import com.trusthold.auth.dtos.RegisterOAuthUserDto;
 import com.trusthold.auth.exception.*;
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.shared.Guard;
@@ -53,6 +55,27 @@ public class AuthService {
     userRepository.save(user);
 
     log.debug("User registered successfully: {}", user.getEmail());
+  }
+
+  @Transactional
+  public void registerOAuthUser(@NotNull RegisterOAuthUserDto registerOAuthUserDto){
+    log.debug("Registering OAuth User: {}", registerOAuthUserDto.getEmail());
+
+    if(userRepository.existsByUsername(registerOAuthUserDto.getUsername())) {
+      log.debug("Attempt to create oauth user with existing username: {}", registerOAuthUserDto.getUsername());
+      throw new UsernameAlreadyExistsException("Username is already taken");
+    }
+
+    if(userRepository.existsByEmail(registerOAuthUserDto.getEmail())) {
+      log.debug("Attempt to create oauth user with existing email: {}", registerOAuthUserDto.getEmail());
+      throw new EmailAlreadyExistsException("A User with this email already exists");
+    }
+
+    User user = userMapper.createOAuthUserDtoToUser(registerOAuthUserDto);
+    user.setAuthProvider(AuthProvider.GOOGLE);
+    userRepository.save(user);
+
+    log.debug("OAuth User registered successfully: {}", user.getEmail());
   }
 
   @Transactional

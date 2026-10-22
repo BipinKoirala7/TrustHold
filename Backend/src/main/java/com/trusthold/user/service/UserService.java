@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -44,7 +45,17 @@ public class UserService {
     userRepository.save(user);
   }
 
+  @Transactional
+  public void updateUserLastLoginTime(@NotNull UUID userId) {
+    log.debug("Updating user's last login time");
+    userRepository.updateUserLastLoginTime(userId, Instant.now());
+  }
+
   // Helper methods
+  public Optional<User> getByEmail(@NotNull String email) {
+    return userRepository.findByEmail(email);
+  }
+
   public User getUserById(@NotNull UUID userId) {
     return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
   }
@@ -53,9 +64,7 @@ public class UserService {
     return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
   }
 
-  @Transactional
-  public void updateUserLastLoginTime(@NotNull UUID userId) {
-    log.debug("Updating user's last login time");
-    userRepository.updateUserLastLoginTime(userId, Instant.now());
+  public boolean existsByEmailAndProviderId(@NotNull String email, @NotNull String providerId) {
+    return userRepository.existsByEmailAndProviderId(email, providerId);
   }
 }
