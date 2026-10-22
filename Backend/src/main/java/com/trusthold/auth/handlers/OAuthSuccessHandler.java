@@ -1,8 +1,6 @@
 package com.trusthold.auth.handlers;
 
 import com.trusthold.auth.dtos.RegisterOAuthUserDto;
-import com.trusthold.auth.exception.InValidTokenException;
-import com.trusthold.auth.exception.UserNotFoundException;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.service.CookieService;
 import com.trusthold.auth.service.JwtService;
@@ -84,7 +82,6 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     log.warn("Family name: {}", familyName);
     log.warn("Image URL: {}", imageUrl);
 
-    // Todo: First check with email and then move with providerId if that matches or not
     Optional<User> user = userService.getByEmail(email);
 
     if(user.isEmpty()) {
