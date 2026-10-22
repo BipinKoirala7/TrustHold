@@ -2,8 +2,8 @@ package com.trusthold.auth.service;
 
 import com.trusthold.auth.exception.InValidTokenException;
 import com.trusthold.config.JwtConfig;
-import com.trusthold.user.Role;
-import com.trusthold.user.User;
+import com.trusthold.user.model.Role;
+import com.trusthold.user.model.User;
 import static com.trusthold.config.JwtConfig.REFRESH_TYPE;
 import static com.trusthold.config.JwtConfig.TOKEN_TYPE;
 import static com.trusthold.config.JwtConfig.ACCESS_TYPE;

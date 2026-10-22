@@ -1,7 +1,7 @@
 package com.trusthold.user.dtos;
 
-import com.trusthold.user.AuthProvider;
-import com.trusthold.user.Role;
+import com.trusthold.user.model.AuthProvider;
+import com.trusthold.user.model.Role;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -5,7 +5,7 @@ import com.trusthold.auth.model.AuthUser;
 import com.trusthold.auth.service.CookieService;
 import com.trusthold.auth.service.JwtService;
 import com.trusthold.shared.dtos.ApiResponse;
-import com.trusthold.user.Role;
+import com.trusthold.user.model.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;

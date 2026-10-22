@@ -4,8 +4,12 @@ import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.exception.*;
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.shared.Guard;
-import com.trusthold.user.*;
 import com.trusthold.auth.dtos.RegisterUserDto;
+import com.trusthold.user.model.AuthProvider;
+import com.trusthold.user.model.User;
+import com.trusthold.user.repository.UserRepository;
+import com.trusthold.user.service.UserMapper;
+import com.trusthold.user.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

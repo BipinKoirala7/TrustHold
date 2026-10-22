@@ -1,4 +1,4 @@
-package com.trusthold.user;
+package com.trusthold.user.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;

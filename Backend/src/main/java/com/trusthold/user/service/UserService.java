@@ -1,4 +1,4 @@
-package com.trusthold.user;
+package com.trusthold.user.service;
 
 import com.trusthold.auth.exception.InValidTokenException;
 import com.trusthold.auth.exception.UserNotFoundException;
@@ -6,10 +6,11 @@ import com.trusthold.auth.model.AuthUser;
 import com.trusthold.shared.Guard;
 import com.trusthold.user.dtos.PublicUserDto;
 import com.trusthold.user.dtos.UpdateUserDto;
+import com.trusthold.user.model.User;
+import com.trusthold.user.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;

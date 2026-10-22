@@ -2,7 +2,7 @@ package com.trusthold.user.controller;
 
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.shared.dtos.ApiResponse;
-import com.trusthold.user.UserService;
+import com.trusthold.user.service.UserService;
 import com.trusthold.user.dtos.PublicUserDto;
 import com.trusthold.user.dtos.UpdateUserDto;
 import jakarta.validation.Valid;

@@ -1,4 +1,4 @@
-package com.trusthold.user;
+package com.trusthold.user.model;
 
 /**
  * Enum representing the authentication provider for a user.

@@ -1,8 +1,9 @@
-package com.trusthold.user;
+package com.trusthold.user.service;
 
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.user.dtos.PublicUserDto;
 import com.trusthold.user.dtos.UpdateUserDto;
+import com.trusthold.user.model.User;
 import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")

@@ -1,5 +1,6 @@
-package com.trusthold.user;
+package com.trusthold.user.repository;
 
+import com.trusthold.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

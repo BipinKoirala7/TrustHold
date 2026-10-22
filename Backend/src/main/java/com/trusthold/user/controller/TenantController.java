@@ -1,5 +1,6 @@
-package com.trusthold.user;
+package com.trusthold.user.controller;
 
+import com.trusthold.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
