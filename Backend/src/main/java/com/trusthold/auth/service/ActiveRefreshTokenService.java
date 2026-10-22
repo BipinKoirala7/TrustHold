@@ -37,9 +37,9 @@ public class ActiveRefreshTokenService {
   }
 
   @Transactional
-  public void removeActiveRefreshToken(@NotNull UUID userId, @NotBlank String refreshToken){
+  public void removeActiveRefreshToken(@NotNull UUID userId){
     log.debug("Removing active refresh token for user with ID: {}", userId);
-    activeRefreshTokenRepository.deleteActiveRefreshTokenByUserIdAndRefreshToken(userId, refreshToken);
+    activeRefreshTokenRepository.deleteActiveRefreshTokenByUserId(userId);
   }
 
   public boolean isRefreshTokenActive(@NotBlank String refreshToken){

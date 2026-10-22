@@ -1,12 +1,10 @@
 package com.trusthold.auth.service;
 
 import com.trusthold.auth.dtos.LoginUserDto;
-import com.trusthold.auth.exception.IncorrectCredentialsException;
-import com.trusthold.auth.exception.UserNotFoundException;
+import com.trusthold.auth.exception.*;
+import com.trusthold.auth.model.AuthUser;
 import com.trusthold.user.*;
 import com.trusthold.auth.dtos.RegisterUserDto;
-import com.trusthold.auth.exception.EmailAlreadyExistsException;
-import com.trusthold.auth.exception.UsernameAlreadyExistsException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -88,18 +86,19 @@ public class AuthService {
   }
 
   @Transactional
-  public void logoutUser(HttpServletResponse response){
+  public void logoutUser(HttpServletResponse response, AuthUser authUser){
     log.debug("Logging Out User");
 
-    // replace it with User id and refresh Token from Security Context
-    UUID userId = UUID.randomUUID();
-    String refreshToken = "";
+    if(authUser == null){
+      log.warn("User is null, cannot logout");
+      throw new InValidTokenException("Token is invalid");
+    }
 
     // Delete all the cookies from response
     cookieService.deleteRefreshTokenCookie(response);
     cookieService.deleteAccessTokenCookie(response);
 
     // Remove the active refresh token
-    activeRefreshTokenService.removeActiveRefreshToken(userId, refreshToken);
+    activeRefreshTokenService.removeActiveRefreshToken(authUser.id());
   }
 }

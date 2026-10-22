@@ -1,5 +1,6 @@
 package com.trusthold.auth.controller;
 
+import com.trusthold.auth.model.AuthUser;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.shared.dtos.ApiResponse;
@@ -8,11 +9,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("auth")
 @RequiredArgsConstructor
 @Validated
 public class AuthController {
@@ -34,8 +36,8 @@ public class AuthController {
 
   @PostMapping("/logout")
   @ResponseStatus(HttpStatus.OK)
-  public ApiResponse<Void> logout(HttpServletResponse response){
-    authService.logoutUser(response);
+  public ApiResponse<Void> logout(HttpServletResponse response, @AuthenticationPrincipal AuthUser authUser){
+    authService.logoutUser(response, authUser);
     return ApiResponse.success("Logged Out Successfully");
   }
 }

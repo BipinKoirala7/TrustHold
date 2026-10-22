@@ -1,7 +1,7 @@
 package com.trusthold.auth.filters;
 
 import com.trusthold.auth.exception.InValidTokenException;
-import com.trusthold.auth.model.JwtAuthenticationToken;
+import com.trusthold.auth.model.AuthUser;
 import com.trusthold.auth.service.CookieService;
 import com.trusthold.auth.service.JwtService;
 import com.trusthold.shared.dtos.ApiResponse;
@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -34,7 +35,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   private final JwtService jwtService;
 
   private final List<String> SHOULD_NOT_FILTER = List.of(
-      "/auth/", "/oauth2/", "/login/", "/actuator/", "/oauth/", "/swagger-ui/", "/swagger-ui.html", "v3/api-docs"
+      "/oauth2/", "/auth/login", "/actuator/", "/oauth/", "/swagger-ui/", "/swagger-ui.html", "/v3/api-docs"
   );
 
   @Override
@@ -46,26 +47,30 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-    log.debug("Request Start ...");
-    log.debug("Request path: {}", request.getServletPath());
+    log.warn("Request Start ...");
+    log.warn("Request path: {}", request.getServletPath());
 
     try {
       String accessToken = cookieService.getAccessTokenCookie(request);
       if (accessToken == null) {
-        log.debug("Access token cookie not found");
+        log.warn("Access token cookie not found");
         throw new JwtException("Access token cookie not found");
       }
 
       Claims claims = jwtService.extractAccessClaims(accessToken);
       String roleClaim = claims.get("role", String.class);
 
-      if (roleClaim == null) throw new JwtException("Missing role");
+      if (roleClaim == null) {
+        log.warn("Role is not present in the token claim");
+        throw new JwtException("Missing role");
+      }
 
-      UUID userId = UUID.fromString(claims.getSubject());
-      Role role = Role.valueOf(roleClaim);
+      AuthUser authUser = new AuthUser(UUID.fromString(claims.getSubject()), accessToken, Role.valueOf(roleClaim));
+      var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + authUser.role().toString()));
+      var auth = new UsernamePasswordAuthenticationToken(authUser, null, authorities);
 
-      SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(userId, accessToken, List.of(new SimpleGrantedAuthority("ROLE_" + role))));
-      log.debug("Access token validated and user authenticated");
+      SecurityContextHolder.getContext().setAuthentication(auth);
+      log.warn("Access token validated and user authenticated");
     } catch (JwtException | InValidTokenException | IllegalArgumentException e) {
       log.error("Error validating access token", e);
       SecurityContextHolder.clearContext();
@@ -77,7 +82,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 
   private void sendErrorResponse(HttpServletResponse response, String message) throws IOException {
     if(response.isCommitted()){
-      logger.debug("Response is already committed, cannot send error response");
+      log.warn("Response is already committed, cannot send error response");
       return;
     }
 
