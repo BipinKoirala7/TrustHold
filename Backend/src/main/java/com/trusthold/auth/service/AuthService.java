@@ -3,6 +3,7 @@ package com.trusthold.auth.service;
 import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.exception.*;
 import com.trusthold.auth.model.AuthUser;
+import com.trusthold.shared.Guard;
 import com.trusthold.user.*;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import jakarta.servlet.http.HttpServletResponse;
@@ -106,10 +107,7 @@ public class AuthService {
   public void logoutUser(HttpServletResponse response, AuthUser authUser){
     log.debug("Logging Out User");
 
-    if(authUser == null){
-      log.warn("User is null, cannot logout");
-      throw new InValidTokenException("Token is invalid");
-    }
+    Guard.requireNotNull(authUser, new InValidTokenException("Token is invalid"));
 
     // Delete all the cookies from response
     cookieService.deleteRefreshTokenCookie(response);

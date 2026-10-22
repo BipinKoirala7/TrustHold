@@ -22,28 +22,28 @@ public class AuthController {
 
   @PostMapping("/register")
   @ResponseStatus(HttpStatus.CREATED)
-  public ApiResponse<Void> registerLocalUser(@Valid @RequestBody RegisterUserDto registerUserDto) {
+  public ApiResponse<Void> registerLocalUser(@RequestBody @Valid RegisterUserDto registerUserDto) {
     authService.registerLocalUser(registerUserDto);
     return ApiResponse.success("User registered successfully");
   }
 
   @PostMapping("/login")
   @ResponseStatus(HttpStatus.OK)
-  public ApiResponse<Void> loginUser(@Valid @RequestBody LoginUserDto loginUserDto, HttpServletResponse response) {
+  public ApiResponse<Void> loginUser(@RequestBody @Valid  LoginUserDto loginUserDto, HttpServletResponse response) {
     authService.loginUser(loginUserDto, response);
     return ApiResponse.success("logged in successfully");
   }
 
   @PostMapping("/token/refresh")
   @ResponseStatus(HttpStatus.OK)
-  public ApiResponse<Void> refreshToken(HttpServletResponse response, @AuthenticationPrincipal AuthUser authUser){
+  public ApiResponse<Void> refreshToken(HttpServletResponse response, @AuthenticationPrincipal @Valid AuthUser authUser){
     authService.refreshToken(response, authUser);
     return ApiResponse.success("Token refreshed successfully");
   }
 
   @PostMapping("/logout")
   @ResponseStatus(HttpStatus.OK)
-  public ApiResponse<Void> logout(HttpServletResponse response, @AuthenticationPrincipal AuthUser authUser){
+  public ApiResponse<Void> logout(HttpServletResponse response, @AuthenticationPrincipal @Valid AuthUser authUser){
     authService.logoutUser(response, authUser);
     return ApiResponse.success("Logged Out Successfully");
   }
