@@ -57,8 +57,8 @@ public class AuthController {
 
   @PostMapping("/token/refresh")
   @ResponseStatus(HttpStatus.OK)
-  public ApiResponse<Void> refreshToken(HttpServletResponse response, @AuthenticationPrincipal @Valid AuthUser authUser){
-    authService.refreshToken(response, authUser);
+  public ApiResponse<Void> refreshToken(HttpServletRequest request, HttpServletResponse response){
+    authService.refreshToken(request, response);
     return ApiResponse.success("Token refreshed successfully");
   }
 

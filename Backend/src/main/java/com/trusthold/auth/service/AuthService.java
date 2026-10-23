@@ -12,6 +12,9 @@ import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
 import com.trusthold.user.service.UserMapper;
 import com.trusthold.user.service.UserService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -105,15 +110,18 @@ public class AuthService {
   }
 
   @Transactional
-  public void refreshToken(HttpServletResponse response, AuthUser authUser){
+  public void refreshToken(HttpServletRequest request, HttpServletResponse response){
     log.debug("Refreshing Token");
 
-    if(authUser == null){
-      log.warn("User is null, cannot refresh token");
-      throw new InValidTokenException("Token is invalid");
+    String refreshToken = cookieService.getRefreshTokenCookie(request);
+
+    if(refreshToken == null){
+      throw new JwtException("Refresh token is null");
     }
 
-    User user = userService.getUserById(authUser.id());
+    Claims claims = jwtService.extractClaims(refreshToken);
+
+    User user = userService.getUserById(UUID.fromString(claims.getSubject()));
     String newRefreshToken = jwtService.generateRefreshToken(user);
     String newAccessToken = jwtService.generateAccessToken(user);
 
