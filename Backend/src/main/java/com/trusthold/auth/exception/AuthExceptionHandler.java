@@ -9,9 +9,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/**
- * Catches Authentication related exceptions.
- */
 @RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Slf4j

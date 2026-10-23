@@ -11,7 +11,6 @@ import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
 import com.trusthold.user.service.UserMapper;
 import com.trusthold.user.service.UserService;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,8 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-
-import java.util.UUID;
 
 /**
  * Handles authentication use case: local and Google OAuth user registration, login
@@ -72,12 +69,12 @@ public class AuthService {
   public void registerLocalUser(@NotNull RegisterUserDto registerUserDto) {
     log.debug("Registering local user");
 
-    if(userRepository.existsByUsername(registerUserDto.getUsername())) {
+    if(userRepository.existsByUsername(registerUserDto.username())) {
       log.debug("Registration local user rejected: username already taken");
       throw new UsernameAlreadyExistsException("Username is already taken");
     }
 
-    if(userRepository.existsByEmail(registerUserDto.getEmail())) {
+    if(userRepository.existsByEmail(registerUserDto.email())) {
       log.debug("Registration local user rejected: email already taken");
       throw new EmailAlreadyExistsException("A User with this email already exists");
     }
@@ -102,12 +99,12 @@ public class AuthService {
   public User registerOAuthUser(@NotNull RegisterOAuthUserDto registerOAuthUserDto){
     log.debug("Registering OAuth User");
 
-    if(userRepository.existsByUsername(registerOAuthUserDto.getUsername())) {
+    if(userRepository.existsByUsername(registerOAuthUserDto.username())) {
       log.debug("OAuth registration rejected: username already taken");
       throw new UsernameAlreadyExistsException("Username is already taken");
     }
 
-    if(userRepository.existsByEmail(registerOAuthUserDto.getEmail())) {
+    if(userRepository.existsByEmail(registerOAuthUserDto.email())) {
       log.debug("OAuth registration rejected: email already taken");
       throw new EmailAlreadyExistsException("A User with this email already exists");
     }
@@ -135,9 +132,9 @@ public class AuthService {
   public void loginUser(@NotNull LoginUserDto loginUserDto, HttpServletResponse response) {
     log.debug("Login attempt");
 
-    User user = userService.getUserByEmail(loginUserDto.getEmail());
+    User user = userService.getUserByEmail(loginUserDto.email());
 
-    if(!passwordEncoder.matches(loginUserDto.getPassword(), user.getPassword())) {
+    if(!passwordEncoder.matches(loginUserDto.password(), user.getPassword())) {
       log.warn("Login failed: wrong password, userId={}", user.getId());
       throw new IncorrectCredentialsException("Invalid password");
     }
@@ -171,8 +168,7 @@ public class AuthService {
     if(refreshToken == null) throw new JwtException("Refresh token is null");
     if(activeRefreshTokenService.isRefreshTokenActive(refreshToken)) throw new JwtException("Refresh token is not active");
 
-    Claims claims = jwtService.extractClaims(refreshToken);
-    User user = userService.getUserById(UUID.fromString(claims.getSubject()));
+    User user = jwtService.validateRefreshToken(refreshToken);
     String newRefreshToken = jwtService.generateRefreshToken(user);
     String newAccessToken = jwtService.generateAccessToken(user);
 
@@ -185,6 +181,12 @@ public class AuthService {
     log.info("Token refreshed successfully");
   }
 
+  /**
+   * Ends the session: deletes both token cookies and invalidates the active
+   * refresh token, so it cannot be used again even if it was copied elsewhere.
+   *
+   * @throws InValidTokenException if there is no authenticated user
+   */
   @Transactional
   public void logoutUser(HttpServletResponse response, AuthUser authUser){
     log.info("Logging Out User");

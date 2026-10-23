@@ -27,9 +27,6 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Global Exception Handler for shared Exception across the platform.
- */
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {

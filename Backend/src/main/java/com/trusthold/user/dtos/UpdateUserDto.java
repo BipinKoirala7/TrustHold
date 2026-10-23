@@ -5,18 +5,16 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
-@Getter
-public class UpdateUserDto {
+public record UpdateUserDto (
   @NotNull
   @Size(min = 3, max = 50)
-  private String firstName;
+  String firstName,
 
   @NotNull
   @Size(min = 3, max = 50)
-  private String lastName;
+  String lastName,
 
   @NotNull
   @Size(min = 3, max = 50)
-  private String username;
-}
+  String username
+){}

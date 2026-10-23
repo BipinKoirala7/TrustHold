@@ -49,22 +49,23 @@ public class AuthServiceTests {
 
   @BeforeEach
   public void setUp() {
-    registerUserDto = new RegisterUserDto();
-    registerUserDto.setFirstName("Test");
-    registerUserDto.setLastName("User");
-    registerUserDto.setUsername("testUser_123");
-    registerUserDto.setEmail("testuser@example.com");
-    registerUserDto.setPassword("testPassword@123");
-    registerUserDto.setRegistrationRole(RegistrationRole.TENANT);
+    registerUserDto = new RegisterUserDto(
+        "Test",
+        "User",
+        "testUser_123",
+        "testuser@example.com",
+        "testPassword@123",
+        RegistrationRole.TENANT
+    );
 
     user = new User();
     user.setId(UUID.randomUUID());
-    user.setFirstName(registerUserDto.getFirstName());
-    user.setLastName(registerUserDto.getLastName());
-    user.setUsername(registerUserDto.getUsername());
-    user.setEmail(registerUserDto.getEmail());
-    user.setPassword(registerUserDto.getPassword());
-    user.setRole(Role.valueOf(registerUserDto.getRegistrationRole().name()));
+    user.setFirstName(registerUserDto.firstName());
+    user.setLastName(registerUserDto.lastName());
+    user.setUsername(registerUserDto.username());
+    user.setEmail(registerUserDto.email());
+    user.setPassword(registerUserDto.password());
+    user.setRole(Role.valueOf(registerUserDto.registrationRole().name()));
 
   }
 
@@ -74,29 +75,29 @@ public class AuthServiceTests {
     @Test
     void shouldThrowUsernameAlreadyExists_whenUsernameIsTaken() {
       // Arrange
-      when(userRepository.existsByUsername(registerUserDto.getUsername())).thenReturn(true);
+      when(userRepository.existsByUsername(registerUserDto.username())).thenReturn(true);
 
       // Act & Assert
       assertThrows(UsernameAlreadyExistsException.class, () -> underTest.registerLocalUser(registerUserDto));
-      verify(userRepository).existsByUsername(registerUserDto.getUsername());
-      verify(userRepository, never()).existsByEmail(registerUserDto.getEmail());
+      verify(userRepository).existsByUsername(registerUserDto.username());
+      verify(userRepository, never()).existsByEmail(registerUserDto.email());
       verify(userMapper, never()).createUserDtoToUser(registerUserDto);
-      verify(passwordEncoder, never()).encode(registerUserDto.getPassword());
+      verify(passwordEncoder, never()).encode(registerUserDto.password());
       verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     void shouldThrowEmailAlreadyExists_whenEmailIsTaken() {
       // Arrange
-      when(userRepository.existsByUsername(registerUserDto.getUsername())).thenReturn(false);
-      when(userRepository.existsByEmail(registerUserDto.getEmail())).thenReturn(true);
+      when(userRepository.existsByUsername(registerUserDto.username())).thenReturn(false);
+      when(userRepository.existsByEmail(registerUserDto.email())).thenReturn(true);
 
       // Act & Assert
       assertThrows(EmailAlreadyExistsException.class, () -> underTest.registerLocalUser(registerUserDto));
-      verify(userRepository).existsByUsername(registerUserDto.getUsername());
-      verify(userRepository).existsByEmail(registerUserDto.getEmail());
+      verify(userRepository).existsByUsername(registerUserDto.username());
+      verify(userRepository).existsByEmail(registerUserDto.email());
       verify(userMapper, never()).createUserDtoToUser(registerUserDto);
-      verify(passwordEncoder, never()).encode(registerUserDto.getPassword());
+      verify(passwordEncoder, never()).encode(registerUserDto.password());
       verify(userRepository, never()).save(any(User.class));
     }
 
@@ -104,16 +105,16 @@ public class AuthServiceTests {
     void shouldSaveUserWithEncodedPassword_whenRegistrationIsValid() {
       // Arrange
       String encodedPassword = "encodedPassword";
-      when(userRepository.existsByUsername(registerUserDto.getUsername())).thenReturn(false);
-      when(userRepository.existsByEmail(registerUserDto.getEmail())).thenReturn(false);
+      when(userRepository.existsByUsername(registerUserDto.username())).thenReturn(false);
+      when(userRepository.existsByEmail(registerUserDto.email())).thenReturn(false);
       when(userMapper.createUserDtoToUser(registerUserDto)).thenReturn(user);
-      when(passwordEncoder.encode(registerUserDto.getPassword())).thenReturn(encodedPassword);
+      when(passwordEncoder.encode(registerUserDto.password())).thenReturn(encodedPassword);
 
       // Act
       underTest.registerLocalUser(registerUserDto);
 
       // Assert
-      verify(passwordEncoder, times(1)).encode(registerUserDto.getPassword());
+      verify(passwordEncoder, times(1)).encode(registerUserDto.password());
       verify(userRepository).save(userArgumentCaptor.capture());
 
       User savedUser = userArgumentCaptor.getValue();

@@ -35,13 +35,14 @@ public class UserMapperTests {
     @Test
     void shouldMapCreateUserDtoToUser() {
       // Arrange
-      RegisterUserDto registerUserDto = new RegisterUserDto();
-      registerUserDto.setFirstName("John");
-      registerUserDto.setLastName("Doe");
-      registerUserDto.setUsername("john_doe");
-      registerUserDto.setEmail("john@example.com");
-      registerUserDto.setPassword("password@123");
-      registerUserDto.setRegistrationRole(RegistrationRole.TENANT);
+      RegisterUserDto registerUserDto = new RegisterUserDto(
+          "John",
+          "Doe",
+          "john_doe",
+          "john@example.com",
+          "password@123",
+          RegistrationRole.TENANT
+      );
 
       // Act
       User result = underTest.createUserDtoToUser(registerUserDto);
@@ -58,11 +59,14 @@ public class UserMapperTests {
     @Test
     void shouldMapCreateUserDtoToUserWithNullFields() {
       // Arrange
-      RegisterUserDto registerUserDto = new RegisterUserDto();
-      registerUserDto.setFirstName(null);
-      registerUserDto.setLastName(null);
-      registerUserDto.setUsername(null);
-      registerUserDto.setEmail(null);
+      RegisterUserDto registerUserDto = new RegisterUserDto(
+          null,
+          null,
+          null,
+          null,
+          null,
+          RegistrationRole.TENANT
+      );
 
       // Act
       User result = underTest.createUserDtoToUser(registerUserDto);
@@ -81,10 +85,7 @@ public class UserMapperTests {
     @Test
     void shouldUpdateUserFromUpdateUserDto() {
       // Arrange
-      UpdateUserDto updateUserDto = new UpdateUserDto();
-      updateUserDto.setFirstName("John");
-      updateUserDto.setLastName("Doe");
-      updateUserDto.setUsername("john_doe123");
+      UpdateUserDto updateUserDto = new UpdateUserDto("John", "Doe", "john_doe123");
 
       // Act
       underTest.updateUserFromDto(updateUserDto, user);
@@ -98,10 +99,7 @@ public class UserMapperTests {
     @Test
     void shouldNotUpdateFieldsWhenAllDtoFieldsAreNull() {
       // Arrange
-      UpdateUserDto updateUserDto = new UpdateUserDto();
-      updateUserDto.setFirstName(null);
-      updateUserDto.setLastName(null);
-      updateUserDto.setUsername(null);
+      UpdateUserDto updateUserDto = new UpdateUserDto(null, null, null);
 
       // Act
       underTest.updateUserFromDto(updateUserDto, user);
@@ -115,10 +113,7 @@ public class UserMapperTests {
     @Test
     void shouldUpdateFirstNameOnlyWhenOtherFieldsAreNull() {
       // Arrange
-      UpdateUserDto dto = new UpdateUserDto();
-      dto.setFirstName("John");
-      dto.setLastName(null);
-      dto.setUsername(null);
+      UpdateUserDto dto = new UpdateUserDto("John", null, null);
 
       // Act
       underTest.updateUserFromDto(dto, user);
@@ -132,10 +127,7 @@ public class UserMapperTests {
     @Test
     void shouldUpdateLastNameOnlyWhenOtherFieldsAreNull() {
       // Arrange
-      UpdateUserDto dto = new UpdateUserDto();
-      dto.setFirstName(null);
-      dto.setLastName("Doe");
-      dto.setUsername(null);
+      UpdateUserDto dto = new UpdateUserDto(null, "Doe", null);
 
       // Act
       underTest.updateUserFromDto(dto, user);
@@ -149,10 +141,7 @@ public class UserMapperTests {
     @Test
     void shouldUpdateUsernameOnlyWhenUpdateUserDtoHasOnlyUsername() {
       // Arrange
-      UpdateUserDto updateUserDto = new UpdateUserDto();
-      updateUserDto.setFirstName(null);
-      updateUserDto.setLastName(null);
-      updateUserDto.setUsername("new_username");
+      UpdateUserDto updateUserDto = new UpdateUserDto(null, null, "new_username");
 
       // Act
       underTest.updateUserFromDto(updateUserDto, user);
@@ -168,11 +157,7 @@ public class UserMapperTests {
       // Arrange
       UUID originalId = user.getId();
 
-      UpdateUserDto dto = new UpdateUserDto();
-      dto.setFirstName("John");
-      dto.setLastName("Doe");
-      dto.setUsername("john_doe");
-
+      UpdateUserDto dto = new UpdateUserDto("John", "Doe", "john_doe");
       // Act
       underTest.updateUserFromDto(dto, user);
 
@@ -186,10 +171,7 @@ public class UserMapperTests {
       user.setEmail("jane@example.com");
       user.setRole(Role.TENANT);
 
-      UpdateUserDto dto = new UpdateUserDto();
-      dto.setFirstName("John");
-      dto.setLastName("Doe");
-      dto.setUsername("john_doe");
+      UpdateUserDto dto = new UpdateUserDto("John", "Doe", "john_doe");
 
       // Act
       underTest.updateUserFromDto(dto, user);

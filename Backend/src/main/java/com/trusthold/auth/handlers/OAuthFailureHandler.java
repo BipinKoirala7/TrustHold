@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+/**
+ * Handles OAuth authentication failure by redirecting the user to the frontend login page with an error parameter.
+ */
 @Component
 @Slf4j
 public class OAuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {

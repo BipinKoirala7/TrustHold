@@ -6,7 +6,6 @@ import com.trusthold.auth.service.ActiveRefreshTokenService;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.service.CookieService;
 import com.trusthold.auth.service.JwtService;
-import com.trusthold.user.model.Role;
 import com.trusthold.user.model.User;
 import com.trusthold.user.service.UserService;
 import jakarta.servlet.ServletException;
@@ -24,6 +23,24 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Handles successful OAuth authentication.
+ *
+ * <p>
+ *   This handler is responsible for processing successful OAuth authentication attempts.
+ *   It retrieves user information, generates access and refresh tokens, and sets them as cookies.
+ * </p>
+ * <p>
+ *   If a user is not found in the database, it creates a new user in the database and then proceeds to
+ *   log in the saved user.
+ * </p>
+ *
+ * @see UserService
+ * @see AuthService
+ * @see JwtService
+ * @see CookieService
+ * @see ActiveRefreshTokenService
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -38,9 +55,19 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
   @Value("${app.frontend.url}")
   private String frontendUrl;
 
+  /**
+   * Handles when the OAuth authentication is successful for the oauth provider part.
+   *
+   * @param request the request that caused the successful authentication
+   * @param response the response
+   * @param authentication the <tt>Authentication</tt> object which was created during
+   * the authentication process.
+   * @throws IOException if an I/O error occurs while authenticating the user
+   * @throws ServletException if an error occurs while authenticating the user
+   */
   @Override
   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-    log.info("OAuth Success Handler...");
+    log.debug("logging in oauth user");
 
     OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
@@ -92,25 +119,25 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       log.warn("User not found");
       log.warn("Registering user first");
 
-      var role = RegistrationRole.valueOf((String) request.getSession(false).getAttribute("registrationRole"));
+      Object roleObj = request.getSession(false).getAttribute("registrationRole");
+      if(roleObj == null) {
+        log.warn("Role from the session is null");
+        response.sendRedirect(frontendUrl + "/login");
+        return;
+      }
+
+      var role = RegistrationRole.valueOf((String) roleObj);
       log.warn("Role from the session: {}", role);
 
 
-      RegisterOAuthUserDto registerOAuthUserDto = new RegisterOAuthUserDto();
-      registerOAuthUserDto.setProviderId(providerId);
-      registerOAuthUserDto.setFirstName(givenName);
-      registerOAuthUserDto.setLastName(familyName);
-      registerOAuthUserDto.setUsername(givenName.toLowerCase() + "_" + familyName.toLowerCase());
-      registerOAuthUserDto.setEmail(email);
-      registerOAuthUserDto.setRegistrationRole(role);
+      String username = givenName.toLowerCase() + "_" + familyName.toLowerCase();
+      RegisterOAuthUserDto registerOAuthUserDto = new RegisterOAuthUserDto(providerId, givenName, familyName, username, email, role);
 
       User registerdOAuthUser = authService.registerOAuthUser(registerOAuthUserDto);
-
       String newRefreshToken = jwtService.generateRefreshToken(registerdOAuthUser);
       String newAccessToken = jwtService.generateAccessToken(registerdOAuthUser);
 
       activeRefreshTokenService.storeActiveRefreshToken(registerdOAuthUser.getId(), newRefreshToken);
-
       response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
       response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
 
