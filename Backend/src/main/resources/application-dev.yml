@@ -22,6 +22,8 @@ spring:
       enabled: false
 
 app:
+  frontend:
+    url: ${APP_FRONTEND_URL}
   jwt:
     applicationSignature: ${APP_JWT_APPLICATION_SIGNATURE:secret}
     accessTokenExpiration: ${APP_JWT_ACCESS_TOKEN_EXPIRATION_TIME:3600}

@@ -1,5 +1,6 @@
 package com.trusthold.shared.exception;
 
+import com.trusthold.auth.exception.InValidRoleForRegistrationException;
 import com.trusthold.shared.dtos.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
@@ -31,6 +32,13 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
   // Validation Exceptions
+  @ExceptionHandler(InValidRoleForRegistrationException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ApiResponse<Void> handleInValidRoleForRegistrationException(InValidRoleForRegistrationException ex) {
+    log.warn("No valid role for registration", ex);
+    return ApiResponse.error(ex.getMessage());
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ApiResponse<Void> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
@@ -101,7 +109,7 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(MaxUploadSizeExceededException.class)
-  @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+  @ResponseStatus(HttpStatus.CONTENT_TOO_LARGE)
   public ApiResponse<Void> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex, HttpServletRequest req) {
     log.warn("{} {} -> {}", req.getMethod(), req.getRequestURI(), "Max upload size exceeded", ex);
     return ApiResponse.error("File exceeds the maximum allowed size");

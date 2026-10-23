@@ -43,13 +43,13 @@ public class AuthControllerTests {
 
     @BeforeEach
     void setUp() {
-      registerUserDto = new RegisterUserDto();
-      registerUserDto.setFirstName("Test");
-      registerUserDto.setLastName("User");
-      registerUserDto.setUsername("testUser123");
-      registerUserDto.setEmail("testuser@example.com");
-      registerUserDto.setPassword("Test@password1");
-      registerUserDto.setRegistrationRole(RegistrationRole.TENANT);
+      registerUserDto = new RegisterUserDto(
+          "Test",
+          "User",
+          "testUser123",
+          "testuser@example.com",
+          "Test@Password1",
+          RegistrationRole.TENANT);
     }
 
     @Test
@@ -63,9 +63,14 @@ public class AuthControllerTests {
     @Test
     void shouldReturnBadRequest_whenRegisterUserDtoIsInvalid() throws Exception {
       // Arrange
-      registerUserDto.setUsername(null);
-      registerUserDto.setPassword(null);
-      registerUserDto.setEmail(null);
+      registerUserDto = new RegisterUserDto(
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+      );
 
       // Act & Assert
       mockMvc.perform(post(REGISTER_USER_ENDPOINT)

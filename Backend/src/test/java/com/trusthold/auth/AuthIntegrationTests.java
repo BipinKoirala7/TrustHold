@@ -4,9 +4,9 @@ import com.trusthold.TestcontainersConfiguration;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.shared.dtos.ApiResponse;
-import com.trusthold.user.AuthProvider;
-import com.trusthold.user.User;
-import com.trusthold.user.UserRepository;
+import com.trusthold.user.model.AuthProvider;
+import com.trusthold.user.model.User;
+import com.trusthold.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -70,13 +70,13 @@ public class AuthIntegrationTests {
 
     @BeforeEach
     void setUp() {
-      validRegisterUserDto = new RegisterUserDto();
-      validRegisterUserDto.setFirstName("Bipin");
-      validRegisterUserDto.setLastName("Koirala");
-      validRegisterUserDto.setUsername("bipin123");
-      validRegisterUserDto.setEmail("bipin@example.com");
-      validRegisterUserDto.setPassword("Password123!");
-      validRegisterUserDto.setRegistrationRole(RegistrationRole.TENANT);
+      validRegisterUserDto = new RegisterUserDto(
+          "Bipin",
+          "Koirala",
+          "bipin123",
+          "bipin@example.com",
+          "Password123!",
+          RegistrationRole.TENANT);
     }
 
     /**
@@ -132,12 +132,14 @@ public class AuthIntegrationTests {
     @Test
     void shouldReturnBadRequest_whenRegisterUserDtoIsInvalid() {
       // Arrange
-      validRegisterUserDto.setFirstName(""); // Invalid first name
-      validRegisterUserDto.setLastName("user");
-      validRegisterUserDto.setUsername("testuser");
-      validRegisterUserDto.setEmail("invalid-email"); // Invalid email
-      validRegisterUserDto.setPassword("short"); // Invalid password
-      validRegisterUserDto.setRegistrationRole(RegistrationRole.TENANT);
+      validRegisterUserDto = new RegisterUserDto(
+          "",
+          "user",
+          "testuser",
+          "invalid-email",
+          "short",
+          RegistrationRole.TENANT
+      );
 
       // Act
       ResponseEntity<ApiResponse<Void>> response = register(validRegisterUserDto);
@@ -156,7 +158,14 @@ public class AuthIntegrationTests {
     void shouldReturnConflict_whenEmailAlreadyExists() {
       // Arrange
       assertThat(register(validRegisterUserDto).getStatusCode()).isEqualTo(HttpStatus.CREATED);
-      validRegisterUserDto.setUsername("testuser"); // Use a different username
+      validRegisterUserDto = new RegisterUserDto(
+          validRegisterUserDto.firstName(),
+          validRegisterUserDto.lastName(),
+          "testuser",
+          validRegisterUserDto.email(),
+          validRegisterUserDto.password(),
+          validRegisterUserDto.registrationRole()
+      );
 
       // Act
       ResponseEntity<ApiResponse<Void>> response = register(validRegisterUserDto);
@@ -172,7 +181,14 @@ public class AuthIntegrationTests {
     void shouldReturnConflict_whenUsernameAlreadyExists() {
       // Arrange
       assertThat(register(validRegisterUserDto).getStatusCode()).isEqualTo(HttpStatus.CREATED);
-      validRegisterUserDto.setEmail("testuser@example.com"); // Use a different email
+      validRegisterUserDto = new RegisterUserDto(
+          validRegisterUserDto.firstName(),
+          validRegisterUserDto.lastName(),
+          validRegisterUserDto.username(),
+          "testuser@example.com",   // Using a different email
+          validRegisterUserDto.password(),
+          validRegisterUserDto.registrationRole()
+      );
 
       // Act
       ResponseEntity<ApiResponse<Void>> response = register(validRegisterUserDto);

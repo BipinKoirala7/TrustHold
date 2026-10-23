@@ -1,6 +1,6 @@
 package com.trusthold.auth.model;
 
-import com.trusthold.user.Role;
+import com.trusthold.user.model.Role;
 
 import java.util.UUID;
 

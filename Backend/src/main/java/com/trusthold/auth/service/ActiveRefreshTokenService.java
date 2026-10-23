@@ -14,6 +14,20 @@ import org.springframework.validation.annotation.Validated;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Manages active refresh tokens for users.
+ *
+ * <p>
+ *   Refresh tokens are created and orchestrated by (see {@link JwtService}). This service is only responsible for
+ *   managing active refresh tokens.
+ * </p>
+ * <p>
+ *   Some configuration used here is defined in the {@link JwtConfig} class.
+ * </p>
+ *
+ * @see JwtConfig
+ * @see ActiveRefreshTokenRepository
+ */
 @Service
 @RequiredArgsConstructor
 @Validated
@@ -23,6 +37,12 @@ public class ActiveRefreshTokenService {
   private final JwtConfig jwtConfig;
   private final ActiveRefreshTokenRepository activeRefreshTokenRepository;
 
+  /**
+   * Stores a new active refresh token for a user.
+   *
+   * @param userId The ID of the user.
+   * @param refreshToken The refresh token to be stored.
+   */
   @Transactional
   public void storeActiveRefreshToken(@NotNull UUID userId, @NotBlank String refreshToken){
     log.debug("Storing active refresh token for user with ID: {}", userId);
@@ -36,6 +56,11 @@ public class ActiveRefreshTokenService {
     log.debug("Active refresh token stored for user with ID: {}", userId);
   }
 
+  /**
+   * Removes the active refresh token for a user.
+   *
+   * @param userId The ID of the user.
+   */
   @Transactional
   public void removeActiveRefreshToken(@NotNull UUID userId){
     log.debug("Removing active refresh token for user with ID: {}", userId);

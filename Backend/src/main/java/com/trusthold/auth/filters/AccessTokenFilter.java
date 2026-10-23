@@ -5,7 +5,7 @@ import com.trusthold.auth.model.AuthUser;
 import com.trusthold.auth.service.CookieService;
 import com.trusthold.auth.service.JwtService;
 import com.trusthold.shared.dtos.ApiResponse;
-import com.trusthold.user.Role;
+import com.trusthold.user.model.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +26,17 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Authenticates each request using token from the cookies and populates the {@link SecurityContextHolder}.
+ *
+ * <p>Paths in {@code SHOULD_NOT_FILTER} are skipped. On any token problem the
+ * filter writes a 401 JSON response and does not continue the chain.
+ * Also sets {@code RequestId}, {@code RequestMethod}, {@code RequestPath} (and
+ * {@code UserId} after login) in the MDC so all logs of a request can be correlated.
+ *
+ * @see JwtService
+ * @see CookieService
+ */
 @RequiredArgsConstructor
 @Slf4j
 @Component
@@ -34,57 +46,79 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   private final CookieService cookieService;
   private final JwtService jwtService;
 
+  // Public endpoints where there is no need to authenticate.
+  // Or if the request is an OAuth2 request, health check or a Swagger request,
+  // Refresh token path checks for refresh token, not access token.
   private final List<String> SHOULD_NOT_FILTER = List.of(
-      "/auth/login", "/auth/register", "/oauth/", "/oauth2",
+      "/auth/login", "/auth/register", "/auth/token/refresh", "/auth/oauth/register", "/oauth2",
       "/actuator/",
       "/swagger-ui/", "/swagger-ui.html", "/v3/api-docs"
   );
 
+  /**
+   * Checks if the request should not be authenticated.
+   *
+   * <p>
+   *   Filters all the requests except listed on {@code SHOULD_NOT_FILTER}.
+   * </p>
+   * @param request current HTTP request
+   * @return if it should not be authenticated
+   */
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getServletPath();
     return SHOULD_NOT_FILTER.stream().anyMatch(path::startsWith);
   }
 
+  /**
+   * Authenticates the request using the access token from the cookie.
+   *
+   * @param request current HTTP request
+   * @param response current HTTP response
+   * @param filterChain filter chain
+   * @throws ServletException if an error occurs during the filter chain processing
+   * @throws IOException if an I/O error occurs during the filter chain processing
+   */
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    MDC.put("RequestId", UUID.randomUUID().toString());
+    MDC.put("RequestMethod", request.getMethod());
+    MDC.put("RequestPath", request.getServletPath());
 
-    log.warn("Request Start ...");
-    log.warn("Request path: {}", request.getServletPath());
+    try{
+      log.debug("Request Start");
+      try {
+        String accessToken = cookieService.getAccessTokenCookie(request);
+        if (accessToken == null) throw new JwtException("Access token cookie not found");
 
-    try {
-      String accessToken = cookieService.getAccessTokenCookie(request);
-      if (accessToken == null) {
-        log.warn("Access token cookie not found");
-        throw new JwtException("Access token cookie not found");
+        Claims claims = jwtService.extractAccessClaims(accessToken);
+        String roleClaim = claims.get("role", String.class);
+
+        if (roleClaim == null) throw new JwtException("Missing role claim");
+
+        AuthUser authUser = new AuthUser(UUID.fromString(claims.getSubject()), accessToken, Role.valueOf(roleClaim));
+        // "ROLE_" prefix is required by Spring Security's hasRole() check
+        var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + authUser.role().toString()));
+        var auth = new UsernamePasswordAuthenticationToken(authUser, null, authorities);
+
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        MDC.put("UserId", authUser.id().toString());
+
+      } catch (JwtException | InValidTokenException | IllegalArgumentException e) {
+        log.warn("Access Token Filter Error - {}", e.getMessage());
+        SecurityContextHolder.clearContext();
+        sendErrorResponse(response, "Please log in");
+        return;
       }
-
-      Claims claims = jwtService.extractAccessClaims(accessToken);
-      String roleClaim = claims.get("role", String.class);
-
-      if (roleClaim == null) {
-        log.warn("Role is not present in the token claim");
-        throw new JwtException("Missing role");
-      }
-
-      AuthUser authUser = new AuthUser(UUID.fromString(claims.getSubject()), accessToken, Role.valueOf(roleClaim));
-      var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + authUser.role().toString()));
-      var auth = new UsernamePasswordAuthenticationToken(authUser, null, authorities);
-
-      SecurityContextHolder.getContext().setAuthentication(auth);
-      log.warn("Access token validated and user authenticated");
-    } catch (JwtException | InValidTokenException | IllegalArgumentException e) {
-      log.error("Error validating access token", e);
-      SecurityContextHolder.clearContext();
-      sendErrorResponse(response, "Please log in");
-      return;
+      filterChain.doFilter(request, response);
+    } finally {
+      MDC.clear();
     }
-    filterChain.doFilter(request, response);
   }
 
   private void sendErrorResponse(HttpServletResponse response, String message) throws IOException {
     if(response.isCommitted()){
-      log.warn("Response is already committed, cannot send error response");
+      log.debug("Response is already committed, cannot send error response");
       return;
     }
 
