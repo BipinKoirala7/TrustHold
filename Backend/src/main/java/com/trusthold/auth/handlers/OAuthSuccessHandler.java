@@ -1,9 +1,11 @@
 package com.trusthold.auth.handlers;
 
 import com.trusthold.auth.dtos.RegisterOAuthUserDto;
+import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.service.CookieService;
 import com.trusthold.auth.service.JwtService;
+import com.trusthold.user.model.Role;
 import com.trusthold.user.model.User;
 import com.trusthold.user.service.UserService;
 import jakarta.servlet.ServletException;
@@ -86,12 +88,19 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     if(user.isEmpty()) {
       log.warn("User not found");
+      log.warn("Registering user first");
+
+      var role = RegistrationRole.valueOf((String) request.getSession(false).getAttribute("registrationRole"));
+      log.warn("Role from the session: {}", role);
+
 
       RegisterOAuthUserDto registerOAuthUserDto = new RegisterOAuthUserDto();
       registerOAuthUserDto.setProviderId(providerId);
       registerOAuthUserDto.setFirstName(givenName);
       registerOAuthUserDto.setLastName(familyName);
+      registerOAuthUserDto.setUsername(givenName.toLowerCase() + "_" + familyName.toLowerCase());
       registerOAuthUserDto.setEmail(email);
+      registerOAuthUserDto.setRegistrationRole(role);
 
       User registerdOAuthUser = authService.registerOAuthUser(registerOAuthUserDto);
 
@@ -100,6 +109,8 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
       response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
       response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
+
+      userService.updateUserLastLoginTime(registerdOAuthUser.getId());
 
       response.sendRedirect(frontendUrl + "/dashboard");
     } else {
@@ -113,6 +124,8 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
       response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
       response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
+
+      userService.updateUserLastLoginTime(user.get().getId());
 
       response.sendRedirect(frontendUrl + "/dashboard");
     }

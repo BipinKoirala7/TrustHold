@@ -35,7 +35,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   private final JwtService jwtService;
 
   private final List<String> SHOULD_NOT_FILTER = List.of(
-      "/auth/login", "/auth/register", "/auth/token/refresh", "/oauth/register", "/oauth2",
+      "/auth/login", "/auth/register", "/auth/token/refresh", "/auth/oauth/register", "/oauth2",
       "/actuator/",
       "/swagger-ui/", "/swagger-ui.html", "/v3/api-docs"
   );
