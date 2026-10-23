@@ -5,6 +5,9 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+/**
+ * Configuration for JWT tokens used by the application.
+ */
 @Component
 @ConfigurationProperties("app.jwt")
 @Getter

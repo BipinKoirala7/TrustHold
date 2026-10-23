@@ -13,6 +13,9 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
+/**
+ * Custom authentication entry point for handling unauthorized access attempts.
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j

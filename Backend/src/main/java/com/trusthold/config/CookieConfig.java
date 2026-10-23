@@ -5,6 +5,9 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+/**
+ * Configuration for cookies used by the application.
+ */
 @Component
 @ConfigurationProperties(prefix = "app.cookie")
 @Getter
