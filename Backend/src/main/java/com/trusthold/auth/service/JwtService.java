@@ -34,6 +34,8 @@ import java.util.Date;
  * (see {@link CookieService}) and does not decide who may log in (see {@link AuthService}).
  * <p>
  * Never log a raw token: anyone who can read the logs could replay it.
+ *
+ * @see JwtConfig
  */
 @Service
 @RequiredArgsConstructor
@@ -42,7 +44,6 @@ import java.util.Date;
 public class JwtService {
 
   private final JwtConfig jwtConfig;
-  private final ActiveRefreshTokenService activeRefreshTokenService;
 
   /**
   * Builds HMAC key from the configured application signature.

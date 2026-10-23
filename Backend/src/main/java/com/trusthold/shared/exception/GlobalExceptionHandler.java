@@ -27,6 +27,9 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Global Exception Handler for shared Exception across the platform.
+ */
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
@@ -109,7 +112,7 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(MaxUploadSizeExceededException.class)
-  @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+  @ResponseStatus(HttpStatus.CONTENT_TOO_LARGE)
   public ApiResponse<Void> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex, HttpServletRequest req) {
     log.warn("{} {} -> {}", req.getMethod(), req.getRequestURI(), "Max upload size exceeded", ex);
     return ApiResponse.error("File exceeds the maximum allowed size");

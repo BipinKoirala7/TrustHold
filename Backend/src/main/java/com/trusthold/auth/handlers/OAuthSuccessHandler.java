@@ -2,6 +2,7 @@ package com.trusthold.auth.handlers;
 
 import com.trusthold.auth.dtos.RegisterOAuthUserDto;
 import com.trusthold.auth.model.RegistrationRole;
+import com.trusthold.auth.service.ActiveRefreshTokenService;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.service.CookieService;
 import com.trusthold.auth.service.JwtService;
@@ -32,6 +33,7 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
   private final AuthService authService;
   private final JwtService jwtService;
   private final CookieService cookieService;
+  private final ActiveRefreshTokenService activeRefreshTokenService;
 
   @Value("${app.frontend.url}")
   private String frontendUrl;
@@ -107,6 +109,8 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       String newRefreshToken = jwtService.generateRefreshToken(registerdOAuthUser);
       String newAccessToken = jwtService.generateAccessToken(registerdOAuthUser);
 
+      activeRefreshTokenService.storeActiveRefreshToken(registerdOAuthUser.getId(), newRefreshToken);
+
       response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
       response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
 
@@ -121,6 +125,8 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       }
       String newRefreshToken = jwtService.generateRefreshToken(user.get());
       String newAccessToken = jwtService.generateAccessToken(user.get());
+
+      activeRefreshTokenService.storeActiveRefreshToken(user.get().getId(), newRefreshToken);
 
       response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
       response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
