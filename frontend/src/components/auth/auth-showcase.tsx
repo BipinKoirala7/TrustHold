@@ -2,6 +2,8 @@ import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import loginImage from "~/public/img1.avif";
+
 type AuthShowcaseProps = {
   quote: string;
   caption: string;
@@ -16,9 +18,8 @@ export function AuthShowcase({ quote, caption, className }: AuthShowcaseProps) {
         className,
       )}
     >
-      {/* Photo is desaturated, then tinted green so any image fits the brand. */}
       <Image
-        src="/images/hero.jpg"
+        src={loginImage}
         alt=""
         fill
         sizes="50vw"
@@ -26,7 +27,7 @@ export function AuthShowcase({ quote, caption, className }: AuthShowcaseProps) {
       />
       <div
         aria-hidden
-        className="absolute inset-0 -z-10 bg-linear-to-t from-primary/95 via-primary/75 to-primary/60"
+        className="absolute inset-0 -z-10 bg-linear-to-t from-primary/95 via-primary/60 to-primary/25"
       />
 
       <div className="max-w-xl">

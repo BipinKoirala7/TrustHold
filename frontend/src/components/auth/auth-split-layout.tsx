@@ -2,7 +2,6 @@ import { Logo } from "@/components/brand/logo";
 
 type AuthSplitLayoutProps = {
   children: React.ReactNode;
-  /** Right-hand panel, shown from the lg breakpoint up. */
   panel: React.ReactNode;
   footer?: React.ReactNode;
 };
