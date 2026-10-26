@@ -9,10 +9,10 @@ import { cn } from "@/lib/utils";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-linear-to-br from-background via-background to-amber-50">
+    <section className="relative overflow-hidden bg-linear-to-br from-background via-background to-highlight-soft/50 border-b border-input">
       <div className="mx-auto grid max-w-6xl items-center gap-14 px-6 pb-20 pt-10 md:pt-16 lg:grid-cols-2 lg:gap-16 lg:pb-28">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-900">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-highlight/50 px-3 py-1 text-sm font-medium text-highlight-soft-foreground">
             <ShieldCheck className="size-3.5" aria-hidden />
             Deposit escrow for Nepal rentals
           </span>
@@ -56,8 +56,7 @@ export function Hero() {
         </div>
 
         <div className="relative pb-6">
-          {/* Gradient shows if the image is missing, so the layout never collapses. */}
-          <div className="relative aspect-4/3 overflow-hidden rounded-3xl bg-linear-to-br from-primary/20 to-amber-100 shadow-xl ring-1 ring-black/5">
+          <div className="relative aspect-4/3 overflow-hidden rounded-3xl bg-linear-to-br from-primary/20 to-highlight-soft shadow-xl ring-1 ring-foreground/5">
             <Image
               src={heroImage}
               alt="A sunlit living room with a wooden table holding a key, a shield and a folded lease agreement, with Kathmandu rooftops through the window"

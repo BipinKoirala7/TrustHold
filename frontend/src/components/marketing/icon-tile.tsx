@@ -6,7 +6,7 @@ const iconTileVariants = cva("flex shrink-0 items-center justify-center", {
     tone: {
       mint: "bg-primary/10 text-primary",
       solid: "bg-primary text-primary-foreground",
-      amber: "bg-amber-100 text-amber-800",
+      amber: "bg-highlight-soft text-highlight-soft-foreground",
     },
     size: {
       sm: "size-9 [&_svg]:size-4",

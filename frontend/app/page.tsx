@@ -73,10 +73,9 @@ export default function HomePage() {
 
       <main>
         <Hero />
-
         <section
           id="how-it-works"
-          className="scroll-mt-16 bg-card py-20 md:py-28"
+          className="scroll-mt-16 bg-card py-20 md:py-28 border-b border-input"
         >
           <div className="mx-auto max-w-6xl px-6">
             <SectionHeading
@@ -91,9 +90,8 @@ export default function HomePage() {
             </ol>
           </div>
         </section>
-
-        <section className="bg-background py-20 md:py-28">
-          <div className="mx-auto max-w-6xl px-6">
+        <section className="bg-background py-20 md:py-28 border-b border-input">
+          <div className="max-w-6xl px-6 flex flex-col gap-28 mx-auto">
             <div className="grid gap-6 md:grid-cols-2">
               <AudienceCard
                 icon={Building2}
@@ -108,10 +106,7 @@ export default function HomePage() {
                 items={tenantItems}
               />
             </div>
-
-            <div className="mt-16">
-              <CtaBanner />
-            </div>
+            <CtaBanner />
           </div>
         </section>
       </main>
