@@ -29,8 +29,8 @@ export function GreetingHeader({ firstName }: { firstName: string }) {
           Here&apos;s what&apos;s happening across your leases today.
         </p>
       </div>
-      <Button size="lg">
-        <Link href="/landlord/leases">
+      <Button>
+        <Link href="/landlord/leases" className="flex gap-2">
           <FileText className="size-4" />
           View all leases
         </Link>

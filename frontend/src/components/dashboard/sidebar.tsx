@@ -2,10 +2,40 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, Home, LogOut, User } from "lucide-react";
-import { Logo } from "@/components/brand/logo";
+import {
+  ChevronUp,
+  Ellipsis,
+  FileText,
+  Home,
+  LogOut,
+  PanelLeftOpen,
+  ShieldCheck,
+  User,
+  UserRound,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+  SidebarSeparator,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { currentLandlord, landlordNav } from "@/lib/mock-data";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const icons = {
   dashboard: Home,
@@ -13,60 +43,130 @@ const icons = {
   profile: User,
 };
 
+// Solid green for the active item (the default is a subtle accent tint)
+const activeStyles =
+  "data-active:bg-primary data-active:text-primary-foreground data-active:hover:bg-primary/90 data-active:hover:text-primary-foreground " +
+  "data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:hover:bg-primary/90 data-[active=true]:hover:text-primary-foreground";
+
+// Same width as the menu buttons: inset by the sidebar's p-2, no extra margin
+function InsetSeparator() {
+  return (
+    <div className="px-2">
+      <SidebarSeparator className="mx-0 w-full" />
+    </div>
+  );
+}
+
 export function AppSidebar() {
   const pathname = usePathname();
+  const { state, isMobile, toggleSidebar } = useSidebar();
+
+  // On mobile the sidebar is a sheet, so it should always show the full header
+  const collapsed = state === "collapsed" && !isMobile;
 
   const isActive = (href: string) =>
     href === "/landlord" ? pathname === href : pathname.startsWith(href);
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-80 shrink-0 flex-col border-r bg-card p-7 md:flex">
-      <div className="px-2">
-        <Logo />
-      </div>
-
-      <nav className="mt-10 flex flex-col gap-2">
-        {landlordNav.map((item) => {
-          const Icon = icons[item.icon];
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-4 py-3 font-semibold transition-colors",
-                active
-                  ? "bg-primary text-primary-foreground"
-                  : "text-foreground/80 hover:bg-muted",
-              )}
-            >
-              <Icon className="size-5" />
-              {item.label}
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="h-14 justify-center">
+        {collapsed ? (
+          <Button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label="Expand sidebar"
+            title="Expand sidebar"
+            className="group/logo relative flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <ShieldCheck className="size-4 transition-opacity group-hover/logo:opacity-0" />
+            <PanelLeftOpen className="absolute size-4 opacity-0 transition-opacity group-hover/logo:opacity-100" />
+          </Button>
+        ) : (
+          <div className="flex items-center justify-between gap-2">
+            <Link href="/landlord" className="flex items-center gap-2">
+              <div className="flex items-center justify-center rounded-lg p-2 bg-primary text-primary-foreground">
+                <ShieldCheck className="size-4" />
+              </div>
+              <span className="text-lg font-bold tracking-tight">
+                Trust<span className="text-primary">Hold</span>
+              </span>
             </Link>
-          );
-        })}
-      </nav>
+            <SidebarTrigger aria-label="Collapse sidebar" />
+          </div>
+        )}
+      </SidebarHeader>
 
-      <div className="mt-auto flex items-center gap-3 border-t pt-5">
-        <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-          {currentLandlord.initials}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">
-            {currentLandlord.name}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {currentLandlord.role}
-          </p>
-        </div>
-        <button
-          type="button"
-          aria-label="Log out"
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <LogOut className="size-4" />
-        </button>
-      </div>
-    </aside>
+      <InsetSeparator />
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {landlordNav.map((item) => {
+                const Icon = icons[item.icon];
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      tooltip={item.label}
+                      isActive={isActive(item.href)}
+                      className={activeStyles}
+                      render={<Link href={item.href} />}
+                    >
+                      <Icon />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <InsetSeparator />
+
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className={"cursor-pointer"}
+                render={<SidebarMenuButton size="lg" />}
+              >
+                <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                  {currentLandlord.initials}
+                </div>
+                <div className="grid flex-1 text-left leading-tight">
+                  <span className="truncate text-sm font-semibold">
+                    {currentLandlord.name}
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {currentLandlord.role}
+                  </span>
+                </div>
+                <ChevronUp className="size-4 text-muted-foreground group-data-[collapsible=icon]:hidden" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side={isMobile ? "top" : "right"}
+                align="end"
+                sideOffset={8}
+                className="min-w-44"
+              >
+                <DropdownMenuItem className={"cursor-pointer"}>
+                  <LogOut />
+                  Log out
+                </DropdownMenuItem>
+                <DropdownMenuItem className={"cursor-pointer"}>
+                  <UserRound />
+                  Profile
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+
+      <SidebarRail />
+    </Sidebar>
   );
 }

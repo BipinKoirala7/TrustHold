@@ -1,5 +1,10 @@
 import { AppSidebar } from "@/components/dashboard/sidebar";
-import { Logo } from "@/components/brand/logo";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 
 export default function DashboardLayout({
   children,
@@ -7,14 +12,15 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-background">
+    <SidebarProvider>
       <AppSidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-b bg-card px-5 py-4 md:hidden">
-          <Logo />
+      <SidebarInset>
+        {/* Mobile only: on desktop the toggle lives inside the sidebar */}
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 md:hidden">
+          <SidebarTrigger />
         </header>
-        <main className="flex-1 px-5 py-8 md:px-12 md:py-12">{children}</main>
-      </div>
-    </div>
+        <main className="flex-1 p-6 md:p-8">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
