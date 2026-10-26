@@ -33,14 +33,8 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { currentLandlord, landlordNav } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
-
-const icons = {
-  dashboard: Home,
-  leases: FileText,
-  profile: User,
-};
+import { getRoleFromPath, roleUsers } from "@/lib/role-config";
 
 // Solid green for the active item (the default is a subtle accent tint)
 const activeStyles =
@@ -60,11 +54,23 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { state, isMobile, toggleSidebar } = useSidebar();
 
+  const role = getRoleFromPath(pathname);
+  const user = roleUsers[role];
+
+  // "/landlord" or "/tenant": every link below is built from this
+  const basePath = `/${role}`;
+  const nav = [
+    { label: "Dashboard", href: basePath, icon: Home },
+    { label: "Leases", href: `${basePath}/leases`, icon: FileText },
+    { label: "Profile", href: `${basePath}/profile`, icon: User },
+  ];
+
   // On mobile the sidebar is a sheet, so it should always show the full header
   const collapsed = state === "collapsed" && !isMobile;
 
+  // The dashboard link only matches exactly, the rest match their sub-pages too
   const isActive = (href: string) =>
-    href === "/landlord" ? pathname === href : pathname.startsWith(href);
+    href === basePath ? pathname === href : pathname.startsWith(href);
 
   return (
     <Sidebar collapsible="icon">
@@ -82,8 +88,8 @@ export function AppSidebar() {
           </Button>
         ) : (
           <div className="flex items-center justify-between gap-2">
-            <Link href="/landlord" className="flex items-center gap-2">
-              <div className="flex items-center justify-center rounded-lg p-2 bg-primary text-primary-foreground">
+            <Link href={basePath} className="flex items-center gap-2">
+              <div className="flex items-center justify-center rounded-lg bg-primary p-2 text-primary-foreground">
                 <ShieldCheck className="size-4" />
               </div>
               <span className="text-lg font-bold tracking-tight">
@@ -101,22 +107,19 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {landlordNav.map((item) => {
-                const Icon = icons[item.icon];
-                return (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      tooltip={item.label}
-                      isActive={isActive(item.href)}
-                      className={activeStyles}
-                      render={<Link href={item.href} />}
-                    >
-                      <Icon />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
+              {nav.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    tooltip={item.label}
+                    isActive={isActive(item.href)}
+                    className={activeStyles}
+                    render={<Link href={item.href} />}
+                  >
+                    <item.icon />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -129,18 +132,18 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger
-                className={"cursor-pointer"}
+                className="cursor-pointer"
                 render={<SidebarMenuButton size="lg" />}
               >
                 <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                  {currentLandlord.initials}
+                  {user.initials}
                 </div>
                 <div className="grid flex-1 text-left leading-tight">
                   <span className="truncate text-sm font-semibold">
-                    {currentLandlord.name}
+                    {user.name}
                   </span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {currentLandlord.role}
+                    {user.role}
                   </span>
                 </div>
                 <ChevronUp className="size-4 text-muted-foreground group-data-[collapsible=icon]:hidden" />
@@ -151,11 +154,14 @@ export function AppSidebar() {
                 sideOffset={8}
                 className="min-w-44"
               >
-                <DropdownMenuItem className={"cursor-pointer"}>
+                <DropdownMenuItem className="cursor-pointer">
                   <LogOut />
                   Log out
                 </DropdownMenuItem>
-                <DropdownMenuItem className={"cursor-pointer"}>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  render={<Link href={`${basePath}/profile`} />}
+                >
                   <UserRound />
                   Profile
                 </DropdownMenuItem>

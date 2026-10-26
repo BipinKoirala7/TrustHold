@@ -1,3 +1,5 @@
+import type { Role } from "@/lib/role-config";
+
 export type LeaseStatus =
   | "PENDING_MOVE_IN"
   | "ACTIVE"
@@ -11,6 +13,7 @@ export interface Lease {
   propertyName: string;
   propertyDetail: string; // "Kathmandu · 3rd floor, Unit 3B"
   tenantName: string;
+  landlordName: string;
   deposit: number;
   status: LeaseStatus;
   startDate: string; // ISO date
@@ -60,6 +63,7 @@ export const leases: Lease[] = [
     propertyName: "Lazimpat Garden Residence",
     propertyDetail: "Kathmandu · 3rd floor, Unit 3B",
     tenantName: "Maya Gurung",
+    landlordName: "Aarav Shrestha",
     deposit: 50000,
     status: "PENDING_MOVE_IN",
     startDate: "2025-02-15",
@@ -69,6 +73,7 @@ export const leases: Lease[] = [
     propertyName: "Jhamsikhel Courtyard Home",
     propertyDetail: "Lalitpur · West wing, 2 bedrooms",
     tenantName: "Sujan Thapa",
+    landlordName: "Aarav Shrestha",
     deposit: 55000,
     status: "ACTIVE",
     startDate: "2025-01-10",
@@ -78,6 +83,7 @@ export const leases: Lease[] = [
     propertyName: "Baluwatar Heights",
     propertyDetail: "Kathmandu · Unit 5A",
     tenantName: "Anita Rai",
+    landlordName: "Aarav Shrestha",
     deposit: 60000,
     status: "MOVE_OUT_IN_PROGRESS",
     startDate: "2024-08-01",
@@ -87,6 +93,7 @@ export const leases: Lease[] = [
     propertyName: "Lakeside View House",
     propertyDetail: "Pokhara · Ground and first floor",
     tenantName: "Prakash Adhikari",
+    landlordName: "Aarav Shrestha",
     deposit: 65000,
     status: "MOVED_OUT",
     startDate: "2024-06-20",
@@ -96,6 +103,7 @@ export const leases: Lease[] = [
     propertyName: "Bhaisepati Green Homes",
     propertyDetail: "Lalitpur · Block C, House 12",
     tenantName: "Binita Karki",
+    landlordName: "Aarav Shrestha",
     deposit: 70000,
     status: "AGREED",
     startDate: "2024-05-05",
@@ -105,11 +113,16 @@ export const leases: Lease[] = [
     propertyName: "Sanepa Quiet Corner",
     propertyDetail: "Lalitpur · Unit 2D",
     tenantName: "Rohan Maharjan",
+    landlordName: "Aarav Shrestha",
     deposit: 70000,
     status: "SETTLED",
     startDate: "2023-11-12",
   },
 ];
+
+// The landlord sees the tenant, the tenant sees the landlord
+export const getOtherParty = (lease: Lease, role: Role) =>
+  role === "landlord" ? lease.tenantName : lease.landlordName;
 
 export const formatDeposit = (amount: number) =>
   `Rs. ${amount.toLocaleString("en-IN")}`;
