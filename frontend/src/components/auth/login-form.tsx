@@ -13,7 +13,8 @@ import { PasswordInput } from "@/components/auth/password-input";
 import { login } from "@/lib/api/auth";
 import { loginSchema, type LoginValues } from "@/lib/schema/auth";
 
-const inputClass = "h-12 rounded-xl bg-card px-4 text-base md:text-base";
+const inputClass =
+  "h-12 rounded-xl bg-card px-4 text-base md:text-base border-border";
 
 export function LoginForm() {
   const router = useRouter();

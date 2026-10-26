@@ -16,7 +16,7 @@ export function AuthSplitLayout({
       <div className="flex flex-col bg-background px-6 py-8 sm:px-10 lg:px-12">
         <Logo />
 
-        <div className="flex flex-1 items-center justify-center py-12">
+        <div className="flex flex-1 items-center justify-center py-6">
           <div className="w-full max-w-md">{children}</div>
         </div>
 
