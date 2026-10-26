@@ -17,7 +17,7 @@ export function CtaBanner() {
         href="/register"
         className={cn(
           buttonVariants({ size: "lg" }),
-          "mt-8 h-12 rounded-xl bg-highlight px-6 text-base font-semibold text-highlight-foreground hover:bg-highlight/90",
+          "mt-8 h-12 bg-highlight px-6 text-base font-semibold text-highlight-foreground hover:bg-highlight/90",
         )}
       >
         Get started free

@@ -1,8 +1,9 @@
-import { Button } from "../ui/button";
+import Link from "next/link";
+import { Button, buttonVariants } from "../ui/button";
 import { Input } from "../ui/input";
+import { cn } from "cn";
 
-const inputClass =
-  "h-12 rounded-xl bg-card px-4 text-base md:text-base border-border";
+const inputClass = "h-12 bg-card px-4 text-base md:text-base border-border";
 
 export function ResetPasswordForm() {
   return (
@@ -22,9 +23,12 @@ export function ResetPasswordForm() {
       </div>
       <div className="flex flex-col gap-2">
         <Button>Send Reset Link</Button>
-        <Button variant="outline" className="w-full">
+        <Link
+          href="/login"
+          className={cn(buttonVariants({ variant: "secondary" }), "w-full")}
+        >
           Back to Login
-        </Button>
+        </Link>
       </div>
     </div>
   );

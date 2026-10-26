@@ -19,8 +19,7 @@ import {
   type RegistrationRole,
 } from "@/lib/schema/auth";
 
-const inputClass =
-  "h-12 rounded-xl bg-card px-4 text-base md:text-base border-border";
+const inputClass = "h-12 bg-card px-4 text-base md:text-base border-border";
 
 // The role is passed along so the backend knows which kind of account a Google
 // sign-up should create. Spring Security does not forward custom query params
