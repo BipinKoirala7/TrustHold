@@ -46,6 +46,11 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-highlight-soft: var(--highlight-soft);
+  --color-highlight-soft-foreground: var(--highlight-soft-foreground);
 }
 
 :root {
@@ -66,6 +71,10 @@
   --accent-foreground: oklch(0.448 0.119 151.328);
   --highlight: oklch(0.769 0.188 70.08); /* #F59E0B amber */
   --highlight-foreground: oklch(0.216 0.006 56.043);
+  --highlight-soft: oklch(
+    0.962 0.059 95.617
+  ); /* amber tint for badges and tiles */
+  --highlight-soft-foreground: oklch(0.414 0.112 45.904); /* text on the tint */
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.9 0.008 106);
   --input: oklch(0.9 0.008 106);
