@@ -33,7 +33,7 @@ export function Hero() {
               href="/register"
               className={cn(
                 buttonVariants({ size: "lg" }),
-                "h-12 rounded-xl px-6 text-base",
+                "h-12 px-6 text-base",
               )}
             >
               Get started
@@ -43,7 +43,7 @@ export function Hero() {
               href="/login"
               className={cn(
                 buttonVariants({ variant: "outline", size: "lg" }),
-                "h-12 rounded-xl bg-card px-6 text-base",
+                "h-12 bg-card px-6 text-base",
               )}
             >
               Log in

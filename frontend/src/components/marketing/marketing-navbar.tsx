@@ -11,17 +11,11 @@ export function MarketingNavbar() {
         <nav aria-label="Account" className="flex items-center gap-2">
           <Link
             href="/login"
-            className={cn(
-              buttonVariants({ variant: "ghost" }),
-              "rounded-xl px-4",
-            )}
+            className={cn(buttonVariants({ variant: "ghost" }), "px-4")}
           >
             Log in
           </Link>
-          <Link
-            href="/register"
-            className={cn(buttonVariants(), "rounded-xl px-5")}
-          >
+          <Link href="/register" className={cn(buttonVariants(), "px-4")}>
             Get started
           </Link>
         </nav>
