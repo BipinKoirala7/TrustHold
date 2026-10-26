@@ -1,7 +1,7 @@
-import { recentActivity } from "@/lib/mock-data";
+import type { ActivityEntry } from "@/lib/mock-data";
 import { ActivityItem } from "./activity-item";
 
-export function RecentActivityCard() {
+export function RecentActivityCard({ entries }: { entries: ActivityEntry[] }) {
   return (
     <section className="rounded-2xl border bg-card shadow-sm">
       <header className="border-b px-6 py-5">
@@ -11,7 +11,7 @@ export function RecentActivityCard() {
         </p>
       </header>
       <ul className="space-y-6 px-6 py-6">
-        {recentActivity.map((entry) => (
+        {entries.map((entry) => (
           <ActivityItem key={entry.id} entry={entry} />
         ))}
       </ul>
