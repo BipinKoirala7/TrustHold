@@ -15,6 +15,9 @@ import java.time.Year;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Service for sending emails.
+ */
 @Service
 @Slf4j
 @EnableAsync
@@ -121,6 +124,12 @@ public class MailService {
       </html>
       """;
 
+  /**
+   * Sends welcome email to newly registered user.
+   * @param to domain where the email will be sent
+   * @param userRole role of the newly registered user
+   * @param userName username of the newly registered user
+   */
   @Async
   public void newlyRegisterUserMail(String to, String userRole, String userName) {
     log.info("Sending welcome email to newly registered {}", userRole);
@@ -156,6 +165,15 @@ public class MailService {
     return result;
   }
 
+  /**
+   * Sends email to the given domain. It's the main method that sets up
+   * the email sending process.
+   *
+   * @param to domain where the email will be sent
+   * @param subject subject of the email
+   * @param body body of the email
+   * @throws ResendException if the email fails to send
+   */
   public void sendMail(String to, String subject, String body) throws ResendException {
     log.info("Sending email to {}", to);
 
