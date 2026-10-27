@@ -24,6 +24,7 @@ import {
   type RegisterValues,
   type RegistrationRole,
 } from "@/lib/schema/authSchema";
+import { useRegister } from "@/lib/hooks/useRegister";
 
 const inputClass = "h-12 bg-card px-4 text-base md:text-base border-border";
 
@@ -33,6 +34,7 @@ function googleSignupUrl(role: RegistrationRole) {
 }
 
 export function RegisterForm() {
+  const { mutate, isPending } = useRegister();
   const router = useRouter();
 
   const {
@@ -40,7 +42,7 @@ export function RegisterForm() {
     handleSubmit,
     control,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<RegisterValues, unknown, RegisterUerDto>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -56,34 +58,10 @@ export function RegisterForm() {
 
   const role = watch("registrationRole");
 
-  async function onSubmit(values: RegisterUerDto) {
-    try {
-      await registerUser(values);
-      toast.success("Account created", {
-        description: "Log in with your new account to continue.",
-      });
-      router.push("/login");
-    } catch (error) {
-      if (error instanceof TypeError) {
-        toast.error("Can't reach the server", {
-          description: "Check your connection and try again.",
-        });
-        return;
-      }
-
-      toast.error("Couldn't create your account", {
-        description:
-          error instanceof Error
-            ? error.message
-            : "Something went wrong. Please try again.",
-      });
-    }
-  }
-
   return (
     <form
       noValidate
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit((values) => mutate(values))}
       className="flex flex-col gap-5"
     >
       <Controller
@@ -94,7 +72,7 @@ export function RegisterForm() {
             name={field.name}
             value={field.value}
             onChange={field.onChange}
-            disabled={isSubmitting}
+            disabled={isPending}
           />
         )}
       />
@@ -200,10 +178,10 @@ export function RegisterForm() {
         <Button
           type="submit"
           size="lg"
-          disabled={isSubmitting}
+          disabled={isPending}
           className="h-12 w-full rounded-xl text-base"
         >
-          {isSubmitting ? (
+          {isPending ? (
             <>
               <Spinner />
               Creating account…
