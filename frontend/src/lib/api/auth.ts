@@ -1,7 +1,6 @@
 import type { LoginUserDto, Role } from "@/lib/schema/authSchema";
 import type { RegisterUerDto } from "@/lib/schema/authSchema";
 import api from "./axios";
-import { toast } from "sonner";
 import { ApiError } from "./error";
 import { PublicUserDto } from "../schema/userSchema";
 

@@ -61,8 +61,8 @@ export function AppSidebar() {
   const basePath = `/${role}`;
   const nav = [
     { label: "Dashboard", href: basePath, icon: Home },
-    { label: "Leases", href: `${basePath}/leases`, icon: FileText },
-    { label: "Profile", href: `${basePath}/profile`, icon: User },
+    { label: "Leases", href: `/leases`, icon: FileText },
+    { label: "Profile", href: `/profile`, icon: User },
   ];
 
   // On mobile the sidebar is a sheet, so it should always show the full header
