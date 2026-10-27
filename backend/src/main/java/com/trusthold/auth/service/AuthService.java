@@ -4,6 +4,9 @@ import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.dtos.RegisterOAuthUserDto;
 import com.trusthold.auth.exception.*;
 import com.trusthold.auth.model.AuthUser;
+import com.trusthold.mail.EventListener;
+import com.trusthold.mail.MailService;
+import com.trusthold.mail.UserRegisteredEvent;
 import com.trusthold.shared.Guard;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.user.model.AuthProvider;
@@ -17,6 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +60,7 @@ public class AuthService {
   private final JwtService jwtService;
   private final CookieService cookieService;
   private final ActiveRefreshTokenService activeRefreshTokenService;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   /**
    * Registers a user with email and password.
@@ -85,6 +90,9 @@ public class AuthService {
     User savedUser = userRepository.save(user);
 
     log.info("User registered: userId={}, provider={}", savedUser.getId(), AuthProvider.LOCAL);
+
+    log.info("Sending confirmation email  to {}", savedUser.getEmail());
+    applicationEventPublisher.publishEvent(new UserRegisteredEvent(savedUser.getEmail(), savedUser.getRole().toString(), savedUser.getUsername()));
   }
 
   /**
@@ -111,9 +119,13 @@ public class AuthService {
 
     User user = userMapper.createOAuthUserDtoToUser(registerOAuthUserDto);
     user.setAuthProvider(AuthProvider.GOOGLE);
-    User saved = userRepository.save(user);
-    log.info("OAuth User registered: userId={}, provider={}", saved.getId(), AuthProvider.GOOGLE);
-    return saved;
+    User savedUser = userRepository.save(user);
+    log.info("OAuth User registered: userId={}, provider={}", savedUser.getId(), AuthProvider.GOOGLE);
+
+    log.info("Sending confirmation email to {}", savedUser.getEmail());
+    applicationEventPublisher.publishEvent(new UserRegisteredEvent(savedUser.getEmail(), savedUser.getRole().toString(), savedUser.getUsername()));
+
+    return savedUser;
   }
 
   /**
