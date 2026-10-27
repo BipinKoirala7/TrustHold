@@ -38,6 +38,14 @@ app:
     refreshCookiePath: ${APP_COOKIE_REFRESH_COOKIE_PATH:/api/v1/auth}
     accessCookiePath: ${APP_COOKIE_ACCESS_COOKIE_PATH:/}
 
+mail:
+  from: ${MAIL_FROM:TrustHold <noreply@mail.bipin-koirala.com.np>}
+  support: ${MAIL_SUPPORT_EMAIL:your-real-email@gmail.com}
+
+resend:
+  api:
+    key: ${RESEND_API_KEY}
+
 logging:
   level:
     com.trusthold: DEBUG
