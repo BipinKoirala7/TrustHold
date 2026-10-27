@@ -1,52 +1,41 @@
-import type { LoginValues } from "@/lib/schema/auth";
-import type { RegisterValues } from "@/lib/schema/auth";
+import type { LoginValues } from "@/lib/schema/authSchema";
+import type { RegisterUerDto } from "@/lib/schema/authSchema";
+import api from "./axios";
+import { toast } from "sonner";
 
-// Adjust to match the Spring Boot auth controller. With the Next.js rewrite
-// proxy from earlier, "/api/*" is forwarded to the backend.
-const LOGIN_PATH = "/api/auth/login";
+const REGISTER_PATH = "auth/register";
 
-export async function login(values: LoginValues): Promise<void> {
-  const response = await fetch(LOGIN_PATH, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include", // backend sets the JWT cookie
-    body: JSON.stringify(values),
-  });
-
-  if (response.status === 401 || response.status === 403) {
-    throw new Error("Invalid email or password.");
-  }
-
-  if (!response.ok) {
-    throw new Error("We couldn't sign you in right now. Please try again.");
-  }
-}
-
-// Adjust the path and field names to match the Spring Boot registration DTO.
-const REGISTER_PATH = "/api/auth/register";
-
-export async function registerUser(values: RegisterValues): Promise<void> {
-  // confirmPassword is a frontend-only check; the backend never needs it.
-  const { confirmPassword: _confirmPassword, ...payload } = values;
-
-  const response = await fetch(REGISTER_PATH, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify(payload),
-  });
+export async function registerUser(values: RegisterUerDto): Promise<void> {
+  const response = await api.post(REGISTER_PATH, values);
 
   if (response.status === 409) {
-    throw new Error("An account with this email already exists.");
+    toast.error("Email already exists", {
+      description: "Please use a different email address.",
+    });
+    return;
   }
 
   if (response.status === 400) {
-    throw new Error("Please check your details and try again.");
+    toast.error("Invalid registration data", {
+      description:
+        response.data?.message ?? "Please check your input and try again.",
+    });
+    return;
   }
+}
 
-  if (!response.ok) {
-    throw new Error(
-      "We couldn't create your account right now. Please try again.",
-    );
+const LOGIN_PATH = "auth/login";
+
+export async function login(values: LoginValues): Promise<void> {
+  const response = await api.post(LOGIN_PATH, values);
+
+  if (response.status === 200) {
+    toast.success("Logged in successfully", {
+      description: "You are now logged in.",
+    });
+  } else {
+    toast.error("Login failed", {
+      description: "Please check your credentials and try again.",
+    });
   }
 }

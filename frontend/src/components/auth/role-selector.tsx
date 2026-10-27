@@ -1,5 +1,5 @@
 import { Building2, User, type LucideIcon } from "lucide-react";
-import type { RegistrationRole } from "@/lib/schema/auth";
+import type { RegistrationRole } from "@/lib/schema/authSchema";
 import { cn } from "@/lib/utils";
 
 const options: {

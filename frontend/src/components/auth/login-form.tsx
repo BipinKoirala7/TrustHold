@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { PasswordInput } from "@/components/auth/password-input";
 import { login } from "@/lib/api/auth";
-import { loginSchema, type LoginValues } from "@/lib/schema/auth";
+import { loginSchema, type LoginValues } from "@/lib/schema/authSchema";
 
 const inputClass = "h-12 bg-card px-4 text-base md:text-base border-border";
 
