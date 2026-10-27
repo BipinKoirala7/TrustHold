@@ -10,28 +10,32 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { PasswordInput } from "@/components/auth/password-input";
-import { login } from "@/lib/api/auth";
-import { loginSchema, type LoginValues } from "@/lib/schema/authSchema";
+import { getCurrentUser, login } from "@/lib/api/auth";
+import { loginSchema, type LoginUserDto } from "@/lib/schema/authSchema";
+import { useQueryClient } from "@tanstack/react-query";
 
 const inputClass = "h-12 bg-card px-4 text-base md:text-base border-border";
 
 export function LoginForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors, isSubmitting },
-  } = useForm<LoginValues>({
+  } = useForm<LoginUserDto>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
-  async function onSubmit(values: LoginValues) {
+  async function onSubmit(values: LoginUserDto) {
     try {
       await login(values);
-      // TODO: redirect by role once the dashboards exist.
+      const user = await queryClient.query({
+        queryKey: ["me"],
+        queryFn: getCurrentUser,
+      });
       router.push("/dashboard");
       router.refresh();
     } catch (error) {

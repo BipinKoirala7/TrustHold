@@ -1,4 +1,4 @@
-import type { LoginValues } from "@/lib/schema/authSchema";
+import type { LoginUserDto, Role } from "@/lib/schema/authSchema";
 import type { RegisterUerDto } from "@/lib/schema/authSchema";
 import api from "./axios";
 import { toast } from "sonner";
@@ -26,7 +26,7 @@ export async function registerUser(values: RegisterUerDto): Promise<void> {
 
 const LOGIN_PATH = "auth/login";
 
-export async function login(values: LoginValues): Promise<void> {
+export async function login(values: LoginUserDto): Promise<void> {
   const response = await api.post(LOGIN_PATH, values);
 
   if (response.status === 200) {
@@ -39,3 +39,18 @@ export async function login(values: LoginValues): Promise<void> {
     });
   }
 }
+
+const ME_PATH = "user/me";
+
+export async function getCurrentUser(): Promise<User | null> {
+  try {
+    const res = await api.get(ME_PATH);
+    return res.data.data;
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 401) return null; // logged out, not an error
+    throw e;
+  }
+}
+
+// Helper functions
+export const homePathFor = (role: Role) => `/${role.toLowerCase()}`;

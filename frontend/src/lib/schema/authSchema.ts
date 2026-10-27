@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const registrationRoles = ["LANDLORD", "TENANT"] as const;
 export type RegistrationRole = (typeof registrationRoles)[number];
+export type Role = RegistrationRole | "ADMIN";
 
 export const registerSchema = z
   .object({
@@ -29,4 +30,4 @@ export const loginSchema = z.object({
     .min(8, "Password must be at least 8 characters long"),
 });
 
-export type LoginValues = z.infer<typeof loginSchema>;
+export type LoginUserDto = z.infer<typeof loginSchema>;
