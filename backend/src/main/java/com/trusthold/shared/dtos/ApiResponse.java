@@ -2,6 +2,9 @@ package com.trusthold.shared.dtos;
 
 import java.time.Instant;
 
+/**
+ * ApiResponse is a record that represents a response from the server.
+ */
 public record ApiResponse<T>(boolean success, String message, T data, Instant timestamp) {
 
   public static <T> ApiResponse<T> success(T data, String message) {

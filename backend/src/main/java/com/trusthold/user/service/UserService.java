@@ -77,11 +77,26 @@ public class UserService {
   /**
    * Records the current time as the user's last login.
    * Uses a direct update query, so the full user entity is not loaded.
+   *
+   * @param userId the id of the user to update
    */
   @Transactional
   public void updateUserLastLoginTime(@NotNull UUID userId) {
     log.debug("Updating last login time: userId={}", userId);
     userRepository.updateUserLastLoginTime(userId, Instant.now());
+  }
+
+  /**
+   * Deletes a user's account and all associated data.
+   *
+   * @param authUser an authenticated user
+   */
+  @Transactional
+  public void deleteUser(@NotNull AuthUser authUser) {
+    // TODO: Have a mechanism of deleting userId after confirming though the mail.
+
+    log.debug("Deleting user: userId={}", authUser.id());
+    userRepository.deleteById(authUser.id());
   }
 
   // ---- Look up helpers ----
