@@ -84,6 +84,14 @@ public class UserService {
     userRepository.updateUserLastLoginTime(userId, Instant.now());
   }
 
+  @Transactional
+  public void deleteUser(@NotNull AuthUser authUser) {
+    // TODO: Have a mechanism of deleting userId after confirming though the mail.
+
+    log.debug("Deleting user: userId={}", authUser.id());
+    userRepository.deleteById(authUser.id());
+  }
+
   // ---- Look up helpers ----
 
   /** @return the user, or empty if no user has this email */

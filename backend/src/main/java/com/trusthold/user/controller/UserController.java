@@ -31,4 +31,11 @@ public class UserController {
     userService.updateUser(authUser, updateUserDto);
     return ApiResponse.success("Successfully Updated User");
   }
+
+  @DeleteMapping
+  @ResponseStatus(HttpStatus.OK)
+  public ApiResponse<Void> deleteUser(@Valid @AuthenticationPrincipal AuthUser authUser){
+    userService.deleteUser(authUser);
+    return ApiResponse.success("Successfully Deleted User");
+  }
 }
