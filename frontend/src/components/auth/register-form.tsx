@@ -17,7 +17,6 @@ import { GoogleButton } from "@/components/auth/google-button";
 import { OrDivider } from "@/components/auth/or-divider";
 import { PasswordInput } from "@/components/auth/password-input";
 import { RoleSelector } from "@/components/auth/role-selector";
-import { registerUser } from "@/lib/api/auth";
 import {
   registerSchema,
   RegisterUerDto,
@@ -35,7 +34,6 @@ function googleSignupUrl(role: RegistrationRole) {
 
 export function RegisterForm() {
   const { mutate, isPending } = useRegister();
-  const router = useRouter();
 
   const {
     register,
@@ -92,9 +90,6 @@ export function RegisterForm() {
             className={inputClass}
             {...register("username")}
           />
-          <FieldDescription>
-            Username has to be all lowercase and unique for all users
-          </FieldDescription>
           {errors.username && (
             <FieldError>{errors.username.message}</FieldError>
           )}

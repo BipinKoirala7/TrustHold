@@ -1,10 +1,14 @@
+"use client";
+
 import { useMutation } from "@tanstack/react-query";
 import { registerUser } from "../api/auth";
 import { RegisterUerDto } from "../schema/authSchema";
 import { ApiError } from "../api/error";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function useRegister() {
+  const router = useRouter();
   return useMutation({
     mutationFn: async (values: RegisterUerDto) => {
       await registerUser(values);
@@ -14,6 +18,7 @@ export function useRegister() {
         description:
           "Your account has been created. Please check your email for confirmation.",
       });
+      router.push("/login");
     },
     onError: (error) => {
       if (error instanceof ApiError && error.status === 409) {

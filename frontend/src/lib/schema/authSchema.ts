@@ -9,7 +9,14 @@ export const registerSchema = z
     registrationRole: z.enum(registrationRoles),
     firstName: z.string().trim().min(2, "Please enter your first name"),
     lastName: z.string().trim().min(2, "Please enter your last name"),
-    username: z.string().trim().min(2, "Please enter a username"),
+    username: z
+      .string()
+      .trim()
+      .min(2, "Please enter a username")
+      .regex(
+        /^[a-z0-9_]+$/,
+        "Username can only contain lowercase letters, numbers and underscores",
+      ),
     email: z.email({ message: "Please enter a valid email address." }),
     password: z.string().min(8, "Password must be at least 8 characters long"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
