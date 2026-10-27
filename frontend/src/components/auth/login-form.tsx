@@ -35,7 +35,6 @@ export function LoginForm() {
       router.push("/dashboard");
       router.refresh();
     } catch (error) {
-      // fetch() rejects with a TypeError when the server can't be reached.
       if (error instanceof TypeError) {
         toast.error("Can't reach the server", {
           description: "Check your connection and try again.",
@@ -58,8 +57,6 @@ export function LoginForm() {
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col gap-5"
     >
-      {/* No data-invalid on Field: that is what turns the label red.
-          The red border comes from aria-invalid on the input itself. */}
       <Field>
         <FieldLabel htmlFor="email">Email address</FieldLabel>
         <Input
