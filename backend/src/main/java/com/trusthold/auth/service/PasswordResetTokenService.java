@@ -5,6 +5,7 @@ import com.trusthold.auth.dtos.ResetPasswordDto;
 import com.trusthold.auth.exception.InValidPasswordResetTokenException;
 import com.trusthold.auth.model.PasswordResetToken;
 import com.trusthold.auth.repository.PasswordResetTokenRepository;
+import com.trusthold.mail.dtos.PasswordResetEvent;
 import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
 import com.trusthold.user.service.UserService;
@@ -12,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,15 +36,20 @@ public class PasswordResetTokenService {
   private final CookieService cookieService;
 
   private static final String INVALID_TOKEN_MSG = "Invalid or expired token";
+  public static final long TOKEN_EXPIRY_MINUTES = 30;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   @Transactional
   public void forgotPassword(@NotNull ForgotPasswordDto forgotPasswordDto){
-    User user = userService.getUserByEmail(forgotPasswordDto.email());
-    String rawToken = createResetPasswordToken(user);
+    userRepository
+        .findByEmail(forgotPasswordDto.email())
+        .ifPresentOrElse(user -> {
+          String rawToken = createResetPasswordToken(user);
+          applicationEventPublisher.publishEvent(new PasswordResetEvent(user.getEmail(), user.getFirstName(), rawToken));
+    }, () -> log.info("Password reset requested for an unknown email"));
   }
 
-  @Transactional
-  public String createResetPasswordToken(User user){
+  private String createResetPasswordToken(User user){
     passwordResetTokenRepository.deleteByUserId(user.getId());
 
     byte[] bytes = new byte[32];
@@ -52,7 +59,7 @@ public class PasswordResetTokenService {
     PasswordResetToken entity = new PasswordResetToken();
     entity.setUserId(user.getId());
     entity.setTokenHash(TokenHasher.sha256Hex(rawToken));
-    entity.setExpiresAt(Instant.now().plus(30, ChronoUnit.MINUTES));
+    entity.setExpiresAt(Instant.now().plus(TOKEN_EXPIRY_MINUTES, ChronoUnit.MINUTES));
     passwordResetTokenRepository.save(entity);
 
     return rawToken;

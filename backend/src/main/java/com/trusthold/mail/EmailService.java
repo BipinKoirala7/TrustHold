@@ -4,6 +4,7 @@ import com.resend.Resend;
 import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
 import com.resend.services.emails.model.CreateEmailResponse;
+import com.trusthold.auth.service.PasswordResetTokenService;
 import com.trusthold.mail.templates.PasswordResetEmailTemplate;
 import com.trusthold.mail.templates.WelcomeEmailTemplate;
 import lombok.RequiredArgsConstructor;
@@ -12,11 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.HtmlUtils;
-
-import java.time.Year;
-import java.util.Locale;
-import java.util.Map;
 
 /**
  * Service for sending emails.
@@ -25,7 +21,7 @@ import java.util.Map;
 @Slf4j
 @EnableAsync
 @RequiredArgsConstructor
-public class MailService {
+public class EmailService {
 
   private final PasswordResetEmailTemplate passwordResetEmailTemplate;
   private final WelcomeEmailTemplate welcomeEmailTemplate;
@@ -70,7 +66,7 @@ public class MailService {
   @Async
   public void sendPasswordResetEmail(String to, String firstName, String rawToken) {
     String resetUrl = frontendUrl + "/reset-password?token=" + rawToken;
-    String html = passwordResetEmailTemplate.render(firstName, resetUrl, 30, supportEmail);
+    String html = passwordResetEmailTemplate.render(firstName, resetUrl, PasswordResetTokenService.TOKEN_EXPIRY_MINUTES, supportEmail);
     try{
       sendMail(to, PasswordResetEmailTemplate.SUBJECT, html);
     } catch (ResendException e) {
