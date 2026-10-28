@@ -1,14 +1,11 @@
 package com.trusthold.auth.controller;
 
-import com.trusthold.auth.dtos.GoogleRegistrationRequest;
-import com.trusthold.auth.dtos.ResetPasswordDto;
+import com.trusthold.auth.dtos.*;
 import com.trusthold.auth.exception.InValidRoleForRegistrationException;
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.auth.service.AuthService;
-import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.service.PasswordResetTokenService;
 import com.trusthold.shared.dtos.ApiResponse;
-import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.user.model.Role;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -72,14 +69,22 @@ public class AuthController {
     return ApiResponse.success("Token refreshed successfully");
   }
 
+  @PostMapping("/forgot-password")
+  @ResponseStatus(HttpStatus.OK)
+  public ApiResponse<Void> forgotPassword(
+      @RequestBody @Valid ForgotPasswordDto forgotPasswordDto
+  ){
+    passwordResetTokenService.forgotPassword(forgotPasswordDto);
+    return ApiResponse.success("Password Reset Successfully");
+  }
+
   @PostMapping("/reset-password")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> resetPassword(
       HttpServletResponse response,
-      @AuthenticationPrincipal @Valid AuthUser authUser,
       @RequestBody @Valid ResetPasswordDto resetPasswordDto
   ){
-    passwordResetTokenService.resetPassword(response, authUser, resetPasswordDto);
+    passwordResetTokenService.resetPassword(response, resetPasswordDto);
     return ApiResponse.success("Password Reset Successfully");
   }
 

@@ -1,8 +1,8 @@
 package com.trusthold.auth.service;
 
+import com.trusthold.auth.dtos.ForgotPasswordDto;
 import com.trusthold.auth.dtos.ResetPasswordDto;
 import com.trusthold.auth.exception.InValidPasswordResetTokenException;
-import com.trusthold.auth.model.AuthUser;
 import com.trusthold.auth.model.PasswordResetToken;
 import com.trusthold.auth.repository.PasswordResetTokenRepository;
 import com.trusthold.user.model.User;
@@ -30,9 +30,18 @@ public class PasswordResetTokenService {
   private final PasswordEncoder passwordEncoder;
   private final UserRepository userRepository;
   private final UserService userService;
-  private final AuthService authService;
   private final ActiveRefreshTokenService activeRefreshTokenService;
+  private final CookieService cookieService;
 
+  private static final String INVALID_TOKEN_MSG = "Invalid or expired token";
+
+  @Transactional
+  public void forgotPassword(@NotNull ForgotPasswordDto forgotPasswordDto){
+    User user = userService.getUserByEmail(forgotPasswordDto.email());
+    String rawToken = createResetPasswordToken(user);
+  }
+
+  @Transactional
   public String createResetPasswordToken(User user){
     passwordResetTokenRepository.deleteByUserId(user.getId());
 
@@ -56,10 +65,11 @@ public class PasswordResetTokenService {
     String hash = TokenHasher.sha256Hex(resetPasswordDto.rawToken());
     PasswordResetToken passwordResetToken = passwordResetTokenRepository
         .findByTokenHash(hash)
-        .orElseThrow(() -> new InValidPasswordResetTokenException("Password Token is either invalid or malformed"));
+        .orElseThrow(() -> new InValidPasswordResetTokenException(INVALID_TOKEN_MSG));
 
-    if(!passwordResetToken.getExpiresAt().isAfter(Instant.now())){
-      throw new InValidPasswordResetTokenException("Password Token is expired");
+    int consumed = passwordResetTokenRepository.consume(hash, Instant.now());
+    if (consumed != 1) {
+      throw new InValidPasswordResetTokenException(INVALID_TOKEN_MSG);
     }
 
     User user = userService.getUserById(passwordResetToken.getUserId());
@@ -71,8 +81,10 @@ public class PasswordResetTokenService {
     // Remove any other stale password reset tokens
     passwordResetTokenRepository.deleteByUserId(passwordResetToken.getUserId());
 
-    // logout the user
-    activeRefreshTokenService.revokeAllRefreshTokensForUser(user.getId());
+    // log out the user
+    activeRefreshTokenService.removeActiveRefreshToken(user.getId());
+    cookieService.deleteRefreshTokenCookie(response);
+    cookieService.deleteAccessTokenCookie(response);
   }
 
   @Scheduled(cron = "0 0 * * * *") // hourly

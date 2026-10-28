@@ -51,6 +51,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   // Refresh token path checks for refresh token, not access token.
   private final List<String> SHOULD_NOT_FILTER = List.of(
       "/auth/login", "/auth/register", "/auth/token/refresh", "/auth/oauth/register", "/oauth2",
+      "/auth/reset-password", "/auth/forgot-password",
       "/actuator/",
       "/swagger-ui/", "/swagger-ui.html", "/v3/api-docs"
   );
