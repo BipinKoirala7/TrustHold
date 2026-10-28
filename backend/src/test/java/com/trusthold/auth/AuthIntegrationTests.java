@@ -76,7 +76,9 @@ public class AuthIntegrationTests {
           "bipin123",
           "bipin@example.com",
           "Password123!",
-          RegistrationRole.TENANT);
+          "+1234567890",
+          RegistrationRole.TENANT
+      );
     }
 
     /**
@@ -138,6 +140,7 @@ public class AuthIntegrationTests {
           "testuser",
           "invalid-email",
           "short",
+          null,
           RegistrationRole.TENANT
       );
 
@@ -164,6 +167,7 @@ public class AuthIntegrationTests {
           "testuser",
           validRegisterUserDto.email(),
           validRegisterUserDto.password(),
+          validRegisterUserDto.phone(),
           validRegisterUserDto.registrationRole()
       );
 
@@ -187,6 +191,7 @@ public class AuthIntegrationTests {
           validRegisterUserDto.username(),
           "testuser@example.com",   // Using a different email
           validRegisterUserDto.password(),
+          validRegisterUserDto.phone(),
           validRegisterUserDto.registrationRole()
       );
 

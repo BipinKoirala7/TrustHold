@@ -62,6 +62,13 @@ public class User {
   // Hash passwords are stored in this field for security reasons.
   private String password;
 
+  @NotBlank(message = "Phone number is required")
+  @Pattern(
+      regexp = "^\\+[1-9]\\d{1,14}$",
+      message = "Phone number must be a valid international phone number"
+  )
+  private String phone;
+
   @NotNull(message = "User role is required")
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)

@@ -55,6 +55,7 @@ public class AuthServiceTests {
         "testUser_123",
         "testuser@example.com",
         "testPassword@123",
+        "+1234567890",
         RegistrationRole.TENANT
     );
 

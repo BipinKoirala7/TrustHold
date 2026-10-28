@@ -4,6 +4,7 @@ export interface PublicUserDto {
   lastName: string;
   username: string;
   email: string;
+  phone: string;
   role: Role;
   authProvider: AuthProvider;
   lastLogin: string | null; // ISO 8601 Instant

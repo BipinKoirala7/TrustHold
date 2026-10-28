@@ -19,6 +19,11 @@ export const registerSchema = z
       ),
     email: z.email({ message: "Please enter a valid email address." }),
     password: z.string().min(8, "Password must be at least 8 characters long"),
+    phone: z
+      .string()
+      .trim()
+      .min(1, "Please enter your phone number")
+      .regex(/^\+[1-9]\d{1,14}$/, "Please enter a valid phone number"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((values) => values.password === values.confirmPassword, {

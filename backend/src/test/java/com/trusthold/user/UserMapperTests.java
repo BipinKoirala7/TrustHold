@@ -6,7 +6,7 @@ import com.trusthold.user.dtos.UpdateUserDto;
 import com.trusthold.user.model.Role;
 import com.trusthold.user.model.User;
 import com.trusthold.user.service.UserMapper;
-import com.trusthold.user.service.UserMapperImpl;
+import com.trusthold.user.service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,6 +27,7 @@ public class UserMapperTests {
     user.setFirstName("Jane");
     user.setLastName("Smith");
     user.setUsername("jane_smith");
+    user.setPhone("+1234567890");
   }
 
   @Nested
@@ -41,6 +42,7 @@ public class UserMapperTests {
           "john_doe",
           "john@example.com",
           "password@123",
+          "+1234567890",
           RegistrationRole.TENANT
       );
 
@@ -60,6 +62,7 @@ public class UserMapperTests {
     void shouldMapCreateUserDtoToUserWithNullFields() {
       // Arrange
       RegisterUserDto registerUserDto = new RegisterUserDto(
+          null,
           null,
           null,
           null,
@@ -85,7 +88,7 @@ public class UserMapperTests {
     @Test
     void shouldUpdateUserFromUpdateUserDto() {
       // Arrange
-      UpdateUserDto updateUserDto = new UpdateUserDto("John", "Doe", "john_doe123");
+      UpdateUserDto updateUserDto = new UpdateUserDto("John", "Doe", "john_doe123", "+9779846271578");
 
       // Act
       underTest.updateUserFromDto(updateUserDto, user);
@@ -94,12 +97,13 @@ public class UserMapperTests {
       assertThat(user.getFirstName()).isEqualTo("John");
       assertThat(user.getLastName()).isEqualTo("Doe");
       assertThat(user.getUsername()).isEqualTo("john_doe123");
+      assertThat(user.getPhone()).isEqualTo("+9779846271578");
     }
 
     @Test
     void shouldNotUpdateFieldsWhenAllDtoFieldsAreNull() {
       // Arrange
-      UpdateUserDto updateUserDto = new UpdateUserDto(null, null, null);
+      UpdateUserDto updateUserDto = new UpdateUserDto(null, null, null, null);
 
       // Act
       underTest.updateUserFromDto(updateUserDto, user);
@@ -108,12 +112,13 @@ public class UserMapperTests {
       assertThat(user.getFirstName()).isEqualTo("Jane");
       assertThat(user.getLastName()).isEqualTo("Smith");
       assertThat(user.getUsername()).isEqualTo("jane_smith");
+      assertThat(user.getPhone()).isEqualTo("+1234567890");
     }
 
     @Test
     void shouldUpdateFirstNameOnlyWhenOtherFieldsAreNull() {
       // Arrange
-      UpdateUserDto dto = new UpdateUserDto("John", null, null);
+      UpdateUserDto dto = new UpdateUserDto("John", null, null, null);
 
       // Act
       underTest.updateUserFromDto(dto, user);
@@ -122,12 +127,13 @@ public class UserMapperTests {
       assertThat(user.getFirstName()).isEqualTo("John");
       assertThat(user.getLastName()).isEqualTo("Smith");
       assertThat(user.getUsername()).isEqualTo("jane_smith");
+      assertThat(user.getPhone()).isEqualTo("+1234567890");
     }
 
     @Test
     void shouldUpdateLastNameOnlyWhenOtherFieldsAreNull() {
       // Arrange
-      UpdateUserDto dto = new UpdateUserDto(null, "Doe", null);
+      UpdateUserDto dto = new UpdateUserDto(null, "Doe", null, null);
 
       // Act
       underTest.updateUserFromDto(dto, user);
@@ -136,12 +142,13 @@ public class UserMapperTests {
       assertThat(user.getFirstName()).isEqualTo("Jane");
       assertThat(user.getLastName()).isEqualTo("Doe");
       assertThat(user.getUsername()).isEqualTo("jane_smith");
+      assertThat(user.getPhone()).isEqualTo("+1234567890");
     }
 
     @Test
     void shouldUpdateUsernameOnlyWhenUpdateUserDtoHasOnlyUsername() {
       // Arrange
-      UpdateUserDto updateUserDto = new UpdateUserDto(null, null, "new_username");
+      UpdateUserDto updateUserDto = new UpdateUserDto(null, null, "new_username", null);
 
       // Act
       underTest.updateUserFromDto(updateUserDto, user);
@@ -150,6 +157,7 @@ public class UserMapperTests {
       assertThat(user.getFirstName()).isEqualTo("Jane");
       assertThat(user.getLastName()).isEqualTo("Smith");
       assertThat(user.getUsername()).isEqualTo("new_username");
+      assertThat(user.getPhone()).isEqualTo("+1234567890");
     }
 
     @Test
@@ -157,7 +165,7 @@ public class UserMapperTests {
       // Arrange
       UUID originalId = user.getId();
 
-      UpdateUserDto dto = new UpdateUserDto("John", "Doe", "john_doe");
+      UpdateUserDto dto = new UpdateUserDto("John", "Doe", "john_doe", "+1234567890");
       // Act
       underTest.updateUserFromDto(dto, user);
 
@@ -171,7 +179,7 @@ public class UserMapperTests {
       user.setEmail("jane@example.com");
       user.setRole(Role.TENANT);
 
-      UpdateUserDto dto = new UpdateUserDto("John", "Doe", "john_doe");
+      UpdateUserDto dto = new UpdateUserDto("John", "Doe", "john_doe", "+1234567890");
 
       // Act
       underTest.updateUserFromDto(dto, user);
