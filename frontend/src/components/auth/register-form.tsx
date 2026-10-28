@@ -76,7 +76,7 @@ export function RegisterForm() {
         )}
       />
 
-      <GoogleButton label="Sign up with Google" href={googleSignupUrl(role)} />
+      <GoogleButton label="Sign up with Google" role={role} />
 
       <OrDivider />
 

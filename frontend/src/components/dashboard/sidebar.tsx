@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { redirect, usePathname } from "next/navigation";
+import { redirect, usePathname, useRouter } from "next/navigation";
 import {
   ChevronUp,
   FileText,
@@ -36,6 +36,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Logo } from "../brand/logo";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { logoutUser } from "@/lib/api/auth";
+import { toast } from "sonner";
+import { Spinner } from "../ui/spinner";
 
 const activeStyles =
   "data-active:bg-primary data-active:text-primary-foreground data-active:hover:bg-primary/90 data-active:hover:text-primary-foreground " +
@@ -51,8 +55,26 @@ function InsetSeparator() {
 
 export function AppSidebar() {
   const { user } = useAuth();
+  const router = useRouter();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const { state, isMobile, toggleSidebar } = useSidebar();
+  const { mutate, isPending } = useMutation({
+    mutationFn: async () => {
+      await logoutUser();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+      toast.success("Logged out successfully");
+      router.replace("/login");
+    },
+    onError: (error) => {
+      toast.error("Logout Failed", {
+        description:
+          error instanceof Error ? error.message : "Please try again!",
+      });
+    },
+  });
 
   if (!user) return redirect("/login");
 
@@ -145,9 +167,13 @@ export function AppSidebar() {
                 sideOffset={8}
                 className="min-w-44"
               >
-                <DropdownMenuItem className="cursor-pointer hover:bg-primary/10">
+                <DropdownMenuItem
+                  className="cursor-pointer hover:bg-primary/10"
+                  onClick={() => mutate()}
+                  disabled={isPending}
+                >
                   <LogOut />
-                  Log out
+                  {isPending ? <Spinner /> : "Log out"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="cursor-pointer hover:bg-primary/10"

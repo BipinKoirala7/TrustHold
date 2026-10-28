@@ -74,7 +74,7 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     if (oAuth2User == null) {
       log.warn("OAuth2User is null");
-      response.sendRedirect(frontendUrl + "/login");
+      response.sendRedirect(frontendUrl + "/login?error=oauth");
       return;
     }
 
@@ -82,7 +82,7 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     if (providerId == null) {
       log.warn("Provider ID is null");
-      response.sendRedirect(frontendUrl + "/login");
+      response.sendRedirect(frontendUrl + "/login?error=provider");
       return;
     }
 
@@ -92,19 +92,19 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     if(email == null) {
       log.warn("Email is null");
-      response.sendRedirect(frontendUrl + "/login");
+      response.sendRedirect(frontendUrl + "/login?error=email");
       return;
     }
 
     if(givenName == null) {
       log.warn("Given name is null");
-      response.sendRedirect(frontendUrl + "/login");
+      response.sendRedirect(frontendUrl + "/login?error=firstname");
       return;
     }
 
     if(familyName == null) {
       log.warn("Family name is null");
-      response.sendRedirect(frontendUrl + "/login");
+      response.sendRedirect(frontendUrl + "/login?error=lastname");
       return;
     }
 
@@ -122,7 +122,7 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       Object roleObj = session != null ? session.getAttribute("registrationRole") : null;
       if(roleObj == null) {
         log.warn("Role from the session is null");
-        response.sendRedirect(frontendUrl + "/login");
+        response.sendRedirect(frontendUrl + "/login?error=role");
         return;
       }
 
@@ -138,7 +138,7 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     } else {
       if(!Objects.equals(user.get().getProviderId(), providerId)){
         log.warn("Token is invalid");
-        response.sendRedirect(frontendUrl + "/login");
+        response.sendRedirect(frontendUrl + "/login?error=token");
         return;
       }
       loginAndRedirect(user.get(), response);
