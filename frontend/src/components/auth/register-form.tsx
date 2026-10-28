@@ -48,6 +48,7 @@ export function RegisterForm() {
       firstName: "",
       lastName: "",
       username: "",
+      phone: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -125,6 +126,20 @@ export function RegisterForm() {
             )}
           </Field>
         </div>
+
+        <Field>
+          <FieldLabel htmlFor="phone">Phone number</FieldLabel>
+          <Input
+            id="phone"
+            type="tel"
+            autoComplete="tel"
+            placeholder="+1 (555) 123-4567"
+            aria-invalid={!!errors.phone}
+            className={inputClass}
+            {...register("phone")}
+          />
+          {errors.phone && <FieldError>{errors.phone.message}</FieldError>}
+        </Field>
 
         <Field>
           <FieldLabel htmlFor="email">Email address</FieldLabel>

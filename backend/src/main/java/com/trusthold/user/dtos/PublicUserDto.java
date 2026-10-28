@@ -14,6 +14,7 @@ public record PublicUserDto(
     String lastName,
     String username,
     String email,
+    String phone,
     Role role,
     AuthProvider authProvider,
     Instant lastLogin,

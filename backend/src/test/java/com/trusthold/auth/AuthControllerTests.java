@@ -49,6 +49,7 @@ public class AuthControllerTests {
           "testUser123",
           "testuser@example.com",
           "Test@Password1",
+          "+1234567890",
           RegistrationRole.TENANT);
     }
 
@@ -64,6 +65,7 @@ public class AuthControllerTests {
     void shouldReturnBadRequest_whenRegisterUserDtoIsInvalid() throws Exception {
       // Arrange
       registerUserDto = new RegisterUserDto(
+          null,
           null,
           null,
           null,

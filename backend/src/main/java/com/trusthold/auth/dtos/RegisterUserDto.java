@@ -37,6 +37,13 @@ public record RegisterUserDto(
     )
     String password,
 
+    @NotBlank
+    @Pattern(
+        regexp = "^\\+[1-9]\\d{1,14}$",
+        message = "Phone number must be a valid international phone number"
+    )
+    String phone,
+
     @NotNull(message = "User role is required")
     RegistrationRole registrationRole
 
