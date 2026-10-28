@@ -43,3 +43,17 @@ export const loginSchema = z.object({
 });
 
 export type LoginUserDto = z.infer<typeof loginSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().min(1, "Token is required"),
+    password: z.string().min(8, "Password must be at least 8 characters long"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    message: "Passwords don't match",
+  })
+  .transform(({ confirmPassword, ...rest }) => rest);
+
+export type ResetPasswordValues = z.input<typeof resetPasswordSchema>;
+export type ResetPasswordDto = z.infer<typeof resetPasswordSchema>;

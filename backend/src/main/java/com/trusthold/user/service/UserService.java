@@ -93,7 +93,7 @@ public class UserService {
    */
   @Transactional
   public void deleteUser(@NotNull AuthUser authUser) {
-    // TODO: Have a mechanism of deleting userId after confirming though the mail.
+    // TODO: Have a mechanism of deleting userId after confirming though the email.
 
     log.debug("Deleting user: userId={}", authUser.id());
     userRepository.deleteById(authUser.id());
