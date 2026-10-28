@@ -11,6 +11,7 @@ import com.trusthold.user.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,7 +68,7 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
    */
   @Override
   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-    log.debug("logging in oauth user");
+    log.info("logging in oauth user");
 
     OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
@@ -88,7 +89,6 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     String email = oAuth2User.getAttribute("email");
     String givenName = oAuth2User.getAttribute("given_name");
     String familyName = oAuth2User.getAttribute("family_name");
-    String imageUrl = oAuth2User.getAttribute("picture");
 
     if(email == null) {
       log.warn("Email is null");
@@ -108,10 +108,9 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       return;
     }
 
-    log.warn("Email: {}", email);
-    log.warn("Given name: {}", givenName);
-    log.warn("Family name: {}", familyName);
-    log.warn("Image URL: {}", imageUrl);
+    log.debug("Email: {}", email);
+    log.debug("Given name: {}", givenName);
+    log.debug("Family name: {}", familyName);
 
     Optional<User> user = userService.getByEmail(email);
 
@@ -119,7 +118,8 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       log.warn("User not found");
       log.warn("Registering user first");
 
-      Object roleObj = request.getSession(false).getAttribute("registrationRole");
+      HttpSession session = request.getSession(false);
+      Object roleObj = session != null ? session.getAttribute("registrationRole") : null;
       if(roleObj == null) {
         log.warn("Role from the session is null");
         response.sendRedirect(frontendUrl + "/login");
@@ -127,40 +127,35 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       }
 
       var role = RegistrationRole.valueOf((String) roleObj);
-      log.warn("Role from the session: {}", role);
+      log.debug("Role from the session: {}", role);
 
+      session.invalidate();
 
-      String username = givenName.toLowerCase() + "_" + familyName.toLowerCase();
+      String username = givenName.toLowerCase() + "_" + familyName.toLowerCase() + (int) (Math.random() * 9000 + 1000);
       RegisterOAuthUserDto registerOAuthUserDto = new RegisterOAuthUserDto(providerId, givenName, familyName, username, email, role);
 
-      User registerdOAuthUser = authService.registerOAuthUser(registerOAuthUserDto);
-      String newRefreshToken = jwtService.generateRefreshToken(registerdOAuthUser);
-      String newAccessToken = jwtService.generateAccessToken(registerdOAuthUser);
-
-      activeRefreshTokenService.storeActiveRefreshToken(registerdOAuthUser.getId(), newRefreshToken);
-      response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
-      response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
-
-      userService.updateUserLastLoginTime(registerdOAuthUser.getId());
-
-      response.sendRedirect(frontendUrl + "/dashboard");
+      loginAndRedirect(authService.registerOAuthUser(registerOAuthUserDto), response);
     } else {
       if(!Objects.equals(user.get().getProviderId(), providerId)){
         log.warn("Token is invalid");
         response.sendRedirect(frontendUrl + "/login");
         return;
       }
-      String newRefreshToken = jwtService.generateRefreshToken(user.get());
-      String newAccessToken = jwtService.generateAccessToken(user.get());
-
-      activeRefreshTokenService.storeActiveRefreshToken(user.get().getId(), newRefreshToken);
-
-      response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
-      response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
-
-      userService.updateUserLastLoginTime(user.get().getId());
-
-      response.sendRedirect(frontendUrl + "/dashboard");
+      loginAndRedirect(user.get(), response);
     }
+  }
+
+  private void loginAndRedirect(User user, HttpServletResponse response) throws IOException{
+    String newRefreshToken = jwtService.generateRefreshToken(user);
+    String newAccessToken = jwtService.generateAccessToken(user);
+
+    activeRefreshTokenService.storeActiveRefreshToken(user.getId(), newRefreshToken);
+
+    response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
+    response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
+
+    userService.updateUserLastLoginTime(user.getId());
+
+    response.sendRedirect(frontendUrl + "/google/callback");
   }
 }

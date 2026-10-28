@@ -1,11 +1,10 @@
 "use client";
 
 import { UserRound } from "lucide-react";
-import { formatMemberSince, type UserProfile } from "@/lib/profile-data";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { redirect } from "next/navigation";
 
-export function AccountInfoCard({ profile }: { profile: UserProfile }) {
+export function AccountInfoCard() {
   const { user } = useAuth();
 
   if (!user) return redirect("/login");

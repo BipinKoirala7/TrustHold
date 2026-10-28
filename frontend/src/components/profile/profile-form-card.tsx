@@ -1,12 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { roleLabels, type UserProfile } from "@/lib/profile-data";
 import { ProfileField } from "./profile-field";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { redirect } from "next/navigation";
 
-export function ProfileFormCard({ profile }: { profile: UserProfile }) {
+export function ProfileFormCard() {
   const { user } = useAuth();
 
   if (!user) return redirect("/login");
@@ -41,12 +40,12 @@ export function ProfileFormCard({ profile }: { profile: UserProfile }) {
             label="Username"
             defaultValue={user.username}
           />
-          <ProfileField
+          {/* <ProfileField
             id="phone"
             label="Phone number"
             type="tel"
             defaultValue={profile.phone}
-          />
+          /> */}
           <ProfileField
             id="email"
             label="Email address"

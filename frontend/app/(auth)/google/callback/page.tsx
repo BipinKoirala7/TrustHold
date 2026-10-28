@@ -1,12 +1,32 @@
 "use client";
 
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { getCurrentUser, homePathFor } from "@/lib/api/auth";
+import {
+  GoogleCallbackStatus,
+  type CallbackStatus,
+} from "@/components/auth/google/google-auth-callback";
 
-function GoogleCallBackPage() {
+export default function GoogleCallbackPage() {
   const router = useRouter();
-  const { user } = useAuth();
-  return <div>page</div>;
-}
+  const queryClient = useQueryClient();
+  const [status, setStatus] = useState<CallbackStatus>("loading");
+  const started = useRef(false);
 
-export default GoogleCallBackPage;
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+
+    queryClient
+      .query({ queryKey: ["me"], queryFn: getCurrentUser, staleTime: 0 })
+      .then((user) => {
+        if (user) router.replace(homePathFor(user.role));
+        else setStatus("error");
+      })
+      .catch(() => setStatus("error"));
+  }, [queryClient, router]);
+
+  return <GoogleCallbackStatus status={status} />;
+}
