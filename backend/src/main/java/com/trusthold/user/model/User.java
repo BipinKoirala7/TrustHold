@@ -28,7 +28,7 @@ public class User {
   private UUID id;
 
   // Optional field to store the provider ID (sub) for users authenticated via oauth providers (e.g., Google).
-  @Column(name = "provider_id")
+  @Column(name = "provider_id", unique = true)
   private String providerId;
 
   @NotBlank(message = "First name is required")
@@ -49,12 +49,12 @@ public class User {
       regexp = "^[a-z0-9_-]+$",
       message = "Username can contain only lowercase letters, numbers, underscores, and hyphens"
   )
-  @Column(nullable = false, length = 50)
+  @Column(nullable = false, length = 50, unique = true)
   private String username;
 
   @NotBlank(message = "Email is required")
   @Email(message = "Email must be a valid email address")
-  @Column(nullable = false)
+  @Column(nullable = false, updatable = false)
   private String email;
 
   // A password field is required for users registered with a LOCAL auth provider.
@@ -62,11 +62,12 @@ public class User {
   // Hash passwords are stored in this field for security reasons.
   private String password;
 
-  @NotBlank(message = "Phone number is required")
   @Pattern(
       regexp = "^\\+[1-9]\\d{1,14}$",
       message = "Phone number must be a valid international phone number"
   )
+  @Size(max = 16, message = "Phone number must be at most 16 characters long")
+  @Column(length = 16)
   private String phone;
 
   @NotNull(message = "User role is required")

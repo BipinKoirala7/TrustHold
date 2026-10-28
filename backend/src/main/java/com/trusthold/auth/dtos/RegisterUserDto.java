@@ -37,7 +37,8 @@ public record RegisterUserDto(
     )
     String password,
 
-    @NotBlank
+    @NotBlank(message = "Phone number is required")
+    @Size(max = 16, message = "Phone number must be at most 16 characters long")
     @Pattern(
         regexp = "^\\+[1-9]\\d{1,14}$",
         message = "Phone number must be a valid international phone number"
