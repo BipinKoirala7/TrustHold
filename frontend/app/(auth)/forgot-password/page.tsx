@@ -1,6 +1,6 @@
 import { AuthShowcase } from "@/components/auth/auth-showcase";
 import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
-import { ResetPasswordForm } from "@/components/auth/reset-password-form";
+import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 
 export default function ForgotPasswordPage() {
   return (
@@ -24,7 +24,7 @@ export default function ForgotPasswordPage() {
           </p>
         </div>
 
-        <ResetPasswordForm />
+        <ForgotPasswordForm />
       </div>
     </AuthSplitLayout>
   );

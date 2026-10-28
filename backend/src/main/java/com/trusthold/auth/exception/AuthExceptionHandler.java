@@ -14,6 +14,20 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 public class AuthExceptionHandler {
 
+  @ExceptionHandler(ExpiredPasswordResetTokenException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ApiResponse<Void> handleExpiredPasswordResetToken(ExpiredPasswordResetTokenException ex) {
+    log.warn("Expired password reset token", ex);
+    return ApiResponse.error(ex.getMessage());
+  }
+
+  @ExceptionHandler(InValidPasswordResetTokenException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ApiResponse<Void> handleInvalidPasswordResetToken(InValidPasswordResetTokenException ex) {
+    log.warn("Invalid password reset token", ex);
+    return ApiResponse.error(ex.getMessage());
+  }
+
   @ExceptionHandler(EmailAlreadyExistsException.class)
   @ResponseStatus(HttpStatus.CONFLICT)
   public ApiResponse<Void> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {

@@ -28,5 +28,19 @@ export async function getCurrentUser(): Promise<PublicUserDto | null> {
   }
 }
 
+export async function forgotPassword(email: string): Promise<void> {
+  await api.post("auth/forgot-password", { email });
+}
+
+export async function resetPassword(
+  token: string,
+  password: string,
+): Promise<void> {
+  await api.post("auth/reset-password", {
+    rawToken: token,
+    newPassword: password,
+  });
+}
+
 // Helper functions
 export const homePathFor = (role: Role) => `/${role.toLowerCase()}`;

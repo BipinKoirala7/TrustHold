@@ -37,7 +37,9 @@ export function GoogleCallbackStatus({ status }: { status: CallbackStatus }) {
               We couldn&apos;t complete your sign-in. Please try again.
             </p>
             <Button size="lg" className="mt-6 h-12 w-full rounded-xl">
-              <Link href="/login">Back to login</Link>
+              <Link href="/login" className="w-full">
+                Back to login
+              </Link>
             </Button>
           </>
         ) : (
