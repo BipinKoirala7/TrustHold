@@ -1,10 +1,12 @@
 package com.trusthold.auth.controller;
 
 import com.trusthold.auth.dtos.GoogleRegistrationRequest;
+import com.trusthold.auth.dtos.ResetPasswordDto;
 import com.trusthold.auth.exception.InValidRoleForRegistrationException;
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.dtos.LoginUserDto;
+import com.trusthold.auth.service.PasswordResetTokenService;
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.user.model.Role;
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 public class AuthController {
   private final AuthService authService;
+  private final PasswordResetTokenService passwordResetTokenService;
 
   @PostMapping("/register")
   @ResponseStatus(HttpStatus.CREATED)
@@ -67,6 +70,17 @@ public class AuthController {
   public ApiResponse<Void> refreshToken(HttpServletRequest request, HttpServletResponse response){
     authService.refreshToken(request, response);
     return ApiResponse.success("Token refreshed successfully");
+  }
+
+  @PostMapping("/reset-password")
+  @ResponseStatus(HttpStatus.OK)
+  public ApiResponse<Void> resetPassword(
+      HttpServletResponse response,
+      @AuthenticationPrincipal @Valid AuthUser authUser,
+      @RequestBody @Valid ResetPasswordDto resetPasswordDto
+  ){
+    passwordResetTokenService.resetPassword(response, authUser, resetPasswordDto);
+    return ApiResponse.success("Password Reset Successfully");
   }
 
   @PostMapping("/logout")
