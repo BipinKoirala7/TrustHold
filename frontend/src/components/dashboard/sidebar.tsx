@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
 import {
   ChevronUp,
   FileText,
@@ -34,14 +34,13 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { getRoleFromPath, roleUsers } from "@/lib/role-config";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { Logo } from "../brand/logo";
 
-// Solid green for the active item (the default is a subtle accent tint)
 const activeStyles =
   "data-active:bg-primary data-active:text-primary-foreground data-active:hover:bg-primary/90 data-active:hover:text-primary-foreground " +
   "data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:hover:bg-primary/90 data-[active=true]:hover:text-primary-foreground";
 
-// Same width as the menu buttons: inset by the sidebar's p-2, no extra margin
 function InsetSeparator() {
   return (
     <div className="px-2">
@@ -51,18 +50,17 @@ function InsetSeparator() {
 }
 
 export function AppSidebar() {
+  const { user } = useAuth();
   const pathname = usePathname();
   const { state, isMobile, toggleSidebar } = useSidebar();
 
-  const role = getRoleFromPath(pathname);
-  const user = roleUsers[role];
+  if (!user) return redirect("/login");
 
-  // "/landlord" or "/tenant": every link below is built from this
-  const basePath = `/${role}`;
+  const basePath = `/${user.role.toLowerCase()}`;
   const nav = [
     { label: "Dashboard", href: basePath, icon: Home },
-    { label: "Leases", href: `${basePath}/leases`, icon: FileText },
-    { label: "Profile", href: `${basePath}/profile`, icon: User },
+    { label: "Leases", href: `/leases`, icon: FileText },
+    { label: "Profile", href: `/profile`, icon: User },
   ];
 
   // On mobile the sidebar is a sheet, so it should always show the full header
@@ -88,14 +86,7 @@ export function AppSidebar() {
           </Button>
         ) : (
           <div className="flex items-center justify-between gap-2">
-            <Link href={basePath} className="flex items-center gap-2">
-              <div className="flex items-center justify-center rounded-lg bg-primary p-2 text-primary-foreground">
-                <ShieldCheck className="size-4" />
-              </div>
-              <span className="text-lg font-bold tracking-tight">
-                Trust<span className="text-primary">Hold</span>
-              </span>
-            </Link>
+            <Logo />
             <SidebarTrigger aria-label="Collapse sidebar" />
           </div>
         )}
@@ -136,11 +127,11 @@ export function AppSidebar() {
                 render={<SidebarMenuButton size="lg" />}
               >
                 <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                  {user.initials}
+                  {user.firstName[0] + user.lastName[0]}
                 </div>
                 <div className="grid flex-1 text-left leading-tight">
                   <span className="truncate text-sm font-semibold">
-                    {user.name}
+                    {user.firstName + " " + user.lastName}
                   </span>
                   <span className="truncate text-xs text-muted-foreground">
                     {user.role}
@@ -154,13 +145,13 @@ export function AppSidebar() {
                 sideOffset={8}
                 className="min-w-44"
               >
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer hover:bg-primary/10">
                   <LogOut />
                   Log out
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="cursor-pointer"
-                  render={<Link href={`${basePath}/profile`} />}
+                  className="cursor-pointer hover:bg-primary/10"
+                  render={<Link href={`/profile`} />}
                 >
                   <UserRound />
                   Profile

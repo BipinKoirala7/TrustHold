@@ -135,7 +135,7 @@ public class MailService {
     log.info("Sending welcome email to newly registered {}", userRole);
 
     RoleContent content = "LANDLORD".equals(userRole.toUpperCase(Locale.ROOT)) ? LANDLORD : TENANT;
-    String firstName = userName == null || userName.isBlank() ? "there" : userName.trim().split("\\s+")[0];
+    String firstName = userName == null || userName.isBlank() ? "there" : "@" + userName.trim();
 
     String htmlBody = render(WELCOME_TEMPLATE, Map.ofEntries(
         Map.entry("preheader", content.preheader()),

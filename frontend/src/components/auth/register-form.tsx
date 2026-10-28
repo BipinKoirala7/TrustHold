@@ -5,92 +5,72 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldLabel,
+  FieldDescription,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { GoogleButton } from "@/components/auth/google-button";
 import { OrDivider } from "@/components/auth/or-divider";
 import { PasswordInput } from "@/components/auth/password-input";
 import { RoleSelector } from "@/components/auth/role-selector";
-import { registerUser } from "@/lib/api/auth";
 import {
   registerSchema,
+  RegisterUerDto,
   type RegisterValues,
   type RegistrationRole,
-} from "@/lib/schema/auth";
+} from "@/lib/schema/authSchema";
+import { useRegister } from "@/lib/hooks/useRegister";
 
 const inputClass = "h-12 bg-card px-4 text-base md:text-base border-border";
 
-// The role is passed along so the backend knows which kind of account a Google
-// sign-up should create. Spring Security does not forward custom query params
-// on its own: the backend needs a custom OAuth2AuthorizationRequestResolver
-// (or similar) to keep "role" until the callback.
 function googleSignupUrl(role: RegistrationRole) {
   const base = process.env.NEXT_PUBLIC_API_URL ?? "";
   return `${base}/oauth2/authorization/google?role=${role}`;
 }
 
 export function RegisterForm() {
-  const router = useRouter();
+  const { mutate, isPending } = useRegister();
 
   const {
     register,
     handleSubmit,
     control,
     watch,
-    formState: { errors, isSubmitting },
-  } = useForm<RegisterValues>({
+    formState: { errors },
+  } = useForm<RegisterValues, unknown, RegisterUerDto>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      role: "LANDLORD",
-      fullName: "",
+      registrationRole: "LANDLORD",
+      firstName: "",
+      lastName: "",
+      username: "",
       email: "",
       password: "",
       confirmPassword: "",
     },
   });
 
-  const role = watch("role");
-
-  async function onSubmit(values: RegisterValues) {
-    try {
-      await registerUser(values);
-      toast.success("Account created", {
-        description: "Log in with your new account to continue.",
-      });
-      router.push("/login");
-    } catch (error) {
-      if (error instanceof TypeError) {
-        toast.error("Can't reach the server", {
-          description: "Check your connection and try again.",
-        });
-        return;
-      }
-
-      toast.error("Couldn't create your account", {
-        description:
-          error instanceof Error
-            ? error.message
-            : "Something went wrong. Please try again.",
-      });
-    }
-  }
+  const role = watch("registrationRole");
 
   return (
     <form
       noValidate
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit((values) => mutate(values))}
       className="flex flex-col gap-5"
     >
       <Controller
         control={control}
-        name="role"
+        name="registrationRole"
         render={({ field }) => (
           <RoleSelector
             name={field.name}
             value={field.value}
             onChange={field.onChange}
-            disabled={isSubmitting}
+            disabled={isPending}
           />
         )}
       />
@@ -101,19 +81,50 @@ export function RegisterForm() {
 
       <div className="flex flex-col gap-3">
         <Field>
-          <FieldLabel htmlFor="fullName">Full name</FieldLabel>
+          <FieldLabel htmlFor="username">Username</FieldLabel>
           <Input
-            id="fullName"
+            id="username"
             autoComplete="name"
             placeholder="Your full name"
-            aria-invalid={!!errors.fullName}
+            aria-invalid={!!errors.username}
             className={inputClass}
-            {...register("fullName")}
+            {...register("username")}
           />
-          {errors.fullName && (
-            <FieldError>{errors.fullName.message}</FieldError>
+          {errors.username && (
+            <FieldError>{errors.username.message}</FieldError>
           )}
         </Field>
+        <div className="flex items-center justify-between gap-4">
+          <Field>
+            <FieldLabel htmlFor="firstName">First name</FieldLabel>
+            <Input
+              id="firstName"
+              autoComplete="name"
+              placeholder="Your full name"
+              aria-invalid={!!errors.firstName}
+              className={inputClass}
+              {...register("firstName")}
+            />
+            {errors.firstName && (
+              <FieldError>{errors.firstName.message}</FieldError>
+            )}
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="lastName">Last name</FieldLabel>
+            <Input
+              id="lastName"
+              autoComplete="name"
+              placeholder="Your full name"
+              aria-invalid={!!errors.lastName}
+              className={inputClass}
+              {...register("lastName")}
+            />
+            {errors.lastName && (
+              <FieldError>{errors.lastName.message}</FieldError>
+            )}
+          </Field>
+        </div>
 
         <Field>
           <FieldLabel htmlFor="email">Email address</FieldLabel>
@@ -162,10 +173,10 @@ export function RegisterForm() {
         <Button
           type="submit"
           size="lg"
-          disabled={isSubmitting}
+          disabled={isPending}
           className="h-12 w-full rounded-xl text-base"
         >
-          {isSubmitting ? (
+          {isPending ? (
             <>
               <Spinner />
               Creating account…

@@ -1,7 +1,6 @@
 import { AccountInfoCard } from "@/components/profile/account-info-card";
 import { ChangePasswordCard } from "@/components/profile/change-password-card";
 import { ProfileFormCard } from "@/components/profile/profile-form-card";
-import { currentProfile } from "@/lib/profile-data";
 
 export default function ProfilePage() {
   return (
@@ -17,10 +16,10 @@ export default function ProfilePage() {
 
       <div className="grid items-start gap-6 lg:grid-cols-[1fr_20rem]">
         <div className="space-y-6">
-          <ProfileFormCard profile={currentProfile} />
+          <ProfileFormCard />
           <ChangePasswordCard />
         </div>
-        <AccountInfoCard profile={currentProfile} />
+        <AccountInfoCard />
       </div>
     </div>
   );

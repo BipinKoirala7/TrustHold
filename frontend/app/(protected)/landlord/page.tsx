@@ -15,7 +15,6 @@ export default function LandlordDashboardPage() {
       <GreetingHeader
         firstName={currentLandlord.firstName}
         subtitle="Here's what's happening across your leases today."
-        leasesHref="/landlord/leases"
       />
       <StatsGrid stats={dashboardStats} />
       <div className="grid gap-6 lg:grid-cols-[1.45fr_1fr]">

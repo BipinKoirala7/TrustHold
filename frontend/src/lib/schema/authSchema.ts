@@ -2,11 +2,21 @@ import { z } from "zod";
 
 export const registrationRoles = ["LANDLORD", "TENANT"] as const;
 export type RegistrationRole = (typeof registrationRoles)[number];
+export type Role = RegistrationRole | "ADMIN";
 
 export const registerSchema = z
   .object({
-    role: z.enum(registrationRoles),
-    fullName: z.string().trim().min(2, "Please enter your full name"),
+    registrationRole: z.enum(registrationRoles),
+    firstName: z.string().trim().min(2, "Please enter your first name"),
+    lastName: z.string().trim().min(2, "Please enter your last name"),
+    username: z
+      .string()
+      .trim()
+      .min(2, "Please enter a username")
+      .regex(
+        /^[a-z0-9_]+$/,
+        "Username can only contain lowercase letters, numbers and underscores",
+      ),
     email: z.email({ message: "Please enter a valid email address." }),
     password: z.string().min(8, "Password must be at least 8 characters long"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
@@ -14,9 +24,11 @@ export const registerSchema = z
   .refine((values) => values.password === values.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
-  });
+  })
+  .transform(({ confirmPassword, ...rest }) => rest);
 
-export type RegisterValues = z.infer<typeof registerSchema>;
+export type RegisterValues = z.input<typeof registerSchema>;
+export type RegisterUerDto = z.infer<typeof registerSchema>;
 
 export const loginSchema = z.object({
   email: z.email({ message: "Please enter a valid email address." }),
@@ -25,4 +37,4 @@ export const loginSchema = z.object({
     .min(8, "Password must be at least 8 characters long"),
 });
 
-export type LoginValues = z.infer<typeof loginSchema>;
+export type LoginUserDto = z.infer<typeof loginSchema>;

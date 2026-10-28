@@ -1,52 +1,32 @@
-import type { LoginValues } from "@/lib/schema/auth";
-import type { RegisterValues } from "@/lib/schema/auth";
+import type { LoginUserDto, Role } from "@/lib/schema/authSchema";
+import type { RegisterUerDto } from "@/lib/schema/authSchema";
+import api from "./axios";
+import { ApiError } from "./error";
+import { PublicUserDto } from "../schema/userSchema";
 
-// Adjust to match the Spring Boot auth controller. With the Next.js rewrite
-// proxy from earlier, "/api/*" is forwarded to the backend.
-const LOGIN_PATH = "/api/auth/login";
+const REGISTER_PATH = "auth/register";
 
-export async function login(values: LoginValues): Promise<void> {
-  const response = await fetch(LOGIN_PATH, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include", // backend sets the JWT cookie
-    body: JSON.stringify(values),
-  });
+export async function registerUser(values: RegisterUerDto): Promise<void> {
+  await api.post(REGISTER_PATH, values);
+}
 
-  if (response.status === 401 || response.status === 403) {
-    throw new Error("Invalid email or password.");
-  }
+const LOGIN_PATH = "auth/login";
 
-  if (!response.ok) {
-    throw new Error("We couldn't sign you in right now. Please try again.");
+export async function login(values: LoginUserDto): Promise<void> {
+  await api.post(LOGIN_PATH, values);
+}
+
+const ME_PATH = "user/me";
+
+export async function getCurrentUser(): Promise<PublicUserDto | null> {
+  try {
+    const res = await api.get(ME_PATH);
+    return res.data.data;
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 401) return null;
+    throw e;
   }
 }
 
-// Adjust the path and field names to match the Spring Boot registration DTO.
-const REGISTER_PATH = "/api/auth/register";
-
-export async function registerUser(values: RegisterValues): Promise<void> {
-  // confirmPassword is a frontend-only check; the backend never needs it.
-  const { confirmPassword: _confirmPassword, ...payload } = values;
-
-  const response = await fetch(REGISTER_PATH, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify(payload),
-  });
-
-  if (response.status === 409) {
-    throw new Error("An account with this email already exists.");
-  }
-
-  if (response.status === 400) {
-    throw new Error("Please check your details and try again.");
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      "We couldn't create your account right now. Please try again.",
-    );
-  }
-}
+// Helper functions
+export const homePathFor = (role: Role) => `/${role.toLowerCase()}`;
