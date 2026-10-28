@@ -16,7 +16,6 @@ export default function TenantDashboardPage() {
         prefix="Welcome back"
         firstName={currentTenant.firstName}
         subtitle="Your deposits, evidence, and next steps are all in one place."
-        leasesHref="/tenant/leases"
       />
       <StatsGrid stats={tenantStats} />
       <div className="grid gap-6 lg:grid-cols-[1.45fr_1fr]">

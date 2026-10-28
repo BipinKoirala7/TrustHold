@@ -14,15 +14,12 @@ function getGreeting(hour: number) {
 interface GreetingHeaderProps {
   firstName: string;
   subtitle: string;
-  leasesHref: string;
-  /** Fixed greeting such as "Welcome back". Leave out for a time-based one. */
   prefix?: string;
 }
 
 export function GreetingHeader({
   firstName,
   subtitle,
-  leasesHref,
   prefix,
 }: GreetingHeaderProps) {
   const [timeGreeting, setTimeGreeting] = useState("Welcome back");
@@ -39,7 +36,7 @@ export function GreetingHeader({
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
       </div>
-      <Link href={leasesHref} className={buttonVariants()}>
+      <Link href={`/leases`} className={buttonVariants()}>
         <FileText data-icon="inline-start" />
         View all leases
       </Link>
