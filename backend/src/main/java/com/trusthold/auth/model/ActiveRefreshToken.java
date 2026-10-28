@@ -16,18 +16,17 @@ import java.util.UUID;
 public class ActiveRefreshToken {
 
   @Id
-  @NotNull
-  @Column(name = "user_id", nullable = false, unique = true)
+  @Column(name = "user_id")
   private UUID userId;
 
-  @Column(name = "refresh_token", columnDefinition = "TEXT")
+  @Column(name = "refresh_token", columnDefinition = "TEXT", nullable = false)
   private String refreshToken;
 
-  @Column(name = "created_at")
+  @Column(name = "created_at", nullable = false)
   @CreationTimestamp
   private Instant createdAt;
 
-  @NotNull
-  @Column(name = "expires_at")
+  @NotNull(message = "Expires at is required")
+  @Column(name = "expires_at", nullable = false)
   private Instant expiresAt;
 }
