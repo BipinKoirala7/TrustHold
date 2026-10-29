@@ -20,14 +20,15 @@ export function useLogin() {
         queryFn: getCurrentUser,
         staleTime: 0,
       });
-      if (!user) throw new ApiError(401, "Could not load your account.");
+      if (!user)
+        throw new ApiError(500, "Signed in, but could not load your account.");
       return user;
     },
     onSuccess: (user) => router.replace(homePathFor(user.role)),
     onError: (error) => {
       if (error instanceof ApiError && error.status === 401) {
         toast.error("Sign in failed", {
-          description: "Incorrect email or password.",
+          description: error.message || "Invalid credentials",
         });
       } else {
         toast.error("Sign in failed", { description: error.message });
