@@ -1,5 +1,6 @@
 import axios from "axios";
 import { ApiError } from "./error";
+import { ApiErrorResponse } from "./api";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -12,16 +13,20 @@ const api = axios.create({
 api.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (axios.isAxiosError(error)) {
+    if (axios.isAxiosError<ApiErrorResponse>(error)) {
       if (!error.response) {
         return Promise.reject(
-          new ApiError(0, "Can't reach the server. Check your connection."),
+          new ApiError(error.message, 0, "INTERNAL_SERVER_ERROR"),
         );
       }
-      const message =
-        error.response.data?.message ??
-        "Something went wrong. Please try again.";
-      return Promise.reject(new ApiError(error.response.status, message));
+      const { status, data } = error.response;
+      return Promise.reject(
+        new ApiError(
+          data.error.message ?? "Something went wrong. Please try again.",
+          status,
+          data.error.code,
+        ),
+      );
     }
     return Promise.reject(error);
   },

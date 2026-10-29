@@ -121,4 +121,8 @@ public class UserService {
   public boolean existsByEmailAndProviderId(@NotNull String email, @NotNull String providerId) {
     return userRepository.existsByEmailAndProviderId(email, providerId);
   }
+
+  public boolean existsByUsername(@NotNull String username) {
+    return userRepository.existsByUsername(username);
+  }
 }

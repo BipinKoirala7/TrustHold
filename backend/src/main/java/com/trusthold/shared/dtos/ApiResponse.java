@@ -15,11 +15,11 @@ import java.time.Instant;
     return new ApiResponse<>(data, null, Instant.now());
   }
 
-  public static ApiResponse<Void> error(String code, String message) {
+  public static <T> ApiResponse<T> error(String code, String message) {
     return new ApiResponse<>(null, new ApiError(code, message), Instant.now());
   }
 
-  public static ApiResponse<Void> error(ErrorInfo errorInfo){
+  public static <T> ApiResponse<T> error(ErrorInfo errorInfo){
     return new ApiResponse<>(null, new ApiError(errorInfo.getErrCode(), errorInfo.getMessage()), Instant.now());
   }
 }

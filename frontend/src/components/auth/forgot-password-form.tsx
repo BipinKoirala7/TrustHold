@@ -9,15 +9,14 @@ import { forgotPassword } from "@/lib/api/auth";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { Spinner } from "../ui/spinner";
+import { ApiError } from "next/dist/server/api-utils";
 
 const inputClass = "h-12 bg-card px-4 text-base md:text-base border-border";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
-  const { mutate, isPending } = useMutation({
-    mutationFn: async (email: string) => {
-      await forgotPassword(email);
-    },
+  const { mutate, isPending } = useMutation<void, ApiError, string>({
+    mutationFn: forgotPassword,
     onSuccess: () => {
       toast.success("Reset link sent successfully.", {
         description: "Please check your email for the reset link.",
