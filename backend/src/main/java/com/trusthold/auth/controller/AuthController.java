@@ -1,8 +1,9 @@
 package com.trusthold.auth.controller;
 
 import com.trusthold.auth.dtos.*;
-import com.trusthold.auth.exception.InValidRoleForRegistrationException;
 import com.trusthold.auth.model.AuthUser;
+import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.exception.AppException;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.service.PasswordResetTokenService;
 import com.trusthold.shared.dtos.ApiResponse;
@@ -36,7 +37,7 @@ public class AuthController {
   @ResponseStatus(HttpStatus.CREATED)
   public ApiResponse<Void> registerLocalUser(@RequestBody @Valid RegisterUserDto registerUserDto) {
     authService.registerLocalUser(registerUserDto);
-    return ApiResponse.success("User registered successfully");
+    return ApiResponse.success(null);
   }
 
   @PostMapping("/oauth/register")
@@ -48,25 +49,25 @@ public class AuthController {
     Role role = body.role();
 
     if (role != Role.TENANT && role != Role.LANDLORD) {
-      throw new InValidRoleForRegistrationException("Role is missing or invalid in the request");
+      throw new AppException(ErrorInfo.INVALID_ROLE_FOR_REGISTRATION);
     }
 
     request.getSession(true).setAttribute("registrationRole", role.toString());
-    return ApiResponse.success("Role recorded for google registration");
+    return ApiResponse.success(null);
   }
 
   @PostMapping("/login")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> loginUser(@RequestBody @Valid  LoginUserDto loginUserDto, HttpServletResponse response) {
     authService.loginUser(loginUserDto, response);
-    return ApiResponse.success("logged in successfully");
+    return ApiResponse.success(null);
   }
 
   @PostMapping("/token/refresh")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> refreshToken(HttpServletRequest request, HttpServletResponse response){
     authService.refreshToken(request, response);
-    return ApiResponse.success("Token refreshed successfully");
+    return ApiResponse.success(null);
   }
 
   @PostMapping("/forgot-password")
@@ -75,7 +76,7 @@ public class AuthController {
       @RequestBody @Valid ForgotPasswordDto forgotPasswordDto
   ){
     passwordResetTokenService.forgotPassword(forgotPasswordDto);
-    return ApiResponse.success("Password Reset Successfully");
+    return ApiResponse.success(null);
   }
 
   @PostMapping("/reset-password")
@@ -85,13 +86,13 @@ public class AuthController {
       @RequestBody @Valid ResetPasswordDto resetPasswordDto
   ){
     passwordResetTokenService.resetPassword(response, resetPasswordDto);
-    return ApiResponse.success("Password Reset Successfully");
+    return ApiResponse.success(null);
   }
 
   @PostMapping("/logout")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> logout(HttpServletResponse response, @AuthenticationPrincipal @Valid AuthUser authUser){
     authService.logoutUser(response, authUser);
-    return ApiResponse.success("Logged Out Successfully");
+    return ApiResponse.success(null);
   }
 }

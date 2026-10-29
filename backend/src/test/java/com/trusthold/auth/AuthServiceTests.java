@@ -1,8 +1,8 @@
 package com.trusthold.auth;
 
 import com.trusthold.auth.dtos.RegisterUserDto;
-import com.trusthold.auth.exception.EmailAlreadyExistsException;
-import com.trusthold.auth.exception.UsernameAlreadyExistsException;
+import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.exception.AppException;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.user.model.AuthProvider;
@@ -19,6 +19,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.UUID;
@@ -37,6 +38,9 @@ public class AuthServiceTests {
 
   @Mock
   private PasswordEncoder passwordEncoder;
+
+  @Mock
+  private ApplicationEventPublisher applicationEventPublisher;
 
   @InjectMocks
   private AuthService underTest;
@@ -79,7 +83,7 @@ public class AuthServiceTests {
       when(userRepository.existsByUsername(registerUserDto.username())).thenReturn(true);
 
       // Act & Assert
-      assertThrows(UsernameAlreadyExistsException.class, () -> underTest.registerLocalUser(registerUserDto));
+      assertThrows(AppException.class, () -> underTest.registerLocalUser(registerUserDto));
       verify(userRepository).existsByUsername(registerUserDto.username());
       verify(userRepository, never()).existsByEmail(registerUserDto.email());
       verify(userMapper, never()).createUserDtoToUser(registerUserDto);
@@ -94,7 +98,7 @@ public class AuthServiceTests {
       when(userRepository.existsByEmail(registerUserDto.email())).thenReturn(true);
 
       // Act & Assert
-      assertThrows(EmailAlreadyExistsException.class, () -> underTest.registerLocalUser(registerUserDto));
+      assertThrows(AppException.class, () -> underTest.registerLocalUser(registerUserDto));
       verify(userRepository).existsByUsername(registerUserDto.username());
       verify(userRepository).existsByEmail(registerUserDto.email());
       verify(userMapper, never()).createUserDtoToUser(registerUserDto);
@@ -110,6 +114,8 @@ public class AuthServiceTests {
       when(userRepository.existsByEmail(registerUserDto.email())).thenReturn(false);
       when(userMapper.createUserDtoToUser(registerUserDto)).thenReturn(user);
       when(passwordEncoder.encode(registerUserDto.password())).thenReturn(encodedPassword);
+      when(userRepository.save(any(User.class))).thenReturn(user);
+//      doNothing().when(applicationEventPublisher).publishEvent(any());
 
       // Act
       underTest.registerLocalUser(registerUserDto);

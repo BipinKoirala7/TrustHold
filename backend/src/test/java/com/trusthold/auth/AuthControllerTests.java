@@ -2,32 +2,52 @@ package com.trusthold.auth;
 
 import com.trusthold.auth.controller.AuthController;
 import com.trusthold.auth.dtos.RegisterUserDto;
-import com.trusthold.auth.exception.EmailAlreadyExistsException;
-import com.trusthold.auth.exception.UsernameAlreadyExistsException;
+import com.trusthold.auth.filters.AccessTokenFilter;
+import com.trusthold.auth.handlers.OAuthFailureHandler;
+import com.trusthold.auth.handlers.OAuthSuccessHandler;
+import com.trusthold.auth.service.PasswordResetTokenService;
+import com.trusthold.config.CustomAuthenticationEntryPoint;
+import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.exception.AppException;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.auth.service.AuthService;
-import com.trusthold.config.SecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = AuthController.class)
-@Import(SecurityConfig.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class AuthControllerTests {
 
   @MockitoBean
   private AuthService authService;
+
+  @MockitoBean
+  private PasswordResetTokenService passwordResetTokenService;
+
+  @MockitoBean
+  private AccessTokenFilter accessTokenFilter;
+
+  @MockitoBean
+  private OAuthSuccessHandler oAuthSuccessHandler;
+
+  @MockitoBean
+  private OAuthFailureHandler oAuthFailureHandler;
+
+  @MockitoBean
+  private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
   @Autowired
   private MockMvc mockMvc;
@@ -39,14 +59,14 @@ public class AuthControllerTests {
   class RegisterLocalUserTests {
 
     private RegisterUserDto registerUserDto;
-    private final String REGISTER_USER_ENDPOINT = "/api/v1/auth/register";
+    private final String REGISTER_USER_ENDPOINT = "/auth/register";
 
     @BeforeEach
     void setUp() {
       registerUserDto = new RegisterUserDto(
           "Test",
           "User",
-          "testUser123",
+          "testuser123",
           "testuser@example.com",
           "Test@Password1",
           "+1234567890",
@@ -58,7 +78,7 @@ public class AuthControllerTests {
       mockMvc.perform(post(REGISTER_USER_ENDPOINT)
               .contentType("application/json")
               .content("{}"))
-          .andExpect(status().isBadRequest());
+          .andExpect(status().isUnprocessableContent());
     }
 
     @Test
@@ -78,13 +98,13 @@ public class AuthControllerTests {
       mockMvc.perform(post(REGISTER_USER_ENDPOINT)
               .contentType("application/json")
               .content(objectMapper.writeValueAsString(registerUserDto)))
-          .andExpect(status().isBadRequest());
+          .andExpect(status().isUnprocessableContent());
     }
 
     @Test
     void shouldReturnConflict_whenUsernameAlreadyExists() throws Exception {
       // Arrange
-      doThrow(new UsernameAlreadyExistsException("Username already exists"))
+      doThrow(new AppException(ErrorInfo.USERNAME_ALREADY_EXISTS))
           .when(authService)
           .registerLocalUser(any(RegisterUserDto.class));
 
@@ -98,7 +118,7 @@ public class AuthControllerTests {
     @Test
     void shouldReturnConflict_whenEmailAlreadyExists() throws Exception {
       // Arrange
-      doThrow(new EmailAlreadyExistsException("Email already exists"))
+      doThrow(new AppException(ErrorInfo.EMAIL_ALREADY_EXISTS))
           .when(authService)
           .registerLocalUser(any(RegisterUserDto.class));
 
@@ -129,6 +149,8 @@ public class AuthControllerTests {
               .contentType("application/json")
               .content(objectMapper.writeValueAsString(registerUserDto)))
           .andExpect(status().isCreated());
+
+      verify(authService).registerLocalUser(any(RegisterUserDto.class));
     }
   }
 }

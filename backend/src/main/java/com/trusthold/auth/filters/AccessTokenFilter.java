@@ -1,9 +1,9 @@
 package com.trusthold.auth.filters;
 
-import com.trusthold.auth.exception.InValidTokenException;
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.auth.service.CookieService;
 import com.trusthold.auth.service.JwtService;
+import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.user.model.Role;
 import io.jsonwebtoken.Claims;
@@ -105,7 +105,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(auth);
         MDC.put("UserId", authUser.id().toString());
 
-      } catch (JwtException | InValidTokenException | IllegalArgumentException e) {
+      } catch (JwtException | IllegalArgumentException e) {
         log.warn("Access Token Filter Error - {}", e.getMessage());
         SecurityContextHolder.clearContext();
         sendErrorResponse(response, "Please log in");
@@ -128,6 +128,6 @@ public class AccessTokenFilter extends OncePerRequestFilter {
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
 
-    response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.error(message)));
+    response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.error(ErrorInfo.UNAUTHORIZED)));
   }
 }
