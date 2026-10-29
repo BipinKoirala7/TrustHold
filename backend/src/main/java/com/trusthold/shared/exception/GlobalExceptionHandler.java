@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
 
   // Validation Exceptions
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  @ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ApiResponse<Void> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
     Map<String, String> errors = new LinkedHashMap<>();
     ex.getBindingResult().getFieldErrors()
@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(ConstraintViolationException.class)
-  @ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ApiResponse<Void> handleConstraintViolationException(ConstraintViolationException ex) {
     Map<String, String> errors = new LinkedHashMap<>();
     ex.getConstraintViolations().forEach(v -> {
@@ -71,16 +71,14 @@ public class GlobalExceptionHandler {
       errors.putIfAbsent(field, v.getMessage());
     });
 
-    String message = errors.entrySet().stream()
-        .map(e -> e.getKey() + ": " + e.getValue())
-        .collect(Collectors.joining("; "));
+    String message = String.join("; ", errors.values());
 
     log.warn("Constraint violations: {}", errors);
     return ApiResponse.error("VALIDATION_ERROR", message);
   }
 
   @ExceptionHandler(HandlerMethodValidationException.class)
-  @ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ApiResponse<Void> handleHandlerMethodValidationException(HandlerMethodValidationException ex) {
     Map<String, String> errors = new LinkedHashMap<>();
 
