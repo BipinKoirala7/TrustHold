@@ -8,6 +8,7 @@ import {
   GoogleCallbackStatus,
   type CallbackStatus,
 } from "@/components/auth/google/google-auth-callback";
+import { queryKeys } from "@/lib/query-cache-key";
 
 export default function GoogleCallbackPage() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function GoogleCallbackPage() {
     started.current = true;
 
     queryClient
-      .query({ queryKey: ["me"], queryFn: getCurrentUser, staleTime: 0 })
+      .query({ queryKey: queryKeys.me, queryFn: getCurrentUser, staleTime: 0 })
       .then((user) => {
         if (user) router.replace(homePathFor(user.role));
         else setStatus("error");

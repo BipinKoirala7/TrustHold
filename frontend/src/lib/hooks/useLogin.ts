@@ -6,6 +6,7 @@ import { getCurrentUser, homePathFor, login } from "../api/auth";
 import { ApiError } from "../api/error";
 import { toast } from "sonner";
 import { LoginUserDto } from "../schema/authSchema";
+import { queryKeys } from "../query-cache-key";
 
 export function useLogin() {
   const queryClient = useQueryClient();
@@ -15,18 +16,19 @@ export function useLogin() {
     mutationFn: async (values: LoginUserDto) => {
       await login(values);
       const user = await queryClient.query({
-        queryKey: ["me"],
+        queryKey: queryKeys.me,
         queryFn: getCurrentUser,
         staleTime: 0,
       });
-      if (!user) throw new ApiError(401, "Could not load your account.");
+      if (!user)
+        throw new ApiError(500, "Signed in, but could not load your account.");
       return user;
     },
     onSuccess: (user) => router.replace(homePathFor(user.role)),
     onError: (error) => {
       if (error instanceof ApiError && error.status === 401) {
         toast.error("Sign in failed", {
-          description: "Incorrect email or password.",
+          description: error.message || "Invalid credentials",
         });
       } else {
         toast.error("Sign in failed", { description: error.message });

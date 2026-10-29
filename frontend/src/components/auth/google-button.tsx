@@ -1,8 +1,13 @@
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+"use client";
 
-// Spring Security's default OAuth2 login endpoint is /oauth2/authorization/{registrationId}.
-// Set NEXT_PUBLIC_API_URL (e.g. http://localhost:8080) so the browser goes to the backend.
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useMutation } from "@tanstack/react-query";
+import { Spinner } from "../ui/spinner";
+import { OAuthRoleRegistration } from "@/lib/api/auth";
+import { Role } from "@/lib/schema/userSchema";
+import { toast } from "sonner";
+
 const GOOGLE_AUTH_URL = `${process.env.NEXT_PUBLIC_API_URL ?? ""}/oauth2/authorization/google`;
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -37,25 +42,40 @@ type GoogleButtonProps = {
   label?: string;
   href?: string;
   className?: string;
+  role?: Role;
 };
 
 export function GoogleButton({
   label = "Continue with Google",
-  href = GOOGLE_AUTH_URL,
+  role,
   className,
 }: GoogleButtonProps) {
+  const { mutate, isPending } = useMutation({
+    mutationFn: async () => {
+      if (role != null) {
+        await OAuthRoleRegistration(role);
+      }
+    },
+    onSuccess: () => {
+      window.location.href = GOOGLE_AUTH_URL;
+    },
+    onError: () =>
+      toast.error("Something went wrong", {
+        description: "Please try again",
+      }),
+  });
+
   return (
-    // Plain <a>: this is a full-page redirect to the backend, not a Next.js route.
-    <a
-      href={href}
+    <Button
+      onClick={() => mutate()}
       className={cn(
         buttonVariants({ variant: "outline", size: "lg" }),
-        "h-12 w-full rounded-xl bg-card text-base font-medium",
+        "h-12 w-full rounded-xl bg-card font-medium",
         className,
       )}
     >
       <GoogleIcon className="size-5" />
-      {label}
-    </a>
+      {isPending ? <Spinner /> : <p className="text-foreground">{label}</p>}
+    </Button>
   );
 }
