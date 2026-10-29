@@ -93,8 +93,7 @@ public class AuthIntegrationTests {
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
       assertThat(response.getBody()).isNotNull();
       assertThat(response.getBody().data()).isNull();
-      assertThat(response.getBody().message()).isEqualTo("User registered successfully");
-      assertThat(response.getBody().success()).isTrue();
+      assertThat(response.getBody().error()).isNull();
     }
 
     @Test
@@ -150,7 +149,8 @@ public class AuthIntegrationTests {
       // Assert
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
       assertThat(response.getBody()).isNotNull();
-      assertThat(response.getBody().message()).isEqualTo("Invalid input provided");
+      assertThat(response.getBody().error()).isNotNull();
+      assertThat(response.getBody().error().message()).contains("firstName");
       assertThat(userRepository.count()).isZero();
     }
 
@@ -177,7 +177,8 @@ public class AuthIntegrationTests {
       // Assert
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
       assertThat(response.getBody()).isNotNull();
-      assertThat(response.getBody().message()).isEqualTo("A User with this email already exists");
+      assertThat(response.getBody().error()).isNotNull();
+      assertThat(response.getBody().error().message()).isEqualTo("Email is already registered");
       assertThat(userRepository.count()).isEqualTo(1);
     }
 
@@ -201,7 +202,8 @@ public class AuthIntegrationTests {
       // Assert
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
       assertThat(response.getBody()).isNotNull();
-      assertThat(response.getBody().message()).isEqualTo("Username is already taken");
+      assertThat(response.getBody().error()).isNotNull();
+      assertThat(response.getBody().error().message()).isEqualTo("Username is already taken");
       assertThat(userRepository.count()).isEqualTo(1);
     }
 
@@ -220,7 +222,8 @@ public class AuthIntegrationTests {
       // Currently mapped by handleDataIntegrityViolationException
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
       assertThat(response.getBody()).isNotNull();
-      assertThat(response.getBody().message()).isEqualTo("Request conflicts with existing data");
+      assertThat(response.getBody().error()).isNotNull();
+      assertThat(response.getBody().error().message()).isEqualTo("Request conflicts with existing data");
       assertThat(userRepository.count()).isEqualTo(1);
     }
 
@@ -232,7 +235,8 @@ public class AuthIntegrationTests {
 
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
       assertThat(response.getBody()).isNotNull();
-      assertThat(response.getBody().message()).isEqualTo("An unexpected error occurred. Please try again later.");
+      assertThat(response.getBody().error()).isNotNull();
+      assertThat(response.getBody().error().message()).isEqualTo("An unexpected error occurred. Please try again later.");
     }
   }
 }
