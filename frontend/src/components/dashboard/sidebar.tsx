@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { redirect, usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ChevronUp,
   FileText,
@@ -40,6 +40,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { logoutUser } from "@/lib/api/auth";
 import { toast } from "sonner";
 import { Spinner } from "../ui/spinner";
+import { queryKeys } from "@/lib/query-cache-key";
 
 const activeStyles =
   "data-active:bg-primary data-active:text-primary-foreground data-active:hover:bg-primary/90 data-active:hover:text-primary-foreground " +
@@ -64,7 +65,7 @@ export function AppSidebar() {
       await logoutUser();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["me"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.me });
       toast.success("Logged out successfully");
       router.replace("/login");
     },
@@ -76,7 +77,7 @@ export function AppSidebar() {
     },
   });
 
-  if (!user) return redirect("/login");
+  if (!user) return router.replace("/login");
 
   const basePath = `/${user.role.toLowerCase()}`;
   const nav = [

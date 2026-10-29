@@ -6,6 +6,7 @@ import { getCurrentUser, homePathFor, login } from "../api/auth";
 import { ApiError } from "../api/error";
 import { toast } from "sonner";
 import { LoginUserDto } from "../schema/authSchema";
+import { queryKeys } from "../query-cache-key";
 
 export function useLogin() {
   const queryClient = useQueryClient();
@@ -15,7 +16,7 @@ export function useLogin() {
     mutationFn: async (values: LoginUserDto) => {
       await login(values);
       const user = await queryClient.query({
-        queryKey: ["me"],
+        queryKey: queryKeys.me,
         queryFn: getCurrentUser,
         staleTime: 0,
       });

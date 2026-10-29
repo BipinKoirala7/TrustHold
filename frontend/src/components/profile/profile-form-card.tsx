@@ -1,21 +1,23 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ProfileField } from "./profile-field";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { redirect } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateUser } from "@/lib/api/user";
 import { Spinner } from "../ui/spinner";
 import { useForm } from "react-hook-form";
 import { UpdateUserDto } from "@/lib/schema/userSchema";
 import { Field, FieldError, FieldLabel } from "../ui/field";
 import { Input } from "../ui/input";
+import { queryKeys } from "@/lib/query-cache-key";
+import { toast } from "sonner";
 
 const inputClass = "h-12 bg-card px-4 text-base md:text-base border-border";
 
 export function ProfileFormCard() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const {
     register,
     handleSubmit,
@@ -32,7 +34,9 @@ export function ProfileFormCard() {
     mutationFn: async (values: UpdateUserDto) => {
       await updateUser(values);
     },
-    mutationKey: ["me"],
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.me }),
+    onError: (error) =>
+      toast.error("Failed to update profile", { description: error.message }),
   });
 
   if (!user) return redirect("/login");
