@@ -1,9 +1,9 @@
 package com.trusthold.user.service;
 
-import com.trusthold.auth.exception.InValidTokenException;
-import com.trusthold.auth.exception.UserNotFoundException;
 import com.trusthold.auth.model.AuthUser;
+import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.Guard;
+import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.dtos.PublicUserDto;
 import com.trusthold.user.dtos.UpdateUserDto;
 import com.trusthold.user.model.User;
@@ -25,7 +25,7 @@ import java.util.UUID;
  * <p>Authentication itself (login, tokens, registration) lives in {@link com.trusthold.auth.service.AuthService};
  * this class only reads and modifies existing user records.
  *
- * <p>The {@code getXxx} lookups throw {@link UserNotFoundException} when nothing is
+ * <p>The {@code getXxx} lookups throw {@link AppException} when nothing is
  * found. The {@code Optional}-returning lookup is for callers that need to handle
  * "not found" themselves (for example, deciding between login and registration).
  */
@@ -43,12 +43,11 @@ public class UserService {
    * The result is a {@link PublicUserDto}, so internal fields such as the
    * password hash are never exposed.
    *
-   * @throws InValidTokenException if there is no authenticated user
-   * @throws UserNotFoundException if the user in the token no longer exists
+   * @throws AppException if there is no authenticated user or the user is not found
    */
   public PublicUserDto getAuthenticatedUser(AuthUser authUser){
     log.debug("Getting authenticated user");
-    Guard.requireNotNull(authUser, new InValidTokenException("Token is invalid"));
+    Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
 
     User user = getUserById(authUser.id());
     return userMapper.userToPublicUserDto(user);
@@ -59,13 +58,12 @@ public class UserService {
    * Users can only update themselves: the target is taken from the token,
    * never from the request body.
    *
-   * @throws InValidTokenException if there is no authenticated user
-   * @throws UserNotFoundException if the user in the token no longer exists
+   * @throws AppException if there is no authenticated user or the user is not found
    */
   @Transactional
   public void updateUser(AuthUser authUser, @NotNull UpdateUserDto updateUserDto){
     log.debug("Updating user");
-    Guard.requireNotNull(authUser, new InValidTokenException("Token is invalid"));
+    Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
 
     User user = getUserById(authUser.id());
     userMapper.updateUserFromDto(updateUserDto, user);
@@ -106,14 +104,14 @@ public class UserService {
     return userRepository.findByEmail(email);
   }
 
-  /** @throws UserNotFoundException if no user has this id */
+  /** @throws AppException if no user has this id */
   public User getUserById(@NotNull UUID userId) {
-    return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
+    return userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorInfo.USER_NOT_FOUND));
   }
 
-  /** @throws UserNotFoundException if no user has this email */
+  /** @throws AppException if no user has this email */
   public User getUserByEmail(@NotNull String email) {
-    return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+    return userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorInfo.USER_NOT_FOUND));
   }
 
   /**

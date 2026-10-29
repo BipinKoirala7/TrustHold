@@ -2,10 +2,11 @@ package com.trusthold.auth.service;
 
 import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.dtos.RegisterOAuthUserDto;
-import com.trusthold.auth.exception.*;
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.mail.dtos.UserRegisteredEvent;
+import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.Guard;
+import com.trusthold.shared.exception.AppException;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.user.model.AuthProvider;
 import com.trusthold.user.model.User;
@@ -65,8 +66,7 @@ public class AuthService {
    * The password is hashed before saving; the raw value is never stored or logged.
    *
    * @param registerUserDto the new user's registration details
-   * @throws UsernameAlreadyExistsException if the username is taken
-   * @throws EmailAlreadyExistsException    if the email is already registered
+   * @throws AppException if the username is taken or the email is already registered
    */
   @Transactional
   public void registerLocalUser(@NotNull RegisterUserDto registerUserDto) {
@@ -74,12 +74,12 @@ public class AuthService {
 
     if(userRepository.existsByUsername(registerUserDto.username())) {
       log.debug("Registration local user rejected: username already taken");
-      throw new UsernameAlreadyExistsException("Username is already taken");
+      throw new AppException(ErrorInfo.USERNAME_ALREADY_EXISTS);
     }
 
     if(userRepository.existsByEmail(registerUserDto.email())) {
       log.debug("Registration local user rejected: email already taken");
-      throw new EmailAlreadyExistsException("A User with this email already exists");
+      throw new AppException(ErrorInfo.EMAIL_ALREADY_EXISTS);
     }
 
     User user = userMapper.createUserDtoToUser(registerUserDto);
@@ -98,8 +98,7 @@ public class AuthService {
    * Google verifies the identity.
    *
    * @return the saved user, so the OAuth success handler can issue tokens for it
-   * @throws UsernameAlreadyExistsException if the username is taken
-   * @throws EmailAlreadyExistsException    if the email is already registered
+   * @throws AppException if the username is taken or the email is already registered
    */
   @Transactional
   public User registerOAuthUser(@NotNull RegisterOAuthUserDto registerOAuthUserDto){
@@ -107,12 +106,12 @@ public class AuthService {
 
     if(userRepository.existsByUsername(registerOAuthUserDto.username())) {
       log.debug("OAuth registration rejected: username already taken");
-      throw new UsernameAlreadyExistsException("Username is already taken");
+      throw new AppException(ErrorInfo.USERNAME_ALREADY_EXISTS);
     }
 
     if(userRepository.existsByEmail(registerOAuthUserDto.email())) {
       log.debug("OAuth registration rejected: email already taken");
-      throw new EmailAlreadyExistsException("A User with this email already exists");
+      throw new AppException(ErrorInfo.EMAIL_ALREADY_EXISTS);
     }
 
     User user = userMapper.createOAuthUserDtoToUser(registerOAuthUserDto);
@@ -135,8 +134,7 @@ public class AuthService {
    *
    * @param loginUserDto email and raw password from the request
    * @param response     receives the token cookies
-   * @throws UserNotFoundException         if no user has this email
-   * @throws IncorrectCredentialsException if the password does not match
+   * @throws AppException if no user has this email or the password does not match
    */
   @Transactional
   public void loginUser(@NotNull LoginUserDto loginUserDto, HttpServletResponse response) {
@@ -146,7 +144,7 @@ public class AuthService {
 
     if(!passwordEncoder.matches(loginUserDto.password(), user.getPassword())) {
       log.warn("Login failed: wrong password, userId={}", user.getId());
-      throw new IncorrectCredentialsException("Invalid password");
+      throw new AppException(ErrorInfo.INVALID_CREDENTIALS);
     }
 
     String newRefreshToken = jwtService.generateRefreshToken(user);
@@ -167,7 +165,6 @@ public class AuthService {
    * used at most once.
    *
    * @throws JwtException          if the cookie is missing, or the token is expired/tampered with
-   * @throws InValidTokenException if the token is not a refresh token or is no longer active
    */
   @Transactional
   public void refreshToken(HttpServletRequest request, HttpServletResponse response){
@@ -176,7 +173,7 @@ public class AuthService {
     String refreshToken = cookieService.getRefreshTokenCookie(request);
 
     if(refreshToken == null) throw new JwtException("Refresh token is null");
-    if(activeRefreshTokenService.isRefreshTokenActive(refreshToken)) throw new JwtException("Refresh token is not active");
+    if(!activeRefreshTokenService.isRefreshTokenActive(refreshToken)) throw new JwtException("Refresh token is not active");
 
     User user = jwtService.validateRefreshToken(refreshToken);
     String newRefreshToken = jwtService.generateRefreshToken(user);
@@ -195,13 +192,13 @@ public class AuthService {
    * Ends the session: deletes both token cookies and invalidates the active
    * refresh token, so it cannot be used again even if it was copied elsewhere.
    *
-   * @throws InValidTokenException if there is no authenticated user
+   * @throws AppException if there is no authenticated user
    */
   @Transactional
   public void logoutUser(HttpServletResponse response, AuthUser authUser){
     log.info("Logging Out User");
 
-    Guard.requireNotNull(authUser, new InValidTokenException("Token is invalid"));
+    Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
 
     cookieService.deleteRefreshTokenCookie(response);
     cookieService.deleteAccessTokenCookie(response);

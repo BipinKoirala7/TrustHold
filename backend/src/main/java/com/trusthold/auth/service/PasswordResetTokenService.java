@@ -2,10 +2,11 @@ package com.trusthold.auth.service;
 
 import com.trusthold.auth.dtos.ForgotPasswordDto;
 import com.trusthold.auth.dtos.ResetPasswordDto;
-import com.trusthold.auth.exception.InValidPasswordResetTokenException;
 import com.trusthold.auth.model.PasswordResetToken;
 import com.trusthold.auth.repository.PasswordResetTokenRepository;
 import com.trusthold.mail.dtos.PasswordResetEvent;
+import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
 import com.trusthold.user.service.UserService;
@@ -72,11 +73,11 @@ public class PasswordResetTokenService {
     String hash = TokenHasher.sha256Hex(resetPasswordDto.rawToken());
     PasswordResetToken passwordResetToken = passwordResetTokenRepository
         .findByTokenHash(hash)
-        .orElseThrow(() -> new InValidPasswordResetTokenException(INVALID_TOKEN_MSG));
+        .orElseThrow(() -> new AppException(ErrorInfo.INVALID_PASSWORD_RESET_TOKEN));
 
     int consumed = passwordResetTokenRepository.consume(hash, Instant.now());
     if (consumed != 1) {
-      throw new InValidPasswordResetTokenException(INVALID_TOKEN_MSG);
+      throw new AppException(ErrorInfo.INVALID_PASSWORD_RESET_TOKEN);
     }
 
     User user = userService.getUserById(passwordResetToken.getUserId());

@@ -96,6 +96,14 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       return;
     }
 
+    Boolean emailVerified = oAuth2User.getAttribute("email_verified");
+
+    if (!Boolean.TRUE.equals(emailVerified)) {
+      log.warn("Google email is not verified");
+      response.sendRedirect(frontendUrl + "/login");
+      return;
+    }
+
     if(givenName == null) {
       log.warn("Given name is null");
       response.sendRedirect(frontendUrl + "/login");

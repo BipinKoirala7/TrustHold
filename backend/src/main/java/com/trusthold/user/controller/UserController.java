@@ -22,20 +22,20 @@ public class UserController {
   @GetMapping("/me")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<PublicUserDto> getAuthenticatedUser(@Valid @AuthenticationPrincipal AuthUser authUser){
-    return ApiResponse.success(userService.getAuthenticatedUser(authUser), "Successfully Fetched User");
+    return ApiResponse.success(userService.getAuthenticatedUser(authUser));
   }
 
   @PutMapping
   @ResponseStatus(HttpStatus.OK)
-  public ApiResponse<PublicUserDto> updateUser(@Valid @AuthenticationPrincipal AuthUser authUser, @RequestBody @Valid UpdateUserDto updateUserDto){
+  public ApiResponse<Void> updateUser(@Valid @AuthenticationPrincipal AuthUser authUser, @RequestBody @Valid UpdateUserDto updateUserDto){
     userService.updateUser(authUser, updateUserDto);
-    return ApiResponse.success("Successfully Updated User");
+    return ApiResponse.success(null);
   }
 
   @DeleteMapping
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> deleteUser(@Valid @AuthenticationPrincipal AuthUser authUser){
     userService.deleteUser(authUser);
-    return ApiResponse.success("Successfully Deleted User");
+    return ApiResponse.success(null);
   }
 }
