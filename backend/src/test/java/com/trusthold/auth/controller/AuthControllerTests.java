@@ -1,5 +1,6 @@
 package com.trusthold.auth.controller;
 
+import com.trusthold.auth.dtos.ForgotPasswordDto;
 import com.trusthold.auth.dtos.GoogleRegistrationRequest;
 import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.dtos.RegisterUserDto;
@@ -567,6 +568,119 @@ public class AuthControllerTests {
       mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(REFRESH_TOKEN_ENDPOINT)
               .contentType("application/json"))
           .andExpect(status().isMethodNotAllowed());
+    }
+  }
+
+  @Nested
+  class ForgotPasswordTests {
+
+    private ForgotPasswordDto forgotPasswordDto;
+    private final String FORGOT_PASSWORD_ENDPOINT = "/auth/forgot-password";
+
+    @BeforeEach
+    void setUp() {
+      forgotPasswordDto = new ForgotPasswordDto("testuser@example.com");
+    }
+
+    @Test
+    void shouldReturnNotFound_whenDtoEmailIsNull() throws Exception {
+      // Arrange — @Email allows null; service would throw USER_NOT_FOUND for null email
+      doThrow(new AppException(ErrorInfo.USER_NOT_FOUND))
+          .when(passwordResetTokenService)
+          .forgotPassword(any(ForgotPasswordDto.class));
+
+      // Act & Assert
+      mockMvc.perform(post(FORGOT_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content("{}"))
+          .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenEmailIsInvalid() throws Exception {
+      // Arrange — invalid email format
+      ForgotPasswordDto invalidDto = new ForgotPasswordDto("not-an-email");
+
+      // Act & Assert
+      mockMvc.perform(post(FORGOT_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(invalidDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnNotFound_whenUserNotFound() throws Exception {
+      // Arrange
+      doThrow(new AppException(ErrorInfo.USER_NOT_FOUND))
+          .when(passwordResetTokenService)
+          .forgotPassword(any(ForgotPasswordDto.class));
+
+      // Act & Assert
+      mockMvc.perform(post(FORGOT_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(forgotPasswordDto)))
+          .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturnOk_whenForgotPasswordIsSuccessful() throws Exception {
+      // Act & Assert
+      mockMvc.perform(post(FORGOT_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(forgotPasswordDto)))
+          .andExpect(status().isOk());
+
+      verify(passwordResetTokenService).forgotPassword(any(ForgotPasswordDto.class));
+    }
+
+    @Test
+    void shouldReturnNotFound_whenEmailIsEmpty() throws Exception {
+      // Arrange — @Email allows empty strings; service would throw USER_NOT_FOUND for empty email
+      doThrow(new AppException(ErrorInfo.USER_NOT_FOUND))
+          .when(passwordResetTokenService)
+          .forgotPassword(any(ForgotPasswordDto.class));
+
+      ForgotPasswordDto emptyEmailDto = new ForgotPasswordDto("");
+
+      // Act & Assert
+      mockMvc.perform(post(FORGOT_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(emptyEmailDto)))
+          .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenJsonIsMalformed() throws Exception {
+      // Arrange — malformed JSON with unquoted keys
+      String malformedJson = "{email: test@example.com}";
+
+      // Act & Assert
+      mockMvc.perform(post(FORGOT_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(malformedJson))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnUnsupportedMediaType_whenContentTypeIsMissing() throws Exception {
+      // Act & Assert — no content type header returns 415
+      mockMvc.perform(post(FORGOT_PASSWORD_ENDPOINT)
+              .content(objectMapper.writeValueAsString(forgotPasswordDto)))
+          .andExpect(status().isUnsupportedMediaType());
+    }
+
+    @Test
+    void shouldReturnInternalServerError_whenDatabaseErrorOccurs() throws Exception {
+      // Arrange — simulates a DB failure when creating the reset token
+      doThrow(new RuntimeException("Database error"))
+          .when(passwordResetTokenService)
+          .forgotPassword(any(ForgotPasswordDto.class));
+
+      // Act & Assert
+      mockMvc.perform(post(FORGOT_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(forgotPasswordDto)))
+          .andExpect(status().isInternalServerError());
     }
   }
 }
