@@ -1,7 +1,6 @@
-package com.trusthold.auth;
+package com.trusthold.auth.handlers;
 
 import com.trusthold.auth.dtos.RegisterOAuthUserDto;
-import com.trusthold.auth.handlers.OAuthSuccessHandler;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.auth.service.ActiveRefreshTokenService;
 import com.trusthold.auth.service.AuthService;

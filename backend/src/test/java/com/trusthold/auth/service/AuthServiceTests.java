@@ -1,13 +1,9 @@
-package com.trusthold.auth;
+package com.trusthold.auth.service;
 
 import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.dtos.RegisterOAuthUserDto;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.auth.model.AuthUser;
-import com.trusthold.auth.service.ActiveRefreshTokenService;
-import com.trusthold.auth.service.AuthService;
-import com.trusthold.auth.service.CookieService;
-import com.trusthold.auth.service.JwtService;
 import com.trusthold.mail.dtos.UserRegisteredEvent;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.exception.AppException;
@@ -37,7 +33,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;

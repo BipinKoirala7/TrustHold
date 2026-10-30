@@ -17,7 +17,7 @@ public enum ErrorInfo {
   INVALID_CREDENTIALS         ( "AUTH_INVALID_CREDENTIALS",         HttpStatus.UNAUTHORIZED, "Invalid credentials"),
   INVALID_ROLE_FOR_REGISTRATION("AUTH_REGISTRATION_ROLE_INVALID",   HttpStatus.BAD_REQUEST,  "Role not allowed for registration"),
   INVALID_TOKEN               ( "AUTH_INVALID_TOKEN",               HttpStatus.UNAUTHORIZED, "Please Log in"),
-  USER_NOT_FOUND              ( "USER_NOT_FOUND",                   HttpStatus.NOT_FOUND,    "User not found");
+  USER_NOT_FOUND              ( "USER_NOT_FOUND",                   HttpStatus.NOT_FOUND,    "Account not found");
 
   private final String errCode;
   private final HttpStatus httpStatus;

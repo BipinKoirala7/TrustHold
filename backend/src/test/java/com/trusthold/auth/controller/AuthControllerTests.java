@@ -1,6 +1,5 @@
-package com.trusthold.auth;
+package com.trusthold.auth.controller;
 
-import com.trusthold.auth.controller.AuthController;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.auth.filters.AccessTokenFilter;
 import com.trusthold.auth.handlers.OAuthFailureHandler;

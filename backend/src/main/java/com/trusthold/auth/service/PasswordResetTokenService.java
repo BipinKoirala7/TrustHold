@@ -24,6 +24,7 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +37,6 @@ public class PasswordResetTokenService {
   private final ActiveRefreshTokenService activeRefreshTokenService;
   private final CookieService cookieService;
 
-  private static final String INVALID_TOKEN_MSG = "Invalid or expired token";
   public static final long TOKEN_EXPIRY_MINUTES = 30;
   private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -47,11 +47,13 @@ public class PasswordResetTokenService {
         .ifPresentOrElse(user -> {
           String rawToken = createResetPasswordToken(user);
           applicationEventPublisher.publishEvent(new PasswordResetEvent(user.getEmail(), user.getFirstName(), rawToken));
-    }, () -> log.info("Password reset requested for an unknown email"));
+    }, () -> {
+         throw new AppException(ErrorInfo.USER_NOT_FOUND);
+        });
   }
 
   private String createResetPasswordToken(User user){
-    passwordResetTokenRepository.deleteByUserId(user.getId());
+    deleteStaleUserTokens(user.getId());
 
     byte[] bytes = new byte[32];
     new SecureRandom().nextBytes(bytes);
@@ -87,12 +89,17 @@ public class PasswordResetTokenService {
     userRepository.save(user);
 
     // Remove any other stale password reset tokens
-    passwordResetTokenRepository.deleteByUserId(passwordResetToken.getUserId());
+    deleteStaleUserTokens(passwordResetToken.getUserId());
 
     // log out the user
     activeRefreshTokenService.removeActiveRefreshToken(user.getId());
     cookieService.deleteRefreshTokenCookie(response);
     cookieService.deleteAccessTokenCookie(response);
+  }
+
+  private void deleteStaleUserTokens(UUID userId) {
+    int deleted = passwordResetTokenRepository.deleteByUserId(userId);
+    if(deleted < 1) log.warn("Failed to delete password reset token for user {}", userId);
   }
 
   @Scheduled(cron = "0 0 * * * *") // hourly

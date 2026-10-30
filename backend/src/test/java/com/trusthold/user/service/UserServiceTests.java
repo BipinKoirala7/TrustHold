@@ -1,4 +1,4 @@
-package com.trusthold.user;
+package com.trusthold.user.service;
 
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.shared.ErrorInfo;
@@ -8,8 +8,6 @@ import com.trusthold.user.dtos.UpdateUserDto;
 import com.trusthold.user.model.Role;
 import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
-import com.trusthold.user.service.UserMapper;
-import com.trusthold.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

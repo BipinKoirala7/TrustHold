@@ -14,7 +14,7 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
 
   Optional<PasswordResetToken> findByTokenHash(String token);
 
-  void deleteByUserId(UUID userId);
+  int deleteByUserId(UUID userId);
   void deleteByExpiresAtBefore(Instant instant);
 
   @Modifying(clearAutomatically = true)
