@@ -86,10 +86,12 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 
         Claims claims = jwtService.extractAccessClaims(accessToken);
         String roleClaim = claims.get("role", String.class);
+        String subject = claims.getSubject();
 
         if (roleClaim == null) throw new JwtException("Missing role claim");
+        if (subject == null) throw new JwtException("Missing subject claim");
 
-        AuthUser authUser = new AuthUser(UUID.fromString(claims.getSubject()), accessToken, Role.valueOf(roleClaim));
+        AuthUser authUser = new AuthUser(UUID.fromString(subject), accessToken, Role.valueOf(roleClaim));
         // "ROLE_" prefix is required by Spring Security's hasRole() check
         var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + authUser.role().toString()));
         var auth = new UsernamePasswordAuthenticationToken(authUser, null, authorities);
