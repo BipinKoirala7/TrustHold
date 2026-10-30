@@ -682,5 +682,49 @@ public class AuthControllerTests {
               .content(objectMapper.writeValueAsString(forgotPasswordDto)))
           .andExpect(status().isInternalServerError());
     }
+
+    @Test
+    void shouldReturnMethodNotAllowed_whenGetRequest() throws Exception {
+      // Act & Assert — GET request to POST-only endpoint returns 405
+      mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(FORGOT_PASSWORD_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isMethodNotAllowed());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenEmailHasWhitespace() throws Exception {
+      // Arrange — email with leading/trailing whitespace
+      ForgotPasswordDto whitespaceDto = new ForgotPasswordDto("  test@example.com  ");
+
+      // Act & Assert — @Email validation rejects whitespace-containing emails
+      mockMvc.perform(post(FORGOT_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(whitespaceDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenEmailMissingDomain() throws Exception {
+      // Arrange — email missing the domain part
+      ForgotPasswordDto missingDomainDto = new ForgotPasswordDto("user@");
+
+      // Act & Assert — @Email validation rejects incomplete email
+      mockMvc.perform(post(FORGOT_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(missingDomainDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenEmailHasNoAtSymbol() throws Exception {
+      // Arrange — email without @ symbol
+      ForgotPasswordDto noAtDto = new ForgotPasswordDto("userdomain.com");
+
+      // Act & Assert — @Email validation rejects email without @ symbol
+      mockMvc.perform(post(FORGOT_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(noAtDto)))
+          .andExpect(status().isBadRequest());
+    }
   }
 }
