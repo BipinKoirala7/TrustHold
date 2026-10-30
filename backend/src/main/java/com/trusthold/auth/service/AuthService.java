@@ -144,11 +144,6 @@ public class AuthService {
 
     User user = userService.getUserByEmail(loginUserDto.email());
 
-    if(user == null) {
-      log.warn("Login failed: no user with this email");
-      throw new AppException(ErrorInfo.INVALID_CREDENTIALS);
-    }
-
     if(user.getAuthProvider() != AuthProvider.LOCAL) {
       log.warn("Login failed: user is not local, userId={}", user.getId());
       throw new AppException(ErrorInfo.INVALID_CREDENTIALS);

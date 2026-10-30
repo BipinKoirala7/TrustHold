@@ -113,7 +113,7 @@ public class UserService {
 
   /** @throws AppException if no user has this email */
   public User getUserByEmail(@NotNull String email) {
-    return userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorInfo.USER_NOT_FOUND));
+    return userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorInfo.UNAUTHORIZED));
   }
 
   /**

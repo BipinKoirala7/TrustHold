@@ -11,6 +11,7 @@ import com.trusthold.user.model.Role;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -43,7 +44,7 @@ public class AuthController {
   @PostMapping("/oauth/register")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> beginGoogleRegistration(
-      @RequestBody GoogleRegistrationRequest body,
+      @RequestBody @Valid @NotNull GoogleRegistrationRequest body,
       HttpServletRequest request
   ) {
     Role role = body.role();
