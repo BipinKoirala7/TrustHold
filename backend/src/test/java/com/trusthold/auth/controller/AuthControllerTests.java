@@ -1,9 +1,6 @@
 package com.trusthold.auth.controller;
 
-import com.trusthold.auth.dtos.ForgotPasswordDto;
-import com.trusthold.auth.dtos.GoogleRegistrationRequest;
-import com.trusthold.auth.dtos.LoginUserDto;
-import com.trusthold.auth.dtos.RegisterUserDto;
+import com.trusthold.auth.dtos.*;
 import com.trusthold.auth.filters.AccessTokenFilter;
 import com.trusthold.auth.handlers.OAuthFailureHandler;
 import com.trusthold.auth.handlers.OAuthSuccessHandler;
@@ -725,6 +722,328 @@ public class AuthControllerTests {
               .contentType("application/json")
               .content(objectMapper.writeValueAsString(noAtDto)))
           .andExpect(status().isBadRequest());
+    }
+  }
+
+  @Nested
+  class ResetPasswordTests {
+
+    private ResetPasswordDto resetPasswordDto;
+    private final String RESET_PASSWORD_ENDPOINT = "/auth/reset-password";
+
+    @BeforeEach
+    void setUp() {
+      resetPasswordDto = new ResetPasswordDto("valid-token-123", "NewPass@1234");
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenDtoIsNull() throws Exception {
+      // Arrange — send empty JSON object so @Valid fails on required fields
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content("{}"))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenDtoFieldsAreInvalid() throws Exception {
+      // Arrange — invalid token (blank) and password without special character
+      ResetPasswordDto invalidDto = new ResetPasswordDto("", "Abcd1234");
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(invalidDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenTokenNotFound() throws Exception {
+      // Arrange — token hash does not exist in the database
+      doThrow(new AppException(ErrorInfo.INVALID_PASSWORD_RESET_TOKEN))
+          .when(passwordResetTokenService)
+          .resetPassword(any(), any(ResetPasswordDto.class));
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(resetPasswordDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenTokenIsExpired() throws Exception {
+      // Arrange — token exists but has expired (consume returns 0 rows)
+      doThrow(new AppException(ErrorInfo.INVALID_PASSWORD_RESET_TOKEN))
+          .when(passwordResetTokenService)
+          .resetPassword(any(), any(ResetPasswordDto.class));
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(resetPasswordDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnInternalServerError_whenDatabaseErrorOccurs() throws Exception {
+      // Arrange — simulates a DB failure when consuming the token or updating the password
+      doThrow(new RuntimeException("Database error"))
+          .when(passwordResetTokenService)
+          .resetPassword(any(), any(ResetPasswordDto.class));
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(resetPasswordDto)))
+          .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void shouldReturnOk_whenResetPasswordIsSuccessful() throws Exception {
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(resetPasswordDto)))
+          .andExpect(status().isOk());
+
+      verify(passwordResetTokenService).resetPassword(any(), any(ResetPasswordDto.class));
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenPasswordIsTooShort() throws Exception {
+      // Arrange — password shorter than 8 characters
+      ResetPasswordDto shortPasswordDto = new ResetPasswordDto("valid-token-123", "Ab1@");
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(shortPasswordDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenPasswordMissingSpecialCharacter() throws Exception {
+      // Arrange — password without special character from @$!%*?&
+      ResetPasswordDto noSpecialCharDto = new ResetPasswordDto("valid-token-123", "Abcd1234");
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(noSpecialCharDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenPasswordMissingUppercase() throws Exception {
+      // Arrange — password without uppercase letter
+      ResetPasswordDto noUppercaseDto = new ResetPasswordDto("valid-token-123", "abcd1234@");
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(noUppercaseDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenPasswordMissingLowercase() throws Exception {
+      // Arrange — password without lowercase letter
+      ResetPasswordDto noLowercaseDto = new ResetPasswordDto("valid-token-123", "ABCD1234@");
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(noLowercaseDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenPasswordMissingNumber() throws Exception {
+      // Arrange — password without number
+      ResetPasswordDto noNumberDto = new ResetPasswordDto("valid-token-123", "Abcdefg@");
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(noNumberDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenTokenIsEmpty() throws Exception {
+      // Arrange — empty token string
+      ResetPasswordDto emptyTokenDto = new ResetPasswordDto("", "NewPass@1234");
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(emptyTokenDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenJsonIsMalformed() throws Exception {
+      // Arrange — malformed JSON with unquoted keys
+      String malformedJson = "{rawToken: valid-token, newPassword: NewPass@1234}";
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(malformedJson))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnUnsupportedMediaType_whenContentTypeIsMissing() throws Exception {
+      // Act & Assert — no content type header returns 415
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .content(objectMapper.writeValueAsString(resetPasswordDto)))
+          .andExpect(status().isUnsupportedMediaType());
+    }
+
+    @Test
+    void shouldReturnMethodNotAllowed_whenGetRequest() throws Exception {
+      // Act & Assert — GET request to POST-only endpoint returns 405
+      mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isMethodNotAllowed());
+    }
+
+    // --- Additional suggested tests ---
+
+    @Test
+    void shouldReturnBadRequest_whenPasswordExceedsMaxLength() throws Exception {
+      // Arrange — password longer than 100 characters violates @Size(max = 100)
+      String longPassword = "A" + "a".repeat(97) + "1@"; // 101 characters
+      ResetPasswordDto longPasswordDto = new ResetPasswordDto("valid-token-123", longPassword);
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(longPasswordDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenNewPasswordIsNull() throws Exception {
+      // Arrange — explicitly set newPassword to null (violates @NotBlank)
+      ResetPasswordDto nullPasswordDto = new ResetPasswordDto("valid-token-123", null);
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(nullPasswordDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenRawTokenIsNull() throws Exception {
+      // Arrange — explicitly set rawToken to null (violates @NotBlank)
+      ResetPasswordDto nullTokenDto = new ResetPasswordDto(null, "NewPass@1234");
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(nullTokenDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnOk_whenServiceIsCalledWithCorrectDto() throws Exception {
+      // Act
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(resetPasswordDto)))
+          .andExpect(status().isOk());
+
+      // Assert — verify the exact DTO is passed through, not just any()
+      verify(passwordResetTokenService).resetPassword(any(), org.mockito.ArgumentMatchers.eq(resetPasswordDto));
+    }
+
+    @Test
+    void shouldReturnInternalServerError_whenUserServiceFails() throws Exception {
+      // Arrange — simulates userService.getUserById() failing inside resetPassword()
+      // (e.g., user was deleted between token creation and reset)
+      doThrow(new RuntimeException("User not found"))
+          .when(passwordResetTokenService)
+          .resetPassword(any(), any(ResetPasswordDto.class));
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(resetPasswordDto)))
+          .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenPasswordContainsDisallowedSpecialChar() throws Exception {
+      // Arrange — password with disallowed special character '#' (only @$!%*?& are allowed)
+      ResetPasswordDto disallowedSpecialCharDto = new ResetPasswordDto("valid-token-123", "Aa1#test");
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(disallowedSpecialCharDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnOk_whenPasswordIsMinimumValidLength() throws Exception {
+      // Arrange — minimum valid password: 8 characters with all required constraints
+      ResetPasswordDto minPasswordDto = new ResetPasswordDto("valid-token-123", "Aa1@test");
+
+      // Act & Assert
+      mockMvc.perform(post(RESET_PASSWORD_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(minPasswordDto)))
+          .andExpect(status().isOk());
+    }
+  }
+
+  @Nested
+  class LogoutTests {
+
+    private final String LOGOUT_ENDPOINT = "/auth/logout";
+
+    @Test
+    void shouldReturnUnauthorized_whenAuthUserIsNull() throws Exception {
+      // Arrange — @AuthenticationPrincipal resolves to null in @WebMvcTest slice without a configured
+      // AuthenticationPrincipalArgumentResolver. The controller passes null to authService.logoutUser,
+      // which throws AppException(INVALID_TOKEN) via Guard.requireNotNull.
+      doThrow(new AppException(ErrorInfo.INVALID_TOKEN))
+          .when(authService)
+          .logoutUser(any(), org.mockito.ArgumentMatchers.isNull());
+
+      // Act & Assert
+      mockMvc.perform(post(LOGOUT_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldReturnInternalServerError_whenDatabaseErrorOccurs() throws Exception {
+      // Arrange — simulates a DB failure when removing the active refresh token
+      doThrow(new RuntimeException("Database error"))
+          .when(authService)
+          .logoutUser(any(), any());
+
+      // Act & Assert
+      mockMvc.perform(post(LOGOUT_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void shouldReturnOk_whenLogoutIsSuccessful() throws Exception {
+      // Act & Assert — in @WebMvcTest slice, @AuthenticationPrincipal resolves to null,
+      // so authService.logoutUser is called with null authUser. The mock service does not throw,
+      // so the controller returns 200 OK.
+      mockMvc.perform(post(LOGOUT_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isOk());
+
+      verify(authService).logoutUser(any(), any());
     }
   }
 }
