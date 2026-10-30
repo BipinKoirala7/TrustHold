@@ -22,8 +22,6 @@ spring:
       enabled: false
 
 app:
-  frontend:
-    url: ${APP_FRONTEND_URL}
   jwt:
     applicationSignature: ${APP_JWT_APPLICATION_SIGNATURE:secret}
     accessTokenExpiration: ${APP_JWT_ACCESS_TOKEN_EXPIRATION_TIME:3600}
@@ -37,20 +35,6 @@ app:
     secure: ${APP_COOKIE_SECURE:true}
     refreshCookiePath: ${APP_COOKIE_REFRESH_COOKIE_PATH:/api/v1/auth}
     accessCookiePath: ${APP_COOKIE_ACCESS_COOKIE_PATH:/}
-
-  auth:
-    public-endpoints:
-      - /auth/login
-      - /auth/register
-      - /auth/token/refresh
-      - /auth/oauth/register
-      - /oauth2
-      - /auth/reset-password
-      - /auth/forgot-password
-      - /actuator/
-      - /swagger-ui/
-      - /swagger-ui.html
-      - /v3/api-docs
 
 mail:
   from: ${MAIL_FROM:TrustHold <noreply@email.bipin-koirala.com.np>}
