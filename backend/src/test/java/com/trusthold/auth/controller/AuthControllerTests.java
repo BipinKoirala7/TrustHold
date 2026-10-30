@@ -915,7 +915,7 @@ public class AuthControllerTests {
     @Test
     void shouldReturnBadRequest_whenPasswordExceedsMaxLength() throws Exception {
       // Arrange — password longer than 100 characters violates @Size(max = 100)
-      String longPassword = "A" + "a".repeat(97) + "1@"; // 101 characters
+      String longPassword = "A" + "a".repeat(98) + "1@"; // 101 characters: 1 + 98 + 2 = 101
       ResetPasswordDto longPasswordDto = new ResetPasswordDto("valid-token-123", longPassword);
 
       // Act & Assert
