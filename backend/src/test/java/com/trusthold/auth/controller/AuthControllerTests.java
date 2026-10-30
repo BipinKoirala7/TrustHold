@@ -1,6 +1,7 @@
 package com.trusthold.auth.controller;
 
 import com.trusthold.auth.dtos.GoogleRegistrationRequest;
+import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.auth.filters.AccessTokenFilter;
 import com.trusthold.auth.handlers.OAuthFailureHandler;
@@ -256,6 +257,188 @@ public class AuthControllerTests {
       mockMvc.perform(post(GOOGLE_REGISTER_ENDPOINT)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isUnsupportedMediaType());
+    }
+  }
+
+  @Nested
+  class LoginTests {
+
+    private LoginUserDto loginUserDto;
+    private final String LOGIN_ENDPOINT = "/auth/login";
+
+    @BeforeEach
+    void setUp() {
+      loginUserDto = new LoginUserDto("testuser@example.com", "Test@Password1");
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenRequestBodyIsNull() throws Exception {
+      // Arrange & Act — send empty JSON object so @Valid fails on required fields
+      mockMvc.perform(post(LOGIN_ENDPOINT)
+              .contentType("application/json")
+              .content("{}"))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenRequestBodyIsInvalid() throws Exception {
+      // Arrange — missing password field
+      LoginUserDto invalidDto = new LoginUserDto("testuser@example.com", null);
+
+      // Act & Assert
+      mockMvc.perform(post(LOGIN_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(invalidDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnUnauthorized_whenUserDoesNotExist() throws Exception {
+      // Arrange
+      doThrow(new AppException(ErrorInfo.UNAUTHORIZED))
+          .when(authService)
+          .loginUser(any(LoginUserDto.class), any());
+
+      // Act & Assert
+      mockMvc.perform(post(LOGIN_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(loginUserDto)))
+          .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldReturnUnauthorized_whenPasswordDoesNotMatch() throws Exception {
+      // Arrange
+      doThrow(new AppException(ErrorInfo.INVALID_CREDENTIALS))
+          .when(authService)
+          .loginUser(any(LoginUserDto.class), any());
+
+      // Act & Assert
+      mockMvc.perform(post(LOGIN_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(loginUserDto)))
+          .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldReturnInternalServerError_whenActiveRefreshTokenServiceFails() throws Exception {
+      // Arrange — simulates a DB failure when storing the refresh token
+      doThrow(new RuntimeException("Database error"))
+          .when(authService)
+          .loginUser(any(LoginUserDto.class), any());
+
+      // Act & Assert
+      mockMvc.perform(post(LOGIN_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(loginUserDto)))
+          .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void shouldReturnInternalServerError_whenUpdateLastLoginTimeFails() throws Exception {
+      // Arrange — simulates a DB failure when updating last login time
+      doThrow(new RuntimeException("Database error"))
+          .when(authService)
+          .loginUser(any(LoginUserDto.class), any());
+
+      // Act & Assert
+      mockMvc.perform(post(LOGIN_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(loginUserDto)))
+          .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void shouldReturnOk_whenLoginIsSuccessful() throws Exception {
+      // Act & Assert
+      mockMvc.perform(post(LOGIN_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(loginUserDto)))
+          .andExpect(status().isOk());
+
+      verify(authService).loginUser(any(LoginUserDto.class), any());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenPasswordIsTooShort() throws Exception {
+      // Arrange — password shorter than 8 characters
+      LoginUserDto shortPasswordDto = new LoginUserDto("testuser@example.com", "Ab1@");
+
+      // Act & Assert
+      mockMvc.perform(post(LOGIN_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(shortPasswordDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenPasswordMissingSpecialCharacter() throws Exception {
+      // Arrange — password without special character from @$!%*?&
+      LoginUserDto noSpecialCharDto = new LoginUserDto("testuser@example.com", "Abcd1234");
+
+      // Act & Assert
+      mockMvc.perform(post(LOGIN_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(noSpecialCharDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenEmailFormatIsInvalid() throws Exception {
+      // Arrange — invalid email format
+      LoginUserDto invalidEmailDto = new LoginUserDto("not-an-email", "Test@Password1");
+
+      // Act & Assert
+      mockMvc.perform(post(LOGIN_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(invalidEmailDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenEmailIsEmpty() throws Exception {
+      // Arrange — empty email field
+      LoginUserDto emptyEmailDto = new LoginUserDto("", "Test@Password1");
+
+      // Act & Assert
+      mockMvc.perform(post(LOGIN_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(emptyEmailDto)))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenJsonIsMalformed() throws Exception {
+      // Arrange — malformed JSON with unquoted keys
+      String malformedJson = "{email: test@example.com, password: Test@Password1}";
+
+      // Act & Assert
+      mockMvc.perform(post(LOGIN_ENDPOINT)
+              .contentType("application/json")
+              .content(malformedJson))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnUnsupportedMediaType_whenContentTypeIsMissing() throws Exception {
+      // Act & Assert — no content type header returns 415
+      mockMvc.perform(post(LOGIN_ENDPOINT)
+              .content(objectMapper.writeValueAsString(loginUserDto)))
+          .andExpect(status().isUnsupportedMediaType());
+    }
+
+    @Test
+    void shouldReturnUnauthorized_whenOAuthUserTriesToLocalLogin() throws Exception {
+      // Arrange — OAuth user (e.g., Google) tries to log in with local credentials
+      doThrow(new AppException(ErrorInfo.INVALID_CREDENTIALS))
+          .when(authService)
+          .loginUser(any(LoginUserDto.class), any());
+
+      // Act & Assert
+      mockMvc.perform(post(LOGIN_ENDPOINT)
+              .contentType("application/json")
+              .content(objectMapper.writeValueAsString(loginUserDto)))
+          .andExpect(status().isUnauthorized());
     }
   }
 }
