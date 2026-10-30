@@ -13,6 +13,8 @@ import com.trusthold.config.CustomAuthenticationEntryPoint;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.Role;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -439,6 +441,132 @@ public class AuthControllerTests {
               .contentType("application/json")
               .content(objectMapper.writeValueAsString(loginUserDto)))
           .andExpect(status().isUnauthorized());
+    }
+  }
+
+  @Nested
+  class TokenRefreshTests {
+
+    private final String REFRESH_TOKEN_ENDPOINT = "/auth/token/refresh";
+
+    @Test
+    void shouldReturnInternalServerError_whenRefreshTokenIsNull() throws Exception {
+      // Arrange — refresh token cookie is missing, so cookieService returns null
+      doThrow(new JwtException("Please Log in"))
+          .when(authService)
+          .refreshToken(any(), any());
+
+      // Act & Assert
+      mockMvc.perform(post(REFRESH_TOKEN_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void shouldReturnInternalServerError_whenRefreshTokenIsNotActive() throws Exception {
+      // Arrange — refresh token exists but is not active in the database
+      doThrow(new JwtException("Refresh token is not active"))
+          .when(authService)
+          .refreshToken(any(), any());
+
+      // Act & Assert
+      mockMvc.perform(post(REFRESH_TOKEN_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void shouldReturnInternalServerError_whenRefreshTokenIsInvalidOrMalformed() throws Exception {
+      // Arrange — refresh token is malformed (e.g., expired, tampered, wrong signature)
+      doThrow(new JwtException("Invalid signature"))
+          .when(authService)
+          .refreshToken(any(), any());
+
+      // Act & Assert
+      mockMvc.perform(post(REFRESH_TOKEN_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void shouldReturnInternalServerError_whenDatabaseErrorOccurs() throws Exception {
+      // Arrange — simulates a DB failure when storing/removing the refresh token via ActiveRefreshTokenService
+      doThrow(new RuntimeException("Database error"))
+          .when(authService)
+          .refreshToken(any(), any());
+
+      // Act & Assert
+      mockMvc.perform(post(REFRESH_TOKEN_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void shouldReturnOk_whenTokenRefreshIsSuccessful() throws Exception {
+      // Act & Assert
+      mockMvc.perform(post(REFRESH_TOKEN_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isOk());
+
+      verify(authService).refreshToken(any(), any());
+    }
+
+    @Test
+    void shouldReturnOk_whenTokenCookiesAreSet() throws Exception {
+      // Act & Assert — in @WebMvcTest with mocked service, cookies are not actually set by the mock,
+      // so we verify the service was called to perform the refresh, which would set cookies in production
+      mockMvc.perform(post(REFRESH_TOKEN_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isOk());
+
+      verify(authService).refreshToken(any(), any());
+    }
+
+    @Test
+    void shouldReturnInternalServerError_whenRefreshTokenIsExpired() throws Exception {
+      // Arrange — specifically test ExpiredJwtException (subclass of JwtException)
+      doThrow(new ExpiredJwtException(null, null, "JWT expired"))
+          .when(authService)
+          .refreshToken(any(), any());
+
+      // Act & Assert
+      mockMvc.perform(post(REFRESH_TOKEN_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void shouldReturnInternalServerError_whenTokenIsNotRefreshType() throws Exception {
+      // Arrange — an access token is passed as a refresh token
+      doThrow(new JwtException("Not a refresh token"))
+          .when(authService)
+          .refreshToken(any(), any());
+
+      // Act & Assert
+      mockMvc.perform(post(REFRESH_TOKEN_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void shouldReturnInternalServerError_whenUserNotFound() throws Exception {
+      // Arrange — token is valid but user no longer exists in DB
+      doThrow(new RuntimeException("User not found"))
+          .when(authService)
+          .refreshToken(any(), any());
+
+      // Act & Assert
+      mockMvc.perform(post(REFRESH_TOKEN_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void shouldReturnMethodNotAllowed_whenGetRequest() throws Exception {
+      // Act & Assert — GET request to POST-only endpoint returns 405
+      mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(REFRESH_TOKEN_ENDPOINT)
+              .contentType("application/json"))
+          .andExpect(status().isMethodNotAllowed());
     }
   }
 }
