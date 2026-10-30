@@ -8,7 +8,6 @@ import com.trusthold.auth.service.CookieService;
 import com.trusthold.auth.service.JwtService;
 import com.trusthold.user.model.User;
 import com.trusthold.user.service.UserService;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -64,10 +63,9 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
    * @param authentication the <tt>Authentication</tt> object which was created during
    * the authentication process.
    * @throws IOException if an I/O error occurs while authenticating the user
-   * @throws ServletException if an error occurs while authenticating the user
    */
   @Override
-  public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+  public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
     log.info("logging in oauth user");
 
     try{
@@ -148,6 +146,13 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
         loginAndRedirect(authService.registerOAuthUser(registerOAuthUserDto), response);
       } else {
+
+        if(user.get().getProviderId() == null){
+          log.debug("Provider Id is null");
+          response.sendRedirect(frontendUrl + "/login?error=user");
+          return;
+        }
+
         if(!Objects.equals(user.get().getProviderId(), providerId)){
           log.debug("Provider Id is not matching");
           response.sendRedirect(frontendUrl + "/login?error=provider");
@@ -164,15 +169,15 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
   }
 
   private void loginAndRedirect(User user, HttpServletResponse response) throws IOException{
-    String newRefreshToken = jwtService.generateRefreshToken(user);
     String newAccessToken = jwtService.generateAccessToken(user);
+    String newRefreshToken = jwtService.generateRefreshToken(user);
 
     activeRefreshTokenService.storeActiveRefreshToken(user.getId(), newRefreshToken);
+    userService.updateUserLastLoginTime(user.getId());
 
     response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
     response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
 
-    userService.updateUserLastLoginTime(user.getId());
 
     response.sendRedirect(frontendUrl + "/google/callback");
   }

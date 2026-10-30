@@ -2,6 +2,7 @@ package com.trusthold.auth;
 
 import com.trusthold.auth.handlers.OAuthFailureHandler;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -9,11 +10,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class OAuthFailureHandlerTest {
+class OAuthFailureHandlerTests {
+
+  @InjectMocks
+  private OAuthFailureHandler handler;
 
   @Test
   void redirectsToFrontendLoginWithErrorFlag() throws Exception {
-    OAuthFailureHandler handler = new OAuthFailureHandler();
     ReflectionTestUtils.setField(handler, "frontendUrl", "http://localhost:3000");
 
     MockHttpServletRequest request = new MockHttpServletRequest();
