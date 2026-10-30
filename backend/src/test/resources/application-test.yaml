@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: TrustHold
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: "google-client-id"
+            client-secret: "google-client-secret"
+            scope:
+              - openid
+              - email
+              - profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+
+  docker:
+    compose:
+      enabled: false
+
+app:
+  frontend:
+    url: localhost:3000
+  jwt:
+    applicationSignature: secret
+    accessTokenExpiration: 3600
+    refreshTokenExpiration: 86400
+    audience: audience
+    issuer: issuer
+  cookie:
+    sameSite: lax
+    httpOnly: true
+    secure: true
+    refreshCookiePath: /api/v1/auth
+    accessCookiePath: /
+  auth:
+    public-endpoints:
+      - /auth/login
+      - /auth/register
+      - /auth/token/refresh
+      - /auth/oauth/register
+      - /oauth2
+      - /auth/reset-password
+      - /auth/forgot-password
+      - /actuator/
+      - /swagger-ui/
+      - /swagger-ui.html
+      - /v3/api-docs
+
+mail:
+  from: TrustHold <noreply@email.bipin-koirala.com.np>
+  support: your-real-email@gmail.com
+
+resend:
+  api:
+    key: ""

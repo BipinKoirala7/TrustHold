@@ -14,6 +14,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 /**
  * Service for sending emails.
  */
@@ -45,7 +47,7 @@ public class EmailService {
    * @param userName username of the newly registered user
    */
   @Async
-  public void newlyRegisterUserMail(String to, String userRole, String userName) {
+  public void newlyRegisterUserEmail(String to, String userRole, String userName) {
     log.info("Sending welcome email to newly registered {}", userRole);
 
     String html = welcomeEmailTemplate.render(userRole, userName, frontendUrl, supportEmail);
@@ -85,6 +87,10 @@ public class EmailService {
    */
   public void sendMail(String to, String subject, String body) throws ResendException {
     log.info("Sending email to {}", to);
+
+    Objects.requireNonNull(to, "to cannot be null");
+    Objects.requireNonNull(subject, "subject cannot be null");
+    Objects.requireNonNull(body, "body cannot be null");
 
     Resend resend = new Resend(resendApiKey);
 

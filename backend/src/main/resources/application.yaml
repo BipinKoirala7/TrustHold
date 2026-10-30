@@ -16,3 +16,20 @@ spring:
               - email
               - profile
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+app:
+  frontend:
+    url: ${APP_FRONTEND_URL}
+  auth:
+    public-endpoints:
+      - /auth/login
+      - /auth/register
+      - /auth/token/refresh
+      - /auth/oauth/register
+      - /oauth2
+      - /auth/reset-password
+      - /auth/forgot-password
+      - /actuator/
+      - /swagger-ui/
+      - /swagger-ui.html
+      - /v3/api-docs

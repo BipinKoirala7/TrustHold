@@ -2,10 +2,6 @@ package com.trusthold.auth.service;
 
 import com.trusthold.config.JwtConfig;
 import com.trusthold.user.model.User;
-import static com.trusthold.config.JwtConfig.REFRESH_TYPE;
-import static com.trusthold.config.JwtConfig.TOKEN_TYPE;
-import static com.trusthold.config.JwtConfig.ACCESS_TYPE;
-
 import com.trusthold.user.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -22,6 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
+
+import static com.trusthold.config.JwtConfig.*;
 
 /**
  * Creates and verifies the JWTs used for authentication.
@@ -167,26 +165,6 @@ public class JwtService {
     if (!REFRESH_TYPE.equals(claims.get(TOKEN_TYPE, String.class))) {
       log.warn("Refresh Token type mismatch: expected={}, userId={}", REFRESH_TYPE, claims.getSubject());
       throw new JwtException("Not a refresh token");
-    }
-    return userService.getUserById(UUID.fromString(claims.getSubject()));
-  }
-
-  /**
-   * Validates an access token and returns the corresponding user.
-   * Uses {@link #extractClaims(String)} to parse the token and extract its claims.
-   * Throws a {@link JwtException} if the token is malformed, invalid, doesn't match the expected issuer and audience, or is not an access token.
-   *
-   * @param token the access token to validate
-   * @return the user associated with the access token
-   * @throws JwtException if the token is malformed, invalid, or doesn't match the expected issuer and audience
-   * @throws io.jsonwebtoken.ExpiredJwtException if the token is expired
-   */
-  public User validateAccessToken(String token) {
-    log.debug("Validating access token");
-    Claims claims = extractClaims(token);
-    if (!ACCESS_TYPE.equals(claims.get(TOKEN_TYPE, String.class))) {
-      log.warn("Access Token type mismatch: expected={}, userId={}", ACCESS_TYPE, claims.getSubject());
-      throw new JwtException("Not an access token");
     }
     return userService.getUserById(UUID.fromString(claims.getSubject()));
   }

@@ -3,6 +3,7 @@ package com.trusthold.auth.filters;
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.auth.service.CookieService;
 import com.trusthold.auth.service.JwtService;
+import com.trusthold.config.AuthConfig;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.user.model.Role;
@@ -15,7 +16,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,20 +38,15 @@ import java.util.UUID;
  * @see JwtService
  * @see CookieService
  */
-@RequiredArgsConstructor
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class AccessTokenFilter extends OncePerRequestFilter {
 
   private final ObjectMapper objectMapper;
   private final CookieService cookieService;
   private final JwtService jwtService;
-
-  // Public endpoints where there is no need to authenticate.
-  // Or if the request is an OAuth2 request, health check or a Swagger request,
-  // Refresh token path checks for refresh token, not access token.
-  @Value("${app.auth.public-endpoints}")
-  private List<String> SHOULD_NOT_FILTER;
+  private final AuthConfig authConfig;
 
   /**
    * Checks if the request should not be authenticated.
@@ -65,7 +60,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getServletPath();
-    return SHOULD_NOT_FILTER.stream().anyMatch(path::startsWith);
+    return authConfig.getPublicEndpoints().stream().anyMatch(path::startsWith);
   }
 
   /**
@@ -91,10 +86,12 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 
         Claims claims = jwtService.extractAccessClaims(accessToken);
         String roleClaim = claims.get("role", String.class);
+        String subject = claims.getSubject();
 
         if (roleClaim == null) throw new JwtException("Missing role claim");
+        if (subject == null) throw new JwtException("Missing subject claim");
 
-        AuthUser authUser = new AuthUser(UUID.fromString(claims.getSubject()), accessToken, Role.valueOf(roleClaim));
+        AuthUser authUser = new AuthUser(UUID.fromString(subject), accessToken, Role.valueOf(roleClaim));
         // "ROLE_" prefix is required by Spring Security's hasRole() check
         var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + authUser.role().toString()));
         var auth = new UsernamePasswordAuthenticationToken(authUser, null, authorities);

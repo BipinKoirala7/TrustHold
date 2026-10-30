@@ -1,4 +1,4 @@
-package com.trusthold.auth;
+package com.trusthold.auth.integration;
 
 import com.trusthold.TestcontainersConfiguration;
 import com.trusthold.auth.dtos.RegisterUserDto;

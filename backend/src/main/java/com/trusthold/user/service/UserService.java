@@ -66,6 +66,7 @@ public class UserService {
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
 
     User user = getUserById(authUser.id());
+
     userMapper.updateUserFromDto(updateUserDto, user);
     userRepository.save(user);
 
@@ -93,6 +94,7 @@ public class UserService {
   public void deleteUser(@NotNull AuthUser authUser) {
     // TODO: Have a mechanism of deleting userId after confirming though the email.
 
+    Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
     log.debug("Deleting user: userId={}", authUser.id());
     userRepository.deleteById(authUser.id());
   }
@@ -111,7 +113,7 @@ public class UserService {
 
   /** @throws AppException if no user has this email */
   public User getUserByEmail(@NotNull String email) {
-    return userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorInfo.USER_NOT_FOUND));
+    return userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorInfo.UNAUTHORIZED));
   }
 
   /**

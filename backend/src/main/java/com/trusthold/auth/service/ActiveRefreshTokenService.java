@@ -68,7 +68,7 @@ public class ActiveRefreshTokenService {
   }
 
   public boolean isRefreshTokenActive(@NotBlank String refreshToken){
-    return activeRefreshTokenRepository.existsByRefreshToken(refreshToken);
+    return activeRefreshTokenRepository.existsByRefreshTokenAndExpiresAtAfter(refreshToken, Instant.now());
   }
 
 }

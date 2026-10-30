@@ -1,6 +1,5 @@
 package com.trusthold.auth.handlers;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +21,9 @@ public class OAuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
   private String frontendUrl;
 
   @Override
-  public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
+  public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
     log.error("Authentication failed for OAuth with message: {}", exception.getMessage());
 
-    response.sendRedirect(frontendUrl + "/login?error=true");
+    response.sendRedirect(frontendUrl + "/login?error=oauth");
   }
 }
