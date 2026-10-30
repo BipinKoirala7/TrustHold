@@ -131,6 +131,8 @@ public class AuthService {
    * <p>On success: access and refresh tokens are written to cookies on the response,
    * the refresh token becomes the user's single active one, and the last-login
    * time is updated.
+   * <p>
+   * Only used for local authentication.
    *
    * @param loginUserDto email and raw password from the request
    * @param response     receives the token cookies
@@ -141,6 +143,16 @@ public class AuthService {
     log.debug("Login attempt");
 
     User user = userService.getUserByEmail(loginUserDto.email());
+
+    if(user == null) {
+      log.warn("Login failed: no user with this email");
+      throw new AppException(ErrorInfo.INVALID_CREDENTIALS);
+    }
+
+    if(user.getAuthProvider() != AuthProvider.LOCAL) {
+      log.warn("Login failed: user is not local, userId={}", user.getId());
+      throw new AppException(ErrorInfo.INVALID_CREDENTIALS);
+    }
 
     if(!passwordEncoder.matches(loginUserDto.password(), user.getPassword())) {
       log.warn("Login failed: wrong password, userId={}", user.getId());
@@ -164,7 +176,7 @@ public class AuthService {
    * The old refresh token is invalidated (rotation), so a stolen token can be
    * used at most once.
    *
-   * @throws JwtException          if the cookie is missing, or the token is expired/tampered with
+   * @throws JwtException if the cookie is missing, or the token is expired/tampered with
    */
   @Transactional
   public void refreshToken(HttpServletRequest request, HttpServletResponse response){
@@ -172,7 +184,7 @@ public class AuthService {
 
     String refreshToken = cookieService.getRefreshTokenCookie(request);
 
-    if(refreshToken == null) throw new JwtException("Refresh token is null");
+    if(refreshToken == null) throw new JwtException("Please Log in");
     if(!activeRefreshTokenService.isRefreshTokenActive(refreshToken)) throw new JwtException("Refresh token is not active");
 
     User user = jwtService.validateRefreshToken(refreshToken);

@@ -15,7 +15,7 @@ public class EventListener {
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void onUserRegistered(UserRegisteredEvent event) {
-    emailService.newlyRegisterUserMail(event.email(), event.role(), event.name());
+    emailService.newlyRegisterUserEmail(event.email(), event.role(), event.name());
   }
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

@@ -45,7 +45,7 @@ public class EmailService {
    * @param userName username of the newly registered user
    */
   @Async
-  public void newlyRegisterUserMail(String to, String userRole, String userName) {
+  public void newlyRegisterUserEmail(String to, String userRole, String userName) {
     log.info("Sending welcome email to newly registered {}", userRole);
 
     String html = welcomeEmailTemplate.render(userRole, userName, frontendUrl, supportEmail);
