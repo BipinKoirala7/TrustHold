@@ -14,6 +14,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 /**
  * Service for sending emails.
  */
@@ -85,6 +87,10 @@ public class EmailService {
    */
   public void sendMail(String to, String subject, String body) throws ResendException {
     log.info("Sending email to {}", to);
+
+    Objects.requireNonNull(to, "to cannot be null");
+    Objects.requireNonNull(subject, "subject cannot be null");
+    Objects.requireNonNull(body, "body cannot be null");
 
     Resend resend = new Resend(resendApiKey);
 
