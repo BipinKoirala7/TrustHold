@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -49,12 +50,8 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   // Public endpoints where there is no need to authenticate.
   // Or if the request is an OAuth2 request, health check or a Swagger request,
   // Refresh token path checks for refresh token, not access token.
-  private final List<String> SHOULD_NOT_FILTER = List.of(
-      "/auth/login", "/auth/register", "/auth/token/refresh", "/auth/oauth/register", "/oauth2",
-      "/auth/reset-password", "/auth/forgot-password",
-      "/actuator/",
-      "/swagger-ui/", "/swagger-ui.html", "/v3/api-docs"
-  );
+  @Value("${app.auth.public-endpoints}")
+  private List<String> SHOULD_NOT_FILTER;
 
   /**
    * Checks if the request should not be authenticated.

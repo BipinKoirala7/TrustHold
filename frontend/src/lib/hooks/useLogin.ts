@@ -21,7 +21,11 @@ export function useLogin() {
         staleTime: 0,
       });
       if (!user)
-        throw new ApiError(500, "Signed in, but could not load your account.");
+        throw new ApiError(
+          "Signed in, but could not load your account.",
+          500,
+          "AUTH_INTERNAL_SERVER_ERROR",
+        );
       return user;
     },
     onSuccess: (user) => router.replace(homePathFor(user.role)),

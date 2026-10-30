@@ -9,10 +9,8 @@ import { useRouter } from "next/navigation";
 
 export function useRegister() {
   const router = useRouter();
-  return useMutation({
-    mutationFn: async (values: RegisterUerDto) => {
-      await registerUser(values);
-    },
+  return useMutation<void, ApiError, RegisterUerDto>({
+    mutationFn: registerUser,
     onSuccess: () => {
       toast.success("Registration successful", {
         description:

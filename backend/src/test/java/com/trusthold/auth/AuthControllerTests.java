@@ -78,7 +78,7 @@ public class AuthControllerTests {
       mockMvc.perform(post(REGISTER_USER_ENDPOINT)
               .contentType("application/json")
               .content("{}"))
-          .andExpect(status().isUnprocessableContent());
+          .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -98,7 +98,7 @@ public class AuthControllerTests {
       mockMvc.perform(post(REGISTER_USER_ENDPOINT)
               .contentType("application/json")
               .content(objectMapper.writeValueAsString(registerUserDto)))
-          .andExpect(status().isUnprocessableContent());
+          .andExpect(status().isBadRequest());
     }
 
     @Test

@@ -8,9 +8,6 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorInfo {
 
-//  // Generic
-//  INPUT_VALIDATION
-
   // Auth
   UNAUTHORIZED                ( "AUTH_UNAUTHORIZED",                HttpStatus.UNAUTHORIZED, "Please Log in"),
   EXPIRED_PASSWORD_RESET_TOKEN( "AUTH_RESET_TOKEN_EXPIRED",         HttpStatus.BAD_REQUEST,  "Password reset token has expired"),

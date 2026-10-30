@@ -70,86 +70,96 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
     log.info("logging in oauth user");
 
-    OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+    try{
+      OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-    if (oAuth2User == null) {
-      log.warn("OAuth2User is null");
-      response.sendRedirect(frontendUrl + "/login?error=oauth");
-      return;
-    }
-
-    String providerId = oAuth2User.getAttribute("sub");
-
-    if (providerId == null) {
-      log.warn("Provider ID is null");
-      response.sendRedirect(frontendUrl + "/login?error=provider");
-      return;
-    }
-
-    String email = oAuth2User.getAttribute("email");
-    String givenName = oAuth2User.getAttribute("given_name");
-    String familyName = oAuth2User.getAttribute("family_name");
-
-    if(email == null) {
-      log.warn("Email is null");
-      response.sendRedirect(frontendUrl + "/login?error=email");
-      return;
-    }
-
-    Boolean emailVerified = oAuth2User.getAttribute("email_verified");
-
-    if (!Boolean.TRUE.equals(emailVerified)) {
-      log.warn("Google email is not verified");
-      response.sendRedirect(frontendUrl + "/login");
-      return;
-    }
-
-    if(givenName == null) {
-      log.warn("Given name is null");
-      response.sendRedirect(frontendUrl + "/login?error=firstname");
-      return;
-    }
-
-    if(familyName == null) {
-      log.warn("Family name is null");
-      response.sendRedirect(frontendUrl + "/login?error=lastname");
-      return;
-    }
-
-    log.debug("Email: {}", email);
-    log.debug("Given name: {}", givenName);
-    log.debug("Family name: {}", familyName);
-
-    Optional<User> user = userService.getByEmail(email);
-
-    if(user.isEmpty()) {
-      log.warn("User not found");
-      log.warn("Registering user first");
-
-      HttpSession session = request.getSession(false);
-      Object roleObj = session != null ? session.getAttribute("registrationRole") : null;
-      if(roleObj == null) {
-        log.warn("Role from the session is null");
-        response.sendRedirect(frontendUrl + "/login?error=role");
+      if (oAuth2User == null) {
+        log.warn("OAuth2User is null");
+        response.sendRedirect(frontendUrl + "/login?error=oauth");
         return;
       }
 
-      var role = RegistrationRole.valueOf((String) roleObj);
-      log.debug("Role from the session: {}", role);
+      String providerId = oAuth2User.getAttribute("sub");
 
-      session.invalidate();
-
-      String username = givenName.toLowerCase() + "_" + familyName.toLowerCase() + (int) (Math.random() * 9000 + 1000);
-      RegisterOAuthUserDto registerOAuthUserDto = new RegisterOAuthUserDto(providerId, givenName, familyName, username, email, role);
-
-      loginAndRedirect(authService.registerOAuthUser(registerOAuthUserDto), response);
-    } else {
-      if(!Objects.equals(user.get().getProviderId(), providerId)){
-        log.warn("Token is invalid");
-        response.sendRedirect(frontendUrl + "/login?error=token");
+      if (providerId == null) {
+        log.warn("Provider ID is null");
+        response.sendRedirect(frontendUrl + "/login?error=provider");
         return;
       }
-      loginAndRedirect(user.get(), response);
+
+      String email = oAuth2User.getAttribute("email");
+      String givenName = oAuth2User.getAttribute("given_name");
+      String familyName = oAuth2User.getAttribute("family_name");
+
+      if(email == null) {
+        log.warn("Email is null");
+        response.sendRedirect(frontendUrl + "/login?error=email");
+        return;
+      }
+
+      Boolean emailVerified = oAuth2User.getAttribute("email_verified");
+
+      if (!Boolean.TRUE.equals(emailVerified)) {
+        log.warn("Google email is not verified");
+        response.sendRedirect(frontendUrl + "/login");
+        return;
+      }
+
+      if(givenName == null) {
+        log.warn("Given name is null");
+        response.sendRedirect(frontendUrl + "/login?error=firstname");
+        return;
+      }
+
+      if(familyName == null) {
+        log.warn("Family name is null");
+        response.sendRedirect(frontendUrl + "/login?error=lastname");
+        return;
+      }
+
+      log.debug("Processing Google OAuth login");
+
+      Optional<User> user = userService.getByEmail(email);
+
+      if(user.isEmpty()) {
+        log.warn("User not found");
+        log.warn("Registering user first");
+
+        HttpSession session = request.getSession(false);
+        Object roleObj = session != null ? session.getAttribute("registrationRole") : null;
+        if(roleObj == null) {
+          log.warn("Role from the session is null");
+          response.sendRedirect(frontendUrl + "/login?error=role");
+          return;
+        }
+
+        var role = RegistrationRole.valueOf((String) roleObj);
+        log.debug("Role from the session: {}", role);
+
+        session.invalidate();
+
+        String username = givenName.toLowerCase() + "_" + familyName.toLowerCase() + (int) (Math.random() * 9000 + 1000);
+        // Create username until it is unique
+        while(userService.existsByUsername(username)) {
+          username = givenName.toLowerCase() + "_" + familyName.toLowerCase() + (int) (Math.random() * 9000 + 1000);
+        }
+
+        RegisterOAuthUserDto registerOAuthUserDto = new RegisterOAuthUserDto(providerId, givenName, familyName, username, email, role);
+
+        loginAndRedirect(authService.registerOAuthUser(registerOAuthUserDto), response);
+      } else {
+        if(!Objects.equals(user.get().getProviderId(), providerId)){
+          log.debug("Provider Id is not matching");
+          response.sendRedirect(frontendUrl + "/login?error=provider");
+          return;
+        }
+        loginAndRedirect(user.get(), response);
+      }
+    } catch (Exception e) {
+      log.error("Error occurred while processing OAuth authentication", e);
+      if (!response.isCommitted()) {
+        response.sendRedirect(frontendUrl + "/login?error=internal");
+      }
     }
   }
 

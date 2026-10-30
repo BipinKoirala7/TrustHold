@@ -150,7 +150,7 @@ public class AuthIntegrationTests {
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
       assertThat(response.getBody()).isNotNull();
       assertThat(response.getBody().error()).isNotNull();
-      assertThat(response.getBody().error().message()).contains("firstName");
+      assertThat(response.getBody().error().code()).isEqualTo("VALIDATION_ERROR");
       assertThat(userRepository.count()).isZero();
     }
 

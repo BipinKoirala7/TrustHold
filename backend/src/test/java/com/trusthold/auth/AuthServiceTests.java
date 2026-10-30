@@ -24,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -83,7 +84,8 @@ public class AuthServiceTests {
       when(userRepository.existsByUsername(registerUserDto.username())).thenReturn(true);
 
       // Act & Assert
-      assertThrows(AppException.class, () -> underTest.registerLocalUser(registerUserDto));
+      AppException ex = assertThrows(AppException.class, () -> underTest.registerLocalUser(registerUserDto));
+      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.USERNAME_ALREADY_EXISTS);
       verify(userRepository).existsByUsername(registerUserDto.username());
       verify(userRepository, never()).existsByEmail(registerUserDto.email());
       verify(userMapper, never()).createUserDtoToUser(registerUserDto);
@@ -98,7 +100,8 @@ public class AuthServiceTests {
       when(userRepository.existsByEmail(registerUserDto.email())).thenReturn(true);
 
       // Act & Assert
-      assertThrows(AppException.class, () -> underTest.registerLocalUser(registerUserDto));
+      AppException ex = assertThrows(AppException.class, () -> underTest.registerLocalUser(registerUserDto));
+      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.EMAIL_ALREADY_EXISTS);
       verify(userRepository).existsByUsername(registerUserDto.username());
       verify(userRepository).existsByEmail(registerUserDto.email());
       verify(userMapper, never()).createUserDtoToUser(registerUserDto);
@@ -115,7 +118,6 @@ public class AuthServiceTests {
       when(userMapper.createUserDtoToUser(registerUserDto)).thenReturn(user);
       when(passwordEncoder.encode(registerUserDto.password())).thenReturn(encodedPassword);
       when(userRepository.save(any(User.class))).thenReturn(user);
-//      doNothing().when(applicationEventPublisher).publishEvent(any());
 
       // Act
       underTest.registerLocalUser(registerUserDto);
