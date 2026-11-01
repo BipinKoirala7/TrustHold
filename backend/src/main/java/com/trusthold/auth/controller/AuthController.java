@@ -47,7 +47,7 @@ public class AuthController {
       @RequestBody @Valid @NotNull GoogleRegistrationRequest body,
       HttpServletRequest request
   ) {
-    Role role = body.role();
+    Role role = Role.valueOf(body.role().toString());
 
     if (role != Role.TENANT && role != Role.LANDLORD) {
       throw new AppException(ErrorInfo.INVALID_ROLE_FOR_REGISTRATION);

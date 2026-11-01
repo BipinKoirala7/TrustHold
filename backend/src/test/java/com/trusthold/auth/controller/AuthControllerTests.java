@@ -10,7 +10,6 @@ import com.trusthold.auth.service.PasswordResetTokenService;
 import com.trusthold.config.CustomAuthenticationEntryPoint;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.exception.AppException;
-import com.trusthold.user.model.Role;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.BeforeEach;
@@ -179,21 +178,9 @@ public class AuthControllerTests {
     }
 
     @Test
-    void shouldReturnBadRequest_whenRoleIsAdmin() throws Exception {
-      // Arrange
-      GoogleRegistrationRequest request = new GoogleRegistrationRequest(Role.ADMIN);
-
-      // Act & Assert - ADMIN is not allowed for registration
-      mockMvc.perform(post(GOOGLE_REGISTER_ENDPOINT)
-              .contentType("application/json")
-              .content(objectMapper.writeValueAsString(request)))
-          .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void shouldReturnOk_whenRoleIsTenant() throws Exception {
       // Arrange
-      GoogleRegistrationRequest request = new GoogleRegistrationRequest(Role.TENANT);
+      GoogleRegistrationRequest request = new GoogleRegistrationRequest(RegistrationRole.TENANT);
 
       // Act & Assert
       mockMvc.perform(post(GOOGLE_REGISTER_ENDPOINT)
@@ -205,7 +192,7 @@ public class AuthControllerTests {
     @Test
     void shouldReturnOk_whenRoleIsLandlord() throws Exception {
       // Arrange
-      GoogleRegistrationRequest request = new GoogleRegistrationRequest(Role.LANDLORD);
+      GoogleRegistrationRequest request = new GoogleRegistrationRequest(RegistrationRole.LANDLORD);
 
       // Act & Assert
       mockMvc.perform(post(GOOGLE_REGISTER_ENDPOINT)
@@ -238,7 +225,7 @@ public class AuthControllerTests {
     @Test
     void shouldSetSessionAttribute_whenRegistrationIsSuccessful() throws Exception {
       // Arrange
-      GoogleRegistrationRequest request = new GoogleRegistrationRequest(Role.TENANT);
+      GoogleRegistrationRequest request = new GoogleRegistrationRequest(RegistrationRole.TENANT);
 
       // Act & Assert - verify session attribute is set
       mockMvc.perform(post(GOOGLE_REGISTER_ENDPOINT)
@@ -251,7 +238,7 @@ public class AuthControllerTests {
     @Test
     void shouldReturnUnsupportedMediaType_whenContentTypeIsMissing() throws Exception {
       // Arrange
-      GoogleRegistrationRequest request = new GoogleRegistrationRequest(Role.TENANT);
+      GoogleRegistrationRequest request = new GoogleRegistrationRequest(RegistrationRole.TENANT);
 
       // Act & Assert - no content type header returns 415 Unsupported Media Type
       mockMvc.perform(post(GOOGLE_REGISTER_ENDPOINT)

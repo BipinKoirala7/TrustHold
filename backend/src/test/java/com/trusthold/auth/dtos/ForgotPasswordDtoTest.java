@@ -4,7 +4,10 @@ import com.trusthold.shared.dtos.DtoValidationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,22 +20,23 @@ public class ForgotPasswordDtoTest extends DtoValidationTestSupport {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"plainaddress", "@no-local.com", "user@@example.com", "user name@example.com"})
+  @MethodSource("invalidEmails")
   @DisplayName("malformed email fails with the configured message")
-  void invalidEmail(String email) {
+  void invalidEmail(String email, String validation) {
     assertThat(messagesFor(new ForgotPasswordDto(email), "email"))
-        .containsExactly("Invalid email address");
+        .containsExactly(validation);
   }
 
-  @Test
-  @DisplayName("null email is accepted because @Email does not imply @NotNull")
-  void nullEmailIsAccepted() {
-    assertThat(validate(new ForgotPasswordDto(null))).isEmpty();
-  }
-
-  @Test
-  @DisplayName("empty email is accepted because @Email treats empty as valid")
-  void emptyEmailIsAccepted() {
-    assertThat(validate(new ForgotPasswordDto(""))).isEmpty();
+  private static Stream<Arguments> invalidEmails() {
+    String validation1 = "Email is required";
+    String validation2 = "Invalid email address";
+    return Stream.of(
+        Arguments.of(null, validation1),
+        Arguments.of("", validation1),
+        Arguments.of("plainaddress", validation2),
+        Arguments.of("@no-local.com", validation2),
+        Arguments.of("user@@example.com", validation2),
+        Arguments.of("user name@example.com", validation2)
+    );
   }
 }

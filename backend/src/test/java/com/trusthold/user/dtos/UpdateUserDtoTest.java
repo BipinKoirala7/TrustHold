@@ -294,8 +294,7 @@ public class UpdateUserDtoTest {
       String property,
       String expectedMessage
   ) {
-    Set<ConstraintViolation<UpdateUserDto>> violations =
-        validator.validate(dto);
+    Set<ConstraintViolation<UpdateUserDto>> violations = validator.validate(dto);
 
     assertTrue(
         violations.stream().anyMatch(v ->

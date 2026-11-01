@@ -1,7 +1,7 @@
 package com.trusthold.auth.dtos;
 
+import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.shared.dtos.DtoValidationTestSupport;
-import com.trusthold.user.model.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -12,9 +12,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class GoogleRegistrationRequestTest extends DtoValidationTestSupport {
 
   @ParameterizedTest
-  @EnumSource(Role.class)
+  @EnumSource(RegistrationRole.class)
   @DisplayName("every Role value is accepted")
-  void anyRoleIsValid(Role role) {
+  void anyRoleIsValid(RegistrationRole role) {
     assertThat(validate(new GoogleRegistrationRequest(role))).isEmpty();
   }
 

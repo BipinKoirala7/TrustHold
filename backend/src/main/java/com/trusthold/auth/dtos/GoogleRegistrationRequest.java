@@ -1,6 +1,6 @@
 package com.trusthold.auth.dtos;
 
-import com.trusthold.user.model.Role;
+import com.trusthold.auth.model.RegistrationRole;
 import jakarta.validation.constraints.NotNull;
 
-public record GoogleRegistrationRequest(@NotNull(message = "Role is required") Role role) { }
+public record GoogleRegistrationRequest(@NotNull(message = "Role is required") RegistrationRole role) { }
