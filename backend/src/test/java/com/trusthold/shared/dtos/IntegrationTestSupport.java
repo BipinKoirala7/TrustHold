@@ -9,6 +9,7 @@ import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRe
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.ResolvableType;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -26,6 +27,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestRestTemplate
 public abstract class IntegrationTestSupport {
 
+  protected LoginUserDto validLoginUserDto;
+  protected RegisterUserDto validRegisterUserDto;
+
   @Autowired
   protected TestRestTemplate restTemplate;
 
@@ -35,7 +39,10 @@ public abstract class IntegrationTestSupport {
     return headers;
   }
 
-  protected HttpHeaders getAuthenticatedHeaders(ResponseEntity<?> responseEntity){
+  protected HttpHeaders getAuthenticatedHeaders(){
+    ResponseEntity<?> responseEntity = login(validLoginUserDto);
+    assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+
     List<String> setCookies = responseEntity.getHeaders().get(HttpHeaders.SET_COOKIE);
     assertThat(setCookies).as("login response should set cookies").isNotNull().isNotEmpty();
 
@@ -53,12 +60,18 @@ public abstract class IntegrationTestSupport {
     return new HttpEntity<>(body, headers);
   }
 
-  protected <T> ResponseEntity<ApiResponse<T>> get(String endpoint, HttpHeaders headers, Object body) {
-    return restTemplate.exchange(endpoint, HttpMethod.GET, getHttpEntity(body, headers), new ParameterizedTypeReference<>() {});
+  protected <T> ResponseEntity<ApiResponse<T>> get(String endpoint, HttpHeaders headers, Class<T> dataType) {
+    ParameterizedTypeReference<ApiResponse<T>> type = ParameterizedTypeReference.forType(
+        ResolvableType.forClassWithGenerics(ApiResponse.class, dataType).getType());
+    return restTemplate.exchange(endpoint, HttpMethod.GET, getHttpEntity(null, headers), type);
   }
 
   protected <T> ResponseEntity<ApiResponse<Void>> post(String endpoint, HttpHeaders headers, T body) {
     return restTemplate.exchange(endpoint, HttpMethod.POST, getHttpEntity(body, headers), new ParameterizedTypeReference<>() {});
+  }
+
+  protected <T> ResponseEntity<ApiResponse<Void>> put(String endpoint, HttpHeaders headers, T body) {
+    return restTemplate.exchange(endpoint, HttpMethod.PUT, getHttpEntity(body, headers), new ParameterizedTypeReference<>() {});
   }
 
   protected ResponseEntity<ApiResponse<Void>> register(RegisterUserDto dto) {

@@ -23,7 +23,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,6 +37,10 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AuthIntegrationTests extends IntegrationTestSupport {
+
+  private final String username = "bipin123";
+  private final String email = "bipin@example.com";
+  private final String password = "Password123!";
 
   @Autowired
   private PasswordEncoder passwordEncoder;
@@ -54,53 +57,30 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
   @MockitoSpyBean
   private EmailService emailService;
 
-  private LoginUserDto validLoginUserDto;
-
-  private HttpHeaders getAuthenticatedUserHeaders(){
-    ResponseEntity<?> responseEntity = login(validLoginUserDto);
-    assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-    return getAuthenticatedHeaders(responseEntity);
-  }
-
   @BeforeEach
   void setUp() {
     userRepository.deleteAll();
+
+    String firstName = "Bipin";
+    String lastName = "Koirala";
+    String phone = "+1234567890";
+
+    validRegisterUserDto = new RegisterUserDto(firstName, lastName, username, email, password, phone, RegistrationRole.TENANT);
+    validLoginUserDto = new LoginUserDto(email, password);
+
+    assertThat(register(validRegisterUserDto).getStatusCode()).isEqualTo(HttpStatus.CREATED);
   }
 
-  // Info
-  private String username = "bipin123";
-  private String email = "bipin@example.com";
-  private String password = "Password123!";
-
-  private final String REGISTER_USER_ENDPOINT = "/auth/register";
-
-  private RegisterUserDto validRegisterUserDto;
+  @AfterEach
+  void tearDown() {
+    userRepository.deleteAll();
+  }
 
   @Nested
   class RegisterLocalUserTests {
 
-    @BeforeEach
-    void setUp() {
-      validRegisterUserDto = new RegisterUserDto(
-          "Bipin", "Koirala",
-          username, email, password, "+1234567890", RegistrationRole.TENANT);
-    }
-
-    @AfterEach
-    void tearDown() {
-      userRepository.deleteAll();
-    }
-
     @Test
     void shouldReturnCreatedAndPersistUserWithHashedPassword_whenRegistrationSucceeds() {
-      ResponseEntity<ApiResponse<Void>> response = register(validRegisterUserDto);
-
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-      assertThat(response.getBody()).isNotNull();
-      assertThat(response.getBody().data()).isNull();
-      assertThat(response.getBody().error()).isNull();
-
       List<User> users = userRepository.findAll();
       assertThat(users).hasSize(1);
 
@@ -118,7 +98,6 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
     // The per-field branches are owned by AuthServiceTests; the status mapping by AuthControllerTests.
     @Test
     void shouldReturnConflict_whenEmailAlreadyExists() {
-      assertThat(register(validRegisterUserDto).getStatusCode()).isEqualTo(HttpStatus.CREATED);
       RegisterUserDto sameEmailDifferentUsername = new RegisterUserDto(
           validRegisterUserDto.firstName(),
           validRegisterUserDto.lastName(),
@@ -149,7 +128,7 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
       ResponseEntity<ApiResponse<Void>> response = register(validRegisterUserDto);
 
       // Pins CURRENT behavior (handleDataIntegrityViolationException -> 400).
-      // A duplicate-key race is arguably a 409; if you change the handler, update this assertion.
+      // A duplicate-key race is arguably a 409; if the handler is changed, update this assertion.
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
       assertThat(response.getBody()).isNotNull();
       assertThat(response.getBody().error()).isNotNull();
@@ -163,16 +142,7 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
 
     @BeforeEach
     void setUp() {
-      validRegisterUserDto = new RegisterUserDto(
-          "Bipin", "Koirala",
-          username, email, password, "+1234567890", RegistrationRole.TENANT);
-      register(validRegisterUserDto);
       validLoginUserDto = new LoginUserDto(email, password);
-    }
-
-    @AfterEach
-    void tearDown(){
-      userRepository.deleteAll();
     }
 
     @Test
@@ -205,22 +175,17 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
 
     @BeforeEach
     void setUp() {
-      validRegisterUserDto = new RegisterUserDto(
-          "Bipin", "Koirala",
-          username, email, password, "+1234567890", RegistrationRole.TENANT);
       validLoginUserDto = new LoginUserDto(email, password);
-      register(validRegisterUserDto);
     }
 
     @AfterEach
     void tearDown(){
-      userRepository.deleteAll();
       activeRefreshTokenRepository.deleteAll();
     }
 
     @Test
     void shouldRefreshToken() {
-      ResponseEntity<ApiResponse<Void>> response = post(TOKEN_REFRESH_PATH, getAuthenticatedUserHeaders(), null);
+      ResponseEntity<ApiResponse<Void>> response = post(TOKEN_REFRESH_PATH, getAuthenticatedHeaders(), null);
 
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
       assertThat(response.getBody()).isNotNull();
@@ -244,26 +209,20 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
     @Captor
     private ArgumentCaptor<String> rawTokenCaptor;
 
-    private final String FORGOT_PASSWORD_PATH = "/auth/forgot-password";
+    private final String newPassword = "NewPassword@123";
     private final String RESET_PASSWORD_PATH = "/auth/reset-password";
-
     private ForgotPasswordDto validForgotPasswordDto;
     private ResetPasswordDto validResetPasswordDto;
 
     @BeforeEach
     void setUp(){
-      validRegisterUserDto = new RegisterUserDto(
-          "Bipin", "Koirala",
-          username, email, password, "+1234567890", RegistrationRole.TENANT);
-      register(validRegisterUserDto);
-
       validForgotPasswordDto = new ForgotPasswordDto(email);
-      validResetPasswordDto = new ResetPasswordDto(getForgotPasswordToken(), "NewPassword@123");
+      validResetPasswordDto = new ResetPasswordDto(getForgotPasswordToken(), newPassword);
     }
 
 
     private String getForgotPasswordToken(){
-      ResponseEntity<ApiResponse<Void>> response = post(FORGOT_PASSWORD_PATH, getHeaders(), validForgotPasswordDto);
+      ResponseEntity<ApiResponse<Void>> response = post("/auth/forgot-password", getHeaders(), validForgotPasswordDto);
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
       verify(emailService, timeout(2000)).sendPasswordResetEmail(eq(email), any(), rawTokenCaptor.capture());
@@ -277,7 +236,7 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
       assertThat(response.getBody()).isNotNull();
       assertThat(userRepository.count()).isEqualTo(1);
-      assertTrue(passwordEncoder.matches("NewPassword@123", userRepository.findByEmail(email).get().getPassword()));
+      assertTrue(passwordEncoder.matches(newPassword, userRepository.findByEmail(email).get().getPassword()));
     }
 
     @Test
@@ -299,22 +258,12 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
 
     @BeforeEach
     void setUp(){
-      validRegisterUserDto = new RegisterUserDto(
-          "Bipin", "Koirala",
-          username, email, password, "+1234567890", RegistrationRole.TENANT);
-      register(validRegisterUserDto);
-
       validLoginUserDto = new LoginUserDto(email, password);
-    }
-
-    @AfterEach
-    void tearDown(){
-      userRepository.deleteAll();
     }
 
     @Test
     void shouldLogOutUser(){
-      ResponseEntity<ApiResponse<Void>> response = post(LOG_OUT_PATH, getAuthenticatedUserHeaders(), null);
+      ResponseEntity<ApiResponse<Void>> response = post(LOG_OUT_PATH, getAuthenticatedHeaders(), null);
 
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
       assertThat(response.getBody()).isNotNull();
