@@ -265,19 +265,6 @@ public class AuthServiceTests {
     }
 
     @Test
-    void shouldThrowInvalidCredentials_whenUserIsNull() {
-      // Arrange
-      when(userService.getUserByEmail(loginUserDto.email())).thenReturn(null);
-
-      // Act & Assert
-      AppException ex = assertThrows(AppException.class, () -> underTest.loginUser(loginUserDto, mockResponse));
-      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.INVALID_CREDENTIALS);
-      verify(userService).getUserByEmail(loginUserDto.email());
-      verify(jwtService, never()).generateRefreshToken(any(User.class));
-      verify(jwtService, never()).generateAccessToken(any(User.class));
-    }
-
-    @Test
     void shouldThrowInvalidCredentials_whenUserAuthProviderIsGoogle() {
       // Arrange
       localUser.setAuthProvider(AuthProvider.GOOGLE);

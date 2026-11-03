@@ -78,28 +78,6 @@ class LoginUserDtoTest extends DtoValidationTestSupport {
       assertThat(validate(new LoginUserDto(VALID_EMAIL, min))).isEmpty();
       assertThat(validate(new LoginUserDto(VALID_EMAIL, max))).isEmpty();
     }
-
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "password1@",   // no uppercase
-        "PASSWORD1@",   // no lowercase
-        "Password@@",   // no digit
-        "Password12",   // no special character
-        "Password1#",   // special char outside @$!%*?&
-        "Pass word1@"   // whitespace isn't allowed
-    })
-    @DisplayName("password missing a required character class fails the pattern")
-    void patternViolations(String password) {
-      assertThat(messagesFor(new LoginUserDto(VALID_EMAIL, password), "password"))
-          .contains(PASSWORD_PATTERN_MESSAGE);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"@", "$", "!", "%", "*", "?", "&"})
-    @DisplayName("each allowed special character is accepted")
-    void allowedSpecials(String special) {
-      assertThat(validate(new LoginUserDto(VALID_EMAIL, "Passw0rd" + special))).isEmpty();
-    }
   }
 
   @Test

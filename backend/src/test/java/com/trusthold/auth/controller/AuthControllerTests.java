@@ -2,12 +2,12 @@ package com.trusthold.auth.controller;
 
 import com.trusthold.auth.dtos.*;
 import com.trusthold.auth.filters.AccessTokenFilter;
+import com.trusthold.auth.handlers.CustomAuthenticationEntryPoint;
 import com.trusthold.auth.handlers.OAuthFailureHandler;
 import com.trusthold.auth.handlers.OAuthSuccessHandler;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.service.PasswordResetTokenService;
-import com.trusthold.config.CustomAuthenticationEntryPoint;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.exception.AppException;
 import io.jsonwebtoken.JwtException;

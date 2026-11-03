@@ -1,7 +1,7 @@
 package com.trusthold.user.controller;
 
 import com.trusthold.auth.filters.AccessTokenFilter;
-import com.trusthold.config.CustomAuthenticationEntryPoint;
+import com.trusthold.auth.handlers.CustomAuthenticationEntryPoint;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.dtos.UpdateUserDto;
@@ -19,9 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
