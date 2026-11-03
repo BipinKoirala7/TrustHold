@@ -1,9 +1,13 @@
 package com.trusthold.auth.integration;
 
+import com.trusthold.auth.dtos.ForgotPasswordDto;
 import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.dtos.RegisterUserDto;
+import com.trusthold.auth.dtos.ResetPasswordDto;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.auth.repository.ActiveRefreshTokenRepository;
+import com.trusthold.auth.repository.PasswordResetTokenRepository;
+import com.trusthold.mail.EmailService;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.shared.dtos.IntegrationTestSupport;
@@ -14,6 +18,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,9 +32,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 public class AuthIntegrationTests extends IntegrationTestSupport {
 
   @Autowired
@@ -37,6 +47,12 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
 
   @MockitoSpyBean
   private ActiveRefreshTokenRepository activeRefreshTokenRepository;
+
+  @MockitoSpyBean
+  private PasswordResetTokenRepository passwordResetTokenRepository;
+
+  @MockitoSpyBean
+  private EmailService emailService;
 
   private LoginUserDto validLoginUserDto;
 
@@ -219,6 +235,60 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
       assertThat(response.getBody()).isNotNull();
       assertThat(response.getBody().error()).isNotNull();
       assertThat(response.getBody().error().message()).isEqualTo(ErrorInfo.INVALID_TOKEN.getMessage());
+    }
+  }
+
+  @Nested
+  class ResetPasswordTests{
+
+    @Captor
+    private ArgumentCaptor<String> rawTokenCaptor;
+
+    private final String FORGOT_PASSWORD_PATH = "/auth/forgot-password";
+    private final String RESET_PASSWORD_PATH = "/auth/reset-password";
+
+    private ForgotPasswordDto validForgotPasswordDto;
+    private ResetPasswordDto validResetPasswordDto;
+
+    @BeforeEach
+    void setUp(){
+      validRegisterUserDto = new RegisterUserDto(
+          "Bipin", "Koirala",
+          username, email, password, "+1234567890", RegistrationRole.TENANT);
+      register(validRegisterUserDto);
+
+      validForgotPasswordDto = new ForgotPasswordDto(email);
+      validResetPasswordDto = new ResetPasswordDto(getForgotPasswordToken(), "NewPassword@123");
+    }
+
+
+    private String getForgotPasswordToken(){
+      ResponseEntity<ApiResponse<Void>> response = post(FORGOT_PASSWORD_PATH, getHeaders(), validForgotPasswordDto);
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+      verify(emailService, timeout(2000)).sendPasswordResetEmail(eq(email), any(), rawTokenCaptor.capture());
+      return rawTokenCaptor.getValue();
+    }
+
+    @Test
+    void shouldResetPassword() {
+      ResponseEntity<ApiResponse<Void>> response = post(RESET_PASSWORD_PATH, getHeaders(), validResetPasswordDto);
+
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody()).isNotNull();
+      assertThat(userRepository.count()).isEqualTo(1);
+      assertTrue(passwordEncoder.matches("NewPassword@123", userRepository.findByEmail(email).get().getPassword()));
+    }
+
+    @Test
+    void shouldFail_whenTokenIsExpired(){
+      doReturn(0).when(passwordResetTokenRepository).consume(any(), any());
+
+      ResponseEntity<ApiResponse<Void>> response = post(RESET_PASSWORD_PATH, getHeaders(), validResetPasswordDto);
+
+      assertThat(response.getStatusCode()).isEqualTo(ErrorInfo.EXPIRED_PASSWORD_RESET_TOKEN.getHttpStatus());
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody().error().message()).isEqualTo(ErrorInfo.EXPIRED_PASSWORD_RESET_TOKEN.getMessage());
     }
   }
 }

@@ -79,7 +79,7 @@ public class PasswordResetTokenService {
 
     int consumed = passwordResetTokenRepository.consume(hash, Instant.now());
     if (consumed != 1) {
-      throw new AppException(ErrorInfo.INVALID_PASSWORD_RESET_TOKEN);
+      throw new AppException(ErrorInfo.EXPIRED_PASSWORD_RESET_TOKEN);
     }
 
     User user = userService.getUserById(passwordResetToken.getUserId());

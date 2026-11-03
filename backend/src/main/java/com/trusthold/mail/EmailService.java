@@ -62,13 +62,13 @@ public class EmailService {
   /**
    * Sends password reset email to the user.
    * @param to domain where the email will be sent
-   * @param firstName first name of the user
+   * @param userName first name of the user
    * @param rawToken raw token for password reset
    */
   @Async
-  public void sendPasswordResetEmail(String to, String firstName, String rawToken) {
+  public void sendPasswordResetEmail(String to, String userName, String rawToken) {
     String resetUrl = frontendUrl + "/reset-password?token=" + rawToken;
-    String html = passwordResetEmailTemplate.render(firstName, resetUrl, PasswordResetTokenService.TOKEN_EXPIRY_MINUTES, supportEmail);
+    String html = passwordResetEmailTemplate.render(userName, resetUrl, PasswordResetTokenService.TOKEN_EXPIRY_MINUTES, supportEmail);
     try{
       sendMail(to, PasswordResetEmailTemplate.SUBJECT, html);
     } catch (ResendException e) {

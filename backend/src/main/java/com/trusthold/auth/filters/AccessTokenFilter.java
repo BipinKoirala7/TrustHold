@@ -59,7 +59,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getServletPath();
 
-    log.debug("path={} public={}", path, authConfig.getPublicEndpoints());
+    log.debug("path={}", path);
     return authConfig.getPublicEndpoints().stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
   }
 
