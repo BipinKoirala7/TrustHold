@@ -3,6 +3,8 @@ package com.trusthold.auth.integration;
 import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.auth.model.RegistrationRole;
+import com.trusthold.auth.repository.ActiveRefreshTokenRepository;
+import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.shared.dtos.IntegrationTestSupport;
 import com.trusthold.user.model.AuthProvider;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,6 +34,18 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
 
   @MockitoSpyBean
   private UserRepository userRepository;
+
+  @MockitoSpyBean
+  private ActiveRefreshTokenRepository activeRefreshTokenRepository;
+
+  private LoginUserDto validLoginUserDto;
+
+  private HttpHeaders getAuthenticatedUserHeaders(){
+    ResponseEntity<?> responseEntity = login(validLoginUserDto);
+    assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+    return getAuthenticatedHeaders(responseEntity);
+  }
 
   @BeforeEach
   void setUp() {
@@ -130,8 +145,6 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
   @Nested
   class LoginLocalUserTests{
 
-    private LoginUserDto validLoginUserDto;
-
     @BeforeEach
     void setUp() {
       validRegisterUserDto = new RegisterUserDto(
@@ -166,6 +179,46 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
       assertThat(response.getBody().error()).isNotNull();
       assertThat(response.getBody().error().message()).isEqualTo("Invalid credentials");
       assertThat(userRepository.count()).isEqualTo(1);
+    }
+  }
+
+  @Nested
+  class TokenRefreshTests {
+
+    private final String TOKEN_REFRESH_PATH = "/auth/token/refresh";
+
+    @BeforeEach
+    void setUp() {
+      validRegisterUserDto = new RegisterUserDto(
+          "Bipin", "Koirala",
+          username, email, password, "+1234567890", RegistrationRole.TENANT);
+      validLoginUserDto = new LoginUserDto(email, password);
+      register(validRegisterUserDto);
+    }
+
+    @AfterEach
+    void tearDown(){
+      userRepository.deleteAll();
+      activeRefreshTokenRepository.deleteAll();
+    }
+
+    @Test
+    void shouldRefreshToken() {
+      ResponseEntity<ApiResponse<Void>> response = post(TOKEN_REFRESH_PATH, getAuthenticatedUserHeaders(), null);
+
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody()).isNotNull();
+      assertThat(userRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    void shouldFailTokenRefresh_whenUserIsNotAuthenticated() {
+      ResponseEntity<ApiResponse<Void>> response = post(TOKEN_REFRESH_PATH, getHeaders(), null);
+
+      assertThat(response.getStatusCode()).isEqualTo(ErrorInfo.INVALID_TOKEN.getHttpStatus());
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody().error()).isNotNull();
+      assertThat(response.getBody().error().message()).isEqualTo(ErrorInfo.INVALID_TOKEN.getMessage());
     }
   }
 }

@@ -12,6 +12,11 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = "spring.aop.proxy-target-class=false"
@@ -30,6 +35,20 @@ public abstract class IntegrationTestSupport {
     return headers;
   }
 
+  protected HttpHeaders getAuthenticatedHeaders(ResponseEntity<?> responseEntity){
+    List<String> setCookies = responseEntity.getHeaders().get(HttpHeaders.SET_COOKIE);
+    assertThat(setCookies).as("login response should set cookies").isNotNull().isNotEmpty();
+
+    String cookieHeader = setCookies.stream()
+        .map(cookie -> cookie.split(";", 2)[0])
+        .collect(Collectors.joining("; "));
+
+    HttpHeaders headers = getHeaders();
+    headers.set(HttpHeaders.COOKIE, cookieHeader);
+
+    return headers;
+  }
+
   private <T> HttpEntity<T> getHttpEntity(T body, HttpHeaders headers){
     return new HttpEntity<>(body, headers);
   }
@@ -38,9 +57,8 @@ public abstract class IntegrationTestSupport {
     return restTemplate.exchange(endpoint, HttpMethod.GET, getHttpEntity(body, headers), new ParameterizedTypeReference<>() {});
   }
 
-  protected ResponseEntity<ApiResponse<Void>> post(String endpoint, HttpHeaders headers, Object body) {
-    return restTemplate.exchange(endpoint, HttpMethod.POST,
-        new HttpEntity<>(body, headers), new ParameterizedTypeReference<>() {});
+  protected <T> ResponseEntity<ApiResponse<Void>> post(String endpoint, HttpHeaders headers, T body) {
+    return restTemplate.exchange(endpoint, HttpMethod.POST, getHttpEntity(body, headers), new ParameterizedTypeReference<>() {});
   }
 
   protected ResponseEntity<ApiResponse<Void>> register(RegisterUserDto dto) {

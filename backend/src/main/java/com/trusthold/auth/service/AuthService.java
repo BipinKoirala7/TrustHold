@@ -2,18 +2,17 @@ package com.trusthold.auth.service;
 
 import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.dtos.RegisterOAuthUserDto;
+import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.mail.dtos.UserRegisteredEvent;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.Guard;
 import com.trusthold.shared.exception.AppException;
-import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.user.model.AuthProvider;
 import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
 import com.trusthold.user.service.UserMapper;
 import com.trusthold.user.service.UserService;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
@@ -171,7 +170,7 @@ public class AuthService {
    * The old refresh token is invalidated (rotation), so a stolen token can be
    * used at most once.
    *
-   * @throws JwtException if the cookie is missing, or the token is expired/tampered with
+   * @throws AppException() if the cookie is missing, or the token is expired/tampered with
    */
   @Transactional
   public void refreshToken(HttpServletRequest request, HttpServletResponse response){
@@ -179,8 +178,8 @@ public class AuthService {
 
     String refreshToken = cookieService.getRefreshTokenCookie(request);
 
-    if(refreshToken == null) throw new JwtException("Please Log in");
-    if(!activeRefreshTokenService.isRefreshTokenActive(refreshToken)) throw new JwtException("Refresh token is not active");
+    if(refreshToken == null) throw new AppException(ErrorInfo.INVALID_TOKEN);
+    if(!activeRefreshTokenService.isRefreshTokenActive(refreshToken)) throw new AppException(ErrorInfo.INVALID_TOKEN);
 
     User user = jwtService.validateRefreshToken(refreshToken);
     String newRefreshToken = jwtService.generateRefreshToken(user);
