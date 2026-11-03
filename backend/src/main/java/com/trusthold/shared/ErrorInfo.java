@@ -10,6 +10,7 @@ public enum ErrorInfo {
 
   // Auth
   UNAUTHORIZED                ( "AUTH_UNAUTHORIZED",                HttpStatus.UNAUTHORIZED, "Please Log in"),
+  FORBIDDEN                   ( "AUTH_FORBIDDEN",                   HttpStatus.FORBIDDEN,    "You are not allowed to access this resource"),
   EXPIRED_PASSWORD_RESET_TOKEN( "AUTH_RESET_TOKEN_EXPIRED",         HttpStatus.BAD_REQUEST,  "Password reset token has expired"),
   INVALID_PASSWORD_RESET_TOKEN( "AUTH_RESET_TOKEN_INVALID",         HttpStatus.BAD_REQUEST,  "Password reset token is invalid"),
   EMAIL_ALREADY_EXISTS        ( "AUTH_EMAIL_TAKEN",                 HttpStatus.CONFLICT,     "Email is already registered"),

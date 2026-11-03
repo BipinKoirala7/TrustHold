@@ -55,7 +55,6 @@ app:
       - /swagger-ui/
       - /swagger-ui.html
       - /v3/api-docs
-
 mail:
   from: TrustHold <noreply@email.bipin-koirala.com.np>
   support: your-real-email@gmail.com

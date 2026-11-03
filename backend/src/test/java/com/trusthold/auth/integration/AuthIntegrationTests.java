@@ -1,12 +1,14 @@
 package com.trusthold.auth.integration;
 
 import com.trusthold.TestcontainersConfiguration;
+import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.user.model.AuthProvider;
 import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,11 +17,11 @@ import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.util.List;
@@ -29,14 +31,17 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = "spring.aop.proxy-target-class=false"
+)
 @Import(TestcontainersConfiguration.class)
 @ActiveProfiles("test")
 @AutoConfigureTestRestTemplate
 public class AuthIntegrationTests {
 
   @Autowired
-  TestRestTemplate restTemplate;
+  private TestRestTemplate restTemplate;
 
   @Autowired
   private PasswordEncoder passwordEncoder;
@@ -49,15 +54,20 @@ public class AuthIntegrationTests {
     userRepository.deleteAll();
   }
 
+    // Info
+    private String username = "bipin123";
+    private String email = "bipin@example.com";
+    private String password = "Password123!";
+
   private ResponseEntity<ApiResponse<Void>> post(String endpoint, HttpHeaders headers, Object body) {
     return restTemplate.exchange(endpoint, HttpMethod.POST,
         new HttpEntity<>(body, headers), new ParameterizedTypeReference<>() {});
   }
 
-
   @Nested
-  class RegisterLocalUserIntegrationTests {
+  class RegisterLocalUserTests {
 
+    // Register
     private final String REGISTER_USER_ENDPOINT = "/api/v1/auth/register";
     private RegisterUserDto validRegisterUserDto;
 
@@ -71,14 +81,13 @@ public class AuthIntegrationTests {
     @BeforeEach
     void setUp() {
       validRegisterUserDto = new RegisterUserDto(
-          "Bipin",
-          "Koirala",
-          "bipin123",
-          "bipin@example.com",
-          "Password123!",
-          "+1234567890",
-          RegistrationRole.TENANT
-      );
+          "Bipin", "Koirala",
+          username, email, password, "+1234567890", RegistrationRole.TENANT);
+    }
+
+    @AfterEach
+    void tearDown() {
+      userRepository.deleteAll();
     }
 
     /**
@@ -237,6 +246,24 @@ public class AuthIntegrationTests {
       assertThat(response.getBody()).isNotNull();
       assertThat(response.getBody().error()).isNotNull();
       assertThat(response.getBody().error().message()).isEqualTo("An unexpected error occurred. Please try again later.");
+    }
+  }
+
+  @Nested
+  class LoginLocalUserTests{
+
+    // Login
+    private final String LOGIN_USER_ENDPOINT = "/api/v1/auth/login";
+    private LoginUserDto validLoginUserDto;
+
+    @BeforeEach
+    void setUp() {
+      validLoginUserDto = new LoginUserDto(email, password);
+    }
+
+    @AfterEach
+    void tearDown(){
+      userRepository.deleteAll();
     }
   }
 }
