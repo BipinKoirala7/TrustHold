@@ -4,8 +4,6 @@ import com.trusthold.auth.model.AuthUser;
 import com.trusthold.auth.service.CookieService;
 import com.trusthold.auth.service.JwtService;
 import com.trusthold.config.AuthConfig;
-import com.trusthold.shared.ErrorInfo;
-import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.user.model.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -20,8 +18,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
-import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.List;
@@ -43,10 +41,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AccessTokenFilter extends OncePerRequestFilter {
 
-  private final ObjectMapper objectMapper;
   private final CookieService cookieService;
   private final JwtService jwtService;
   private final AuthConfig authConfig;
+  private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
   /**
    * Checks if the request should not be authenticated.
@@ -60,7 +58,9 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getServletPath();
-    return authConfig.getPublicEndpoints().stream().anyMatch(path::startsWith);
+
+    log.debug("path={}", path);
+    return authConfig.getPublicEndpoints().stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
   }
 
   /**
@@ -102,26 +102,10 @@ public class AccessTokenFilter extends OncePerRequestFilter {
       } catch (JwtException | IllegalArgumentException e) {
         log.warn("Access Token Filter Error - {}", e.getMessage());
         SecurityContextHolder.clearContext();
-        sendErrorResponse(response, "Please log in");
-        return;
       }
       filterChain.doFilter(request, response);
     } finally {
       MDC.clear();
     }
-  }
-
-  private void sendErrorResponse(HttpServletResponse response, String message) throws IOException {
-    if(response.isCommitted()){
-      log.debug("Response is already committed, cannot send error response");
-      return;
-    }
-
-    log.debug("Sending error response: {}", message);
-    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    response.setContentType("application/json");
-    response.setCharacterEncoding("UTF-8");
-
-    response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.error(ErrorInfo.UNAUTHORIZED)));
   }
 }

@@ -1,11 +1,11 @@
 package com.trusthold.config;
 
 import com.trusthold.auth.filters.AccessTokenFilter;
+import com.trusthold.auth.handlers.CustomAccessDeniedHandler;
+import com.trusthold.auth.handlers.CustomAuthenticationEntryPoint;
 import com.trusthold.auth.handlers.OAuthFailureHandler;
 import com.trusthold.auth.handlers.OAuthSuccessHandler;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.NonNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -31,17 +31,29 @@ public class SecurityConfig {
   private final OAuthSuccessHandler oAuthSuccessHandler;
   private final OAuthFailureHandler oAuthFailureHandler;
   private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+  private final CustomAccessDeniedHandler customAccessDeniedHandler;
+  private final AuthConfig authConfig;
 
   @Bean
-  public SecurityFilterChain httpSecurityFilterChain(@NotNull @NonNull HttpSecurity http) {
+  public SecurityFilterChain httpSecurityFilterChain(HttpSecurity http) {
     return http
         .csrf(AbstractHttpConfigurer::disable)
-        .cors(cors -> cors.configurationSource(corsConfiguration()))
+        .cors(Customizer.withDefaults())
         .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .addFilterBefore(accessTokenFilter, UsernamePasswordAuthenticationFilter.class)
-        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-        .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(customAuthenticationEntryPoint))
-        .oauth2Login(oauth -> oauth.successHandler(oAuthSuccessHandler).failureHandler(oAuthFailureHandler))
+        .authorizeHttpRequests(auth -> auth
+                .requestMatchers(authConfig.getPublicEndpoints().toArray(String[]::new)).permitAll()
+                .requestMatchers("/tenant/**").hasAnyRole("TENANT")
+                .requestMatchers("/landlord/**").hasAnyRole("LANDLORD")
+                .requestMatchers("/admin/**").hasAnyRole("ADMIN")
+                .anyRequest().authenticated()
+            )
+        .exceptionHandling(exceptionHandling -> exceptionHandling
+            .authenticationEntryPoint(customAuthenticationEntryPoint)
+            .accessDeniedHandler(customAccessDeniedHandler))
+        .oauth2Login(oauth -> oauth
+            .successHandler(oAuthSuccessHandler)
+            .failureHandler(oAuthFailureHandler))
         .build();
   }
 

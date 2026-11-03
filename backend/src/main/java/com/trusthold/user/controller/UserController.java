@@ -29,13 +29,13 @@ public class UserController {
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> updateUser(@Valid @AuthenticationPrincipal AuthUser authUser, @RequestBody @Valid UpdateUserDto updateUserDto){
     userService.updateUser(authUser, updateUserDto);
-    return ApiResponse.success(null);
+    return ApiResponse.success();
   }
 
   @DeleteMapping
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> deleteUser(@Valid @AuthenticationPrincipal AuthUser authUser){
     userService.deleteUser(authUser);
-    return ApiResponse.success(null);
+    return ApiResponse.success();
   }
 }

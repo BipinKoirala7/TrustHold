@@ -38,7 +38,7 @@ public class AuthController {
   @ResponseStatus(HttpStatus.CREATED)
   public ApiResponse<Void> registerLocalUser(@RequestBody @Valid RegisterUserDto registerUserDto) {
     authService.registerLocalUser(registerUserDto);
-    return ApiResponse.success(null);
+    return ApiResponse.success();
   }
 
   @PostMapping("/oauth/register")
@@ -47,28 +47,28 @@ public class AuthController {
       @RequestBody @Valid @NotNull GoogleRegistrationRequest body,
       HttpServletRequest request
   ) {
-    Role role = body.role();
+    Role role = Role.valueOf(body.role().toString());
 
     if (role != Role.TENANT && role != Role.LANDLORD) {
       throw new AppException(ErrorInfo.INVALID_ROLE_FOR_REGISTRATION);
     }
 
     request.getSession(true).setAttribute("registrationRole", role.toString());
-    return ApiResponse.success(null);
+    return ApiResponse.success();
   }
 
   @PostMapping("/login")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> loginUser(@RequestBody @Valid  LoginUserDto loginUserDto, HttpServletResponse response) {
     authService.loginUser(loginUserDto, response);
-    return ApiResponse.success(null);
+    return ApiResponse.success();
   }
 
   @PostMapping("/token/refresh")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> refreshToken(HttpServletRequest request, HttpServletResponse response){
     authService.refreshToken(request, response);
-    return ApiResponse.success(null);
+    return ApiResponse.success();
   }
 
   @PostMapping("/forgot-password")
@@ -77,7 +77,7 @@ public class AuthController {
       @RequestBody @Valid ForgotPasswordDto forgotPasswordDto
   ){
     passwordResetTokenService.forgotPassword(forgotPasswordDto);
-    return ApiResponse.success(null);
+    return ApiResponse.success();
   }
 
   @PostMapping("/reset-password")
@@ -87,13 +87,13 @@ public class AuthController {
       @RequestBody @Valid ResetPasswordDto resetPasswordDto
   ){
     passwordResetTokenService.resetPassword(response, resetPasswordDto);
-    return ApiResponse.success(null);
+    return ApiResponse.success();
   }
 
   @PostMapping("/logout")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> logout(HttpServletResponse response, @AuthenticationPrincipal @Valid AuthUser authUser){
     authService.logoutUser(response, authUser);
-    return ApiResponse.success(null);
+    return ApiResponse.success();
   }
 }

@@ -1,7 +1,10 @@
+server:
+  servlet:
+    context-path: /api/v1/
+
 spring:
   application:
     name: TrustHold
-
   security:
     oauth2:
       client:
@@ -14,15 +17,13 @@ spring:
               - email
               - profile
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: create-drop
     properties:
       hibernate:
-        format_sql: true
-
+        format_sql: false
   docker:
     compose:
       enabled: false
@@ -31,7 +32,7 @@ app:
   frontend:
     url: localhost:3000
   jwt:
-    applicationSignature: secret
+    applicationSignature: YtZFEvF9LoXaDRwquB+eV71lHZIm/AY2PuEmCSGWzAE3fAh5HOq1uAZ1f9MqLKnKiEaDOKdgceOmwM6YRhvcEA==
     accessTokenExpiration: 3600
     refreshTokenExpiration: 86400
     audience: audience
@@ -48,14 +49,14 @@ app:
       - /auth/register
       - /auth/token/refresh
       - /auth/oauth/register
-      - /oauth2
+      - /oauth2/**
+      - /login/oauth2/**
       - /auth/reset-password
       - /auth/forgot-password
-      - /actuator/
-      - /swagger-ui/
+      - /actuator/**
+      - /swagger-ui/**
       - /swagger-ui.html
-      - /v3/api-docs
-
+      - /v3/api-docs/**
 mail:
   from: TrustHold <noreply@email.bipin-koirala.com.np>
   support: your-real-email@gmail.com
@@ -63,3 +64,9 @@ mail:
 resend:
   api:
     key: ""
+
+logging:
+  level:
+    com.trusthold: DEBUG
+    org.hibernate.SQL: DEBUG
+    root: INFO

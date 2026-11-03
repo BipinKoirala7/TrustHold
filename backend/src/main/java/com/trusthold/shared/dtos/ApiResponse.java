@@ -11,6 +11,7 @@ import java.time.Instant;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ApiResponse<T>(T data, ApiError error, Instant timestamp) {
 
+  public static <T> ApiResponse<T> success(){return new ApiResponse<>(null, null, Instant.now());}
   public static <T> ApiResponse<T> success(T data) {
     return new ApiResponse<>(data, null, Instant.now());
   }

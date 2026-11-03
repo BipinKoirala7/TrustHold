@@ -1,42 +1,46 @@
 package com.trusthold.auth.integration;
 
-import com.trusthold.TestcontainersConfiguration;
+import com.trusthold.auth.dtos.ForgotPasswordDto;
+import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.dtos.RegisterUserDto;
+import com.trusthold.auth.dtos.ResetPasswordDto;
 import com.trusthold.auth.model.RegistrationRole;
+import com.trusthold.auth.repository.ActiveRefreshTokenRepository;
+import com.trusthold.auth.repository.PasswordResetTokenRepository;
+import com.trusthold.mail.EmailService;
+import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.dtos.ApiResponse;
+import com.trusthold.shared.dtos.IntegrationTestSupport;
 import com.trusthold.user.model.AuthProvider;
 import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.TestRestTemplate;
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
-@ActiveProfiles("test")
-@AutoConfigureTestRestTemplate
-public class AuthIntegrationTests {
+@ExtendWith(MockitoExtension.class)
+public class AuthIntegrationTests extends IntegrationTestSupport {
 
-  @Autowired
-  TestRestTemplate restTemplate;
+  private final String username = "bipin123";
+  private final String email = "bipin@example.com";
+  private final String password = "Password123!";
 
   @Autowired
   private PasswordEncoder passwordEncoder;
@@ -44,124 +48,57 @@ public class AuthIntegrationTests {
   @MockitoSpyBean
   private UserRepository userRepository;
 
+  @MockitoSpyBean
+  private ActiveRefreshTokenRepository activeRefreshTokenRepository;
+
+  @MockitoSpyBean
+  private PasswordResetTokenRepository passwordResetTokenRepository;
+
+  @MockitoSpyBean
+  private EmailService emailService;
+
   @BeforeEach
   void setUp() {
     userRepository.deleteAll();
+
+    String firstName = "Bipin";
+    String lastName = "Koirala";
+    String phone = "+1234567890";
+
+    validRegisterUserDto = new RegisterUserDto(firstName, lastName, username, email, password, phone, RegistrationRole.TENANT);
+    validLoginUserDto = new LoginUserDto(email, password);
+
+    assertThat(register(validRegisterUserDto).getStatusCode()).isEqualTo(HttpStatus.CREATED);
   }
 
-  private ResponseEntity<ApiResponse<Void>> post(String endpoint, HttpHeaders headers, Object body) {
-    return restTemplate.exchange(endpoint, HttpMethod.POST,
-        new HttpEntity<>(body, headers), new ParameterizedTypeReference<>() {});
+  @AfterEach
+  void tearDown() {
+    userRepository.deleteAll();
   }
-
 
   @Nested
-  class RegisterLocalUserIntegrationTests {
-
-    private final String REGISTER_USER_ENDPOINT = "/api/v1/auth/register";
-    private RegisterUserDto validRegisterUserDto;
-
-    private ResponseEntity<ApiResponse<Void>> register(RegisterUserDto dto) {
-      HttpHeaders headers = new HttpHeaders();
-      headers.setContentType(MediaType.APPLICATION_JSON);
-
-      return post(REGISTER_USER_ENDPOINT, headers, dto);
-    }
-
-    @BeforeEach
-    void setUp() {
-      validRegisterUserDto = new RegisterUserDto(
-          "Bipin",
-          "Koirala",
-          "bipin123",
-          "bipin@example.com",
-          "Password123!",
-          "+1234567890",
-          RegistrationRole.TENANT
-      );
-    }
-
-    /**
-     * Test cases for valid input
-     */
-    @Test
-    void shouldReturnCreated_whenRegisterUserDtoIsValid() {
-      // Arrange & Act
-      ResponseEntity<ApiResponse<Void>> response = register(validRegisterUserDto);
-
-      // Assert
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-      assertThat(response.getBody()).isNotNull();
-      assertThat(response.getBody().data()).isNull();
-      assertThat(response.getBody().error()).isNull();
-    }
+  class RegisterLocalUserTests {
 
     @Test
-    void shouldPersistUserWithHashedPassword_whenRegistrationSucceeds() {
-      // Arrange
-      register(validRegisterUserDto);
-
-      // Act
+    void shouldReturnCreatedAndPersistUserWithHashedPassword_whenRegistrationSucceeds() {
       List<User> users = userRepository.findAll();
-
-      // Assert
       assertThat(users).hasSize(1);
-      assertThat(users.getFirst()).isNotNull();
 
       User saved = users.getFirst();
-      assertThat(saved.getUsername()).isEqualTo("bipin123");
-      assertThat(saved.getEmail()).isEqualTo("bipin@example.com");
+      assertThat(saved.getUsername()).isEqualTo(username);
+      assertThat(saved.getEmail()).isEqualTo(email);
       assertThat(saved.getAuthProvider()).isEqualTo(AuthProvider.LOCAL);
       assertThat(saved.getLastLogin()).isNull(); // never logged in yet
       assertThat(saved.getCreatedAt()).isNotNull();
-      assertThat(saved.getPassword()).isNotEqualTo("Password123!"); // not stored in plain text
-      assertThat(passwordEncoder.matches("Password123!", saved.getPassword())).isTrue();
+      assertThat(passwordEncoder.matches(password, saved.getPassword())).isTrue();
+      assertThat(saved.getPassword()).isNotEqualTo(password); // not stored in plain text
     }
 
-    /**
-     * Test cases for invalid input
-     */
-    @Test
-    void shouldReturnBadRequest_whenRegisterUserDtoIsNull() {
-      // Arrange & Act
-      ResponseEntity<ApiResponse<Void>> response = register(null);
-
-      // Assert
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
-    void shouldReturnBadRequest_whenRegisterUserDtoIsInvalid() {
-      // Arrange
-      validRegisterUserDto = new RegisterUserDto(
-          "",
-          "user",
-          "testuser",
-          "invalid-email",
-          "short",
-          null,
-          RegistrationRole.TENANT
-      );
-
-      // Act
-      ResponseEntity<ApiResponse<Void>> response = register(validRegisterUserDto);
-
-      // Assert
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-      assertThat(response.getBody()).isNotNull();
-      assertThat(response.getBody().error()).isNotNull();
-      assertThat(response.getBody().error().code()).isEqualTo("VALIDATION_ERROR");
-      assertThat(userRepository.count()).isZero();
-    }
-
-    /**
-     * Test case for conflicts
-     */
+    // One conflict test: proves the real existsBy... queries and the 409 mapping work together.
+    // The per-field branches are owned by AuthServiceTests; the status mapping by AuthControllerTests.
     @Test
     void shouldReturnConflict_whenEmailAlreadyExists() {
-      // Arrange
-      assertThat(register(validRegisterUserDto).getStatusCode()).isEqualTo(HttpStatus.CREATED);
-      validRegisterUserDto = new RegisterUserDto(
+      RegisterUserDto sameEmailDifferentUsername = new RegisterUserDto(
           validRegisterUserDto.firstName(),
           validRegisterUserDto.lastName(),
           "testuser",
@@ -171,10 +108,8 @@ public class AuthIntegrationTests {
           validRegisterUserDto.registrationRole()
       );
 
-      // Act
-      ResponseEntity<ApiResponse<Void>> response = register(validRegisterUserDto);
+      ResponseEntity<ApiResponse<Void>> response = register(sameEmailDifferentUsername);
 
-      // Assert
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
       assertThat(response.getBody()).isNotNull();
       assertThat(response.getBody().error()).isNotNull();
@@ -182,61 +117,166 @@ public class AuthIntegrationTests {
       assertThat(userRepository.count()).isEqualTo(1);
     }
 
-    @Test
-    void shouldReturnConflict_whenUsernameAlreadyExists() {
-      // Arrange
-      assertThat(register(validRegisterUserDto).getStatusCode()).isEqualTo(HttpStatus.CREATED);
-      validRegisterUserDto = new RegisterUserDto(
-          validRegisterUserDto.firstName(),
-          validRegisterUserDto.lastName(),
-          validRegisterUserDto.username(),
-          "testuser@example.com",   // Using a different email
-          validRegisterUserDto.password(),
-          validRegisterUserDto.phone(),
-          validRegisterUserDto.registrationRole()
-      );
-
-      // Act
-      ResponseEntity<ApiResponse<Void>> response = register(validRegisterUserDto);
-
-      // Assert
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-      assertThat(response.getBody()).isNotNull();
-      assertThat(response.getBody().error()).isNotNull();
-      assertThat(response.getBody().error().message()).isEqualTo("Username is already taken");
-      assertThat(userRepository.count()).isEqualTo(1);
-    }
-
-    /**
-     * Test case for when the database throws an error.
-     */
+    // Simulates a race: two requests both pass the exists-checks, and the DB unique constraint
+    // catches the second. Only a real database can prove this.
     @Test
     void shouldRejectDuplicate_whenExistsChecksPassButDbConstraintFires() {
-      // Simulates a race: two requests both pass the exists-checks, the DB unique constraint catches the second.
       register(validRegisterUserDto);
       doReturn(false).when(userRepository).existsByUsername(any());
       doReturn(false).when(userRepository).existsByEmail(any());
 
       ResponseEntity<ApiResponse<Void>> response = register(validRegisterUserDto);
 
-      // Currently mapped by handleDataIntegrityViolationException
+      // Pins CURRENT behavior (handleDataIntegrityViolationException -> 400).
+      // A duplicate-key race is arguably a 409; if the handler is changed, update this assertion.
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
       assertThat(response.getBody()).isNotNull();
       assertThat(response.getBody().error()).isNotNull();
       assertThat(response.getBody().error().message()).isEqualTo("Request conflicts with existing data");
       assertThat(userRepository.count()).isEqualTo(1);
     }
+  }
+
+  @Nested
+  class LoginLocalUserTests{
+
+    @BeforeEach
+    void setUp() {
+      validLoginUserDto = new LoginUserDto(email, password);
+    }
 
     @Test
-    void shouldReturnInternalServerError_whenDatabaseIsUnavailable() {
-      doThrow(new DataAccessResourceFailureException("db down")).when(userRepository).save(any());
+    void shouldLoginLocalUser() {
+      ResponseEntity<ApiResponse<Void>> response = login(validLoginUserDto);
 
-      ResponseEntity<ApiResponse<Void>> response = register(validRegisterUserDto);
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody().data()).isNull();
+      assertThat(userRepository.count()).isEqualTo(1);
+    }
 
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    @Test
+    void shouldFailLogin_whenInvalidCredentials() {
+      validLoginUserDto = new LoginUserDto(email, "invalidPassword");
+      ResponseEntity<ApiResponse<Void>> response = login(validLoginUserDto);
+
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
       assertThat(response.getBody()).isNotNull();
       assertThat(response.getBody().error()).isNotNull();
-      assertThat(response.getBody().error().message()).isEqualTo("An unexpected error occurred. Please try again later.");
+      assertThat(response.getBody().error().message()).isEqualTo("Invalid credentials");
+      assertThat(userRepository.count()).isEqualTo(1);
+    }
+  }
+
+  @Nested
+  class TokenRefreshTests {
+
+    private final String TOKEN_REFRESH_PATH = "/auth/token/refresh";
+
+    @BeforeEach
+    void setUp() {
+      validLoginUserDto = new LoginUserDto(email, password);
+    }
+
+    @AfterEach
+    void tearDown(){
+      activeRefreshTokenRepository.deleteAll();
+    }
+
+    @Test
+    void shouldRefreshToken() {
+      ResponseEntity<ApiResponse<Void>> response = post(TOKEN_REFRESH_PATH, getAuthenticatedHeaders(), null);
+
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody()).isNotNull();
+      assertThat(userRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    void shouldFailTokenRefresh_whenUserIsNotAuthenticated() {
+      ResponseEntity<ApiResponse<Void>> response = post(TOKEN_REFRESH_PATH, getHeaders(), null);
+
+      assertThat(response.getStatusCode()).isEqualTo(ErrorInfo.INVALID_TOKEN.getHttpStatus());
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody().error()).isNotNull();
+      assertThat(response.getBody().error().message()).isEqualTo(ErrorInfo.INVALID_TOKEN.getMessage());
+    }
+  }
+
+  @Nested
+  class ResetPasswordTests{
+
+    @Captor
+    private ArgumentCaptor<String> rawTokenCaptor;
+
+    private final String newPassword = "NewPassword@123";
+    private final String RESET_PASSWORD_PATH = "/auth/reset-password";
+    private ForgotPasswordDto validForgotPasswordDto;
+    private ResetPasswordDto validResetPasswordDto;
+
+    @BeforeEach
+    void setUp(){
+      validForgotPasswordDto = new ForgotPasswordDto(email);
+      validResetPasswordDto = new ResetPasswordDto(getForgotPasswordToken(), newPassword);
+    }
+
+
+    private String getForgotPasswordToken(){
+      ResponseEntity<ApiResponse<Void>> response = post("/auth/forgot-password", getHeaders(), validForgotPasswordDto);
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+      verify(emailService, timeout(2000)).sendPasswordResetEmail(eq(email), any(), rawTokenCaptor.capture());
+      return rawTokenCaptor.getValue();
+    }
+
+    @Test
+    void shouldResetPassword() {
+      ResponseEntity<ApiResponse<Void>> response = post(RESET_PASSWORD_PATH, getHeaders(), validResetPasswordDto);
+
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody()).isNotNull();
+      assertThat(userRepository.count()).isEqualTo(1);
+      assertTrue(passwordEncoder.matches(newPassword, userRepository.findByEmail(email).get().getPassword()));
+    }
+
+    @Test
+    void shouldFail_whenTokenIsExpired(){
+      doReturn(0).when(passwordResetTokenRepository).consume(any(), any());
+
+      ResponseEntity<ApiResponse<Void>> response = post(RESET_PASSWORD_PATH, getHeaders(), validResetPasswordDto);
+
+      assertThat(response.getStatusCode()).isEqualTo(ErrorInfo.EXPIRED_PASSWORD_RESET_TOKEN.getHttpStatus());
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody().error().message()).isEqualTo(ErrorInfo.EXPIRED_PASSWORD_RESET_TOKEN.getMessage());
+    }
+  }
+
+  @Nested
+  class LogOutUserTests{
+
+    private final String LOG_OUT_PATH = "/auth/logout";
+
+    @BeforeEach
+    void setUp(){
+      validLoginUserDto = new LoginUserDto(email, password);
+    }
+
+    @Test
+    void shouldLogOutUser(){
+      ResponseEntity<ApiResponse<Void>> response = post(LOG_OUT_PATH, getAuthenticatedHeaders(), null);
+
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody().data()).isNull();
+    }
+
+    @Test
+    void shouldFail_whenUserIsNotLoggedIn(){
+      ResponseEntity<ApiResponse<Void>> response = post(LOG_OUT_PATH, getHeaders(), null);
+
+      assertThat(response.getStatusCode()).isEqualTo(ErrorInfo.UNAUTHORIZED.getHttpStatus());
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody().error().message()).isEqualTo(ErrorInfo.UNAUTHORIZED.getMessage());
     }
   }
 }

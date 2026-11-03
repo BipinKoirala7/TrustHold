@@ -1,5 +1,6 @@
-package com.trusthold.config;
+package com.trusthold.auth.handlers;
 
+import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.dtos.ApiResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,6 +31,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     response.setContentType("application/json");
 
-    response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.error("AUTH_UNAUTHORIZED", "Please log in")));
+    response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.error(ErrorInfo.UNAUTHORIZED)));
   }
 }

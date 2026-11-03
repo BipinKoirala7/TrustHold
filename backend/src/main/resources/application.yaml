@@ -1,3 +1,7 @@
+server:
+  servlet:
+    context-path: /api/v1/
+
 spring:
   application:
     name: TrustHold
@@ -26,10 +30,11 @@ app:
       - /auth/register
       - /auth/token/refresh
       - /auth/oauth/register
-      - /oauth2
+      - /oauth2/**
+      - /login/oauth2/**
       - /auth/reset-password
       - /auth/forgot-password
-      - /actuator/
-      - /swagger-ui/
+      - /actuator/**
+      - /swagger-ui/**
       - /swagger-ui.html
-      - /v3/api-docs
+      - /v3/api-docs/**

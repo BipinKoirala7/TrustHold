@@ -1,7 +1,7 @@
 package com.trusthold.shared.exception;
 
-import com.trusthold.shared.dtos.ApiError;
 import com.trusthold.shared.dtos.ApiResponse;
+import io.jsonwebtoken.security.WeakKeyException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
@@ -162,6 +162,13 @@ public class GlobalExceptionHandler {
   public ApiResponse<Void> handleAuthenticationException(Exception ex, HttpServletRequest req) {
     log.warn("{} {} -> {}", req.getMethod(), req.getRequestURI(), "Invalid credentials", ex);
     return ApiResponse.error("INVALID_CREDENTIALS", "Invalid credentials");
+  }
+
+  @ExceptionHandler(WeakKeyException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ApiResponse<Void> handleWeakKeyException(WeakKeyException ex, HttpServletRequest req) {
+    log.warn("{} {} -> {}", req.getMethod(), req.getRequestURI(), "Weak key", ex);
+    return ApiResponse.error("INTERNAL_SERVER_ERROR", "An unexpected error occurred. Please try again later.");
   }
 
   // Database Exceptions
