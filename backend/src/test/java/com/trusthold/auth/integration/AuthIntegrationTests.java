@@ -291,4 +291,43 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
       assertThat(response.getBody().error().message()).isEqualTo(ErrorInfo.EXPIRED_PASSWORD_RESET_TOKEN.getMessage());
     }
   }
+
+  @Nested
+  class LogOutUserTests{
+
+    private final String LOG_OUT_PATH = "/auth/logout";
+
+    @BeforeEach
+    void setUp(){
+      validRegisterUserDto = new RegisterUserDto(
+          "Bipin", "Koirala",
+          username, email, password, "+1234567890", RegistrationRole.TENANT);
+      register(validRegisterUserDto);
+
+      validLoginUserDto = new LoginUserDto(email, password);
+    }
+
+    @AfterEach
+    void tearDown(){
+      userRepository.deleteAll();
+    }
+
+    @Test
+    void shouldLogOutUser(){
+      ResponseEntity<ApiResponse<Void>> response = post(LOG_OUT_PATH, getAuthenticatedUserHeaders(), null);
+
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody().data()).isNull();
+    }
+
+    @Test
+    void shouldFail_whenUserIsNotLoggedIn(){
+      ResponseEntity<ApiResponse<Void>> response = post(LOG_OUT_PATH, getHeaders(), null);
+
+      assertThat(response.getStatusCode()).isEqualTo(ErrorInfo.UNAUTHORIZED.getHttpStatus());
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody().error().message()).isEqualTo(ErrorInfo.UNAUTHORIZED.getMessage());
+    }
+  }
 }
