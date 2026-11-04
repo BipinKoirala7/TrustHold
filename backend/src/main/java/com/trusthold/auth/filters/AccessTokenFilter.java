@@ -58,9 +58,10 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getServletPath();
+    boolean shouldNotFilter = authConfig.getPublicEndpoints().stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
 
-    log.debug("path={}", path);
-    return authConfig.getPublicEndpoints().stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
+    log.debug("Access token filter {} for {}", shouldNotFilter ? "skipped" : "applied", path);
+    return shouldNotFilter;
   }
 
   /**
@@ -79,28 +80,34 @@ public class AccessTokenFilter extends OncePerRequestFilter {
     MDC.put("RequestPath", request.getServletPath());
 
     try{
-      log.debug("Request Start");
       try {
         String accessToken = cookieService.getAccessTokenCookie(request);
         if (accessToken == null) throw new JwtException("Access token cookie not found");
 
+        log.debug("Token Found & Extracting claims");
+
         Claims claims = jwtService.extractAccessClaims(accessToken);
-        String roleClaim = claims.get("role", String.class);
-        String subject = claims.getSubject();
+        UUID userId;
+        Role role;
+        try {
+          userId = UUID.fromString(claims.getSubject());
+          role = Role.valueOf(claims.get("role", String.class));
+        } catch (IllegalArgumentException e) {
+          throw new JwtException("Signed token has invalid subject or role claim", e);
+        }
 
-        if (roleClaim == null) throw new JwtException("Missing role claim");
-        if (subject == null) throw new JwtException("Missing subject claim");
-
-        AuthUser authUser = new AuthUser(UUID.fromString(subject), accessToken, Role.valueOf(roleClaim));
+        AuthUser authUser = new AuthUser(userId, accessToken, role);
         // "ROLE_" prefix is required by Spring Security's hasRole() check
         var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + authUser.role().toString()));
         var auth = new UsernamePasswordAuthenticationToken(authUser, null, authorities);
 
         SecurityContextHolder.getContext().setAuthentication(auth);
+
+        log.debug("Authentication set");
         MDC.put("UserId", authUser.id().toString());
 
       } catch (JwtException | IllegalArgumentException e) {
-        log.warn("Access Token Filter Error - {}", e.getMessage());
+        log.warn("Exception : {} ", e.getMessage());
         SecurityContextHolder.clearContext();
       }
       filterChain.doFilter(request, response);

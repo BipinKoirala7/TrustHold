@@ -7,7 +7,7 @@ import com.trusthold.auth.repository.PasswordResetTokenRepository;
 import com.trusthold.mail.dtos.PasswordResetEvent;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.exception.AppException;
-import com.trusthold.shared.service.Token;
+import com.trusthold.shared.service.TokenService;
 import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
 import com.trusthold.user.service.UserService;
@@ -41,23 +41,28 @@ public class PasswordResetTokenService {
 
   @Transactional
   public void forgotPassword(@NotNull ForgotPasswordDto forgotPasswordDto){
+    log.debug("Forgot Password request");
     userRepository
         .findByEmail(forgotPasswordDto.email())
         .ifPresentOrElse(user -> {
+          log.info("Password reset requested for userId={}", user.getId());
           String rawToken = createResetPasswordToken(user);
           applicationEventPublisher.publishEvent(new PasswordResetEvent(user.getEmail(), user.getFirstName(), rawToken));
     }, () -> {
+         log.warn("Password reset requested for non-existent email={}", forgotPasswordDto.email());
          throw new AppException(ErrorInfo.USER_NOT_FOUND);
         });
   }
 
   private String createResetPasswordToken(User user){
+    log.debug("Creating reset password token for userId={}", user.getId());
+
     deleteStaleUserTokens(user.getId());
-    String rawToken = Token.generateToken();
+    String rawToken = TokenService.generateToken();
 
     PasswordResetToken entity = new PasswordResetToken();
     entity.setUserId(user.getId());
-    entity.setTokenHash(Token.sha256Hex(rawToken));
+    entity.setTokenHash(TokenService.sha256Hex(rawToken));
     entity.setExpiresAt(Instant.now().plus(TOKEN_EXPIRY_MINUTES, ChronoUnit.MINUTES));
     passwordResetTokenRepository.save(entity);
 
@@ -68,13 +73,17 @@ public class PasswordResetTokenService {
   public void resetPassword(HttpServletResponse response, @NotNull ResetPasswordDto resetPasswordDto){
     log.info("Resetting password");
 
-    String hash = Token.sha256Hex(resetPasswordDto.rawToken());
+    String hash = TokenService.sha256Hex(resetPasswordDto.rawToken());
     PasswordResetToken passwordResetToken = passwordResetTokenRepository
         .findByTokenHash(hash)
-        .orElseThrow(() -> new AppException(ErrorInfo.INVALID_PASSWORD_RESET_TOKEN));
+        .orElseThrow(() -> {
+          log.warn("Invalid password reset token");
+          return new AppException(ErrorInfo.INVALID_PASSWORD_RESET_TOKEN);
+        });
 
     int consumed = passwordResetTokenRepository.consume(hash, Instant.now());
     if (consumed != 1) {
+      log.warn("Password reset token expired for userId={}", passwordResetToken.getUserId());
       throw new AppException(ErrorInfo.EXPIRED_PASSWORD_RESET_TOKEN);
     }
 

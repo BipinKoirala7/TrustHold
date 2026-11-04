@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(TestcontainersConfiguration.class)
 @ActiveProfiles("test")
-public class PasswordResetTokenRepoTest {
+public class PasswordResetTokenServiceRepoTest {
 
   // Fixed clock value so boundary cases are deterministic.
   private static final Instant NOW = Instant.parse("2026-01-01T12:00:00Z");

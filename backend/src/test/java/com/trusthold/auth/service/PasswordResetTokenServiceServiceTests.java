@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class PasswordResetTokenServiceTests {
+public class PasswordResetTokenServiceServiceTests {
 
   @Mock
   private PasswordResetTokenRepository passwordResetTokenRepository;
@@ -163,7 +163,7 @@ public class PasswordResetTokenServiceTests {
   }
 
   @Nested
-  class CreateResetPasswordTokenTests {
+  class CreateResetPasswordTokenServiceTests {
 
     @Test
     void shouldPropagateDBError_whenSaveThrowsDataAccessException() {

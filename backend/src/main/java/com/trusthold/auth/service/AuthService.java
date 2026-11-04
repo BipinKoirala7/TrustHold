@@ -69,7 +69,7 @@ public class AuthService {
    */
   @Transactional
   public void registerLocalUser(@NotNull RegisterUserDto registerUserDto) {
-    log.debug("Registering local user");
+    log.debug("Registering local user: {}", registerUserDto.username());
 
     if(userRepository.existsByUsername(registerUserDto.username())) {
       log.debug("Registration local user rejected: username already taken");
@@ -87,8 +87,6 @@ public class AuthService {
     User savedUser = userRepository.save(user);
 
     log.info("User registered: userId={}, provider={}", savedUser.getId(), AuthProvider.LOCAL);
-
-    log.info("Sending confirmation email  to {}", savedUser.getEmail());
     applicationEventPublisher.publishEvent(new UserRegisteredEvent(savedUser.getEmail(), savedUser.getRole().toString(), savedUser.getUsername()));
   }
 
@@ -101,7 +99,7 @@ public class AuthService {
    */
   @Transactional
   public User registerOAuthUser(@NotNull RegisterOAuthUserDto registerOAuthUserDto){
-    log.debug("Registering OAuth User");
+    log.debug("Registering OAuth User: {}", registerOAuthUserDto.username());
 
     if(userRepository.existsByUsername(registerOAuthUserDto.username())) {
       log.debug("OAuth registration rejected: username already taken");
@@ -117,8 +115,6 @@ public class AuthService {
     user.setAuthProvider(AuthProvider.GOOGLE);
     User savedUser = userRepository.save(user);
     log.info("OAuth User registered: userId={}, provider={}", savedUser.getId(), AuthProvider.GOOGLE);
-
-    log.info("Sending confirmation email to {}", savedUser.getEmail());
     applicationEventPublisher.publishEvent(new UserRegisteredEvent(savedUser.getEmail(), savedUser.getRole().toString(), savedUser.getUsername()));
 
     return savedUser;
@@ -178,9 +174,14 @@ public class AuthService {
 
     String refreshToken = cookieService.getRefreshTokenCookie(request);
 
-    if(refreshToken == null) throw new AppException(ErrorInfo.INVALID_TOKEN);
-    if(!activeRefreshTokenService.isRefreshTokenActive(refreshToken)) throw new AppException(ErrorInfo.INVALID_TOKEN);
-
+    if (refreshToken == null) {
+      log.debug("Refresh rejected: no refresh token cookie");
+      throw new AppException(ErrorInfo.INVALID_TOKEN);
+    }
+    if (!activeRefreshTokenService.isRefreshTokenActive(refreshToken)) {
+      log.warn("Refresh rejected: token is not the active one (possible reuse)");
+      throw new AppException(ErrorInfo.INVALID_TOKEN);
+    }
     User user = jwtService.validateRefreshToken(refreshToken);
     String newRefreshToken = jwtService.generateRefreshToken(user);
     String newAccessToken = jwtService.generateAccessToken(user);
@@ -191,7 +192,7 @@ public class AuthService {
     response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
     response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
 
-    log.info("Token refreshed successfully");
+    log.info("Token refreshed userId={}", user.getId());
   }
 
   /**
@@ -202,12 +203,11 @@ public class AuthService {
    */
   @Transactional
   public void logoutUser(HttpServletResponse response, AuthUser authUser){
-    log.info("Logging Out User");
-
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
 
     cookieService.deleteRefreshTokenCookie(response);
     cookieService.deleteAccessTokenCookie(response);
     activeRefreshTokenService.removeActiveRefreshToken(authUser.id());
+    log.info("User logged out: userId={}", authUser.id());
   }
 }

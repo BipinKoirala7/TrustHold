@@ -48,14 +48,14 @@ public class EmailService {
    */
   @Async
   public void newlyRegisterUserEmail(String to, String userRole, String userName) {
-    log.info("Sending welcome email to newly registered {}", userRole);
+    log.info("Sending welcome email to newly registered {}", userName);
 
     String html = welcomeEmailTemplate.render(userRole, userName, frontendUrl, supportEmail);
 
     try {
-      sendMail(to, "Welcome to TrustHold, " + userName, html);
+      sendMail(to, welcomeEmailTemplate.subject(userName), html);
     } catch (ResendException e) {
-      log.error("Failed to send welcome email to {}", to, e);
+      log.warn("Failed to send welcome email to {}", to, e);
     }
   }
 
@@ -67,12 +67,13 @@ public class EmailService {
    */
   @Async
   public void sendPasswordResetEmail(String to, String userName, String rawToken) {
+    log.info("Sending password reset email to {}", to);
     String resetUrl = frontendUrl + "/reset-password?token=" + rawToken;
     String html = passwordResetEmailTemplate.render(userName, resetUrl, PasswordResetTokenService.TOKEN_EXPIRY_MINUTES, supportEmail);
     try{
       sendMail(to, PasswordResetEmailTemplate.SUBJECT, html);
     } catch (ResendException e) {
-      log.error("Failed to send password reset email to {}", to, e);
+      log.warn("Failed to send password reset email to {}", to, e);
     }
   }
 
@@ -86,7 +87,7 @@ public class EmailService {
    * @throws ResendException if the email fails to send
    */
   public void sendMail(String to, String subject, String body) throws ResendException {
-    log.info("Sending email to {}", to);
+    log.debug("Sending email to {}", to);
 
     Objects.requireNonNull(to, "to cannot be null");
     Objects.requireNonNull(subject, "subject cannot be null");

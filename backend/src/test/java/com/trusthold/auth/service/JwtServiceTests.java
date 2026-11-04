@@ -148,7 +148,7 @@ public class JwtServiceTests {
   }
 
   @Nested
-  class ValidateRefreshTokenTests {
+  class ValidateRefreshTokenServiceTests {
 
     @Test
     void shouldThrowJwtException_whenTokenIsInvalid() {
@@ -300,7 +300,7 @@ public class JwtServiceTests {
   }
 
   @Nested
-  class MissingTokenTypeClaimTests {
+  class MissingTokenServiceTypeClaimTests {
 
     @Test
     void shouldThrowJwtException_whenTokenTypeClaimIsMissing() {
@@ -325,7 +325,7 @@ public class JwtServiceTests {
   }
 
   @Nested
-  class GenerateAccessTokenTests {
+  class GenerateAccessTokenServiceTests {
 
     @Test
     void shouldProduceValidAccessToken_withCorrectClaims() {
@@ -348,7 +348,7 @@ public class JwtServiceTests {
   }
 
   @Nested
-  class GenerateRefreshTokenTests {
+  class GenerateRefreshTokenServiceTests {
 
     @Test
     void shouldProduceValidRefreshToken_withCorrectClaims() {
@@ -445,7 +445,7 @@ public class JwtServiceTests {
   }
 
   @Nested
-  class NullEmptyTokenTests {
+  class NullEmptyTokenServiceTests {
 
     @Test
     void shouldThrowException_whenTokenIsNull() {

@@ -188,7 +188,7 @@ public class AuthControllerTests {
   }
 
   @Nested
-  class TokenRefreshTests {
+  class TokenServiceRefreshTests {
 
     private final String REFRESH_TOKEN_ENDPOINT = "/auth/token/refresh";
 
