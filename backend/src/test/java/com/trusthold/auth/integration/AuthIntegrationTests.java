@@ -169,7 +169,7 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
   }
 
   @Nested
-  class TokenRefreshTests {
+  class TokenServiceRefreshTests {
 
     private final String TOKEN_REFRESH_PATH = "/auth/token/refresh";
 

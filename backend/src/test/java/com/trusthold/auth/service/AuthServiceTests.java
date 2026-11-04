@@ -361,7 +361,7 @@ public class AuthServiceTests {
   }
 
   @Nested
-  class RefreshTokenTests {
+  class RefreshTokenServiceTests {
 
     private HttpServletRequest mockRequest;
     private HttpServletResponse mockResponse;

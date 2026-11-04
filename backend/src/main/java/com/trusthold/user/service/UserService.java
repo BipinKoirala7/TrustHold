@@ -46,7 +46,7 @@ public class UserService {
    * @throws AppException if there is no authenticated user or the user is not found
    */
   public PublicUserDto getAuthenticatedUser(AuthUser authUser){
-    log.debug("Getting authenticated user");
+    log.info("Getting authenticated user");
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
 
     User user = getUserById(authUser.id());
@@ -62,7 +62,7 @@ public class UserService {
    */
   @Transactional
   public void updateUser(AuthUser authUser, @NotNull UpdateUserDto updateUserDto){
-    log.debug("Updating user");
+    log.debug("Updating user for user: userId={}", authUser.id());
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
 
     User user = getUserById(authUser.id());
@@ -114,14 +114,6 @@ public class UserService {
   /** @throws AppException if no user has this email */
   public User getUserByEmail(@NotNull String email) {
     return userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorInfo.INVALID_CREDENTIALS));
-  }
-
-  /**
-   * Checks whether an account exists for this email that is linked to the given
-   * OAuth provider id (for example, a Google account ID).
-   */
-  public boolean existsByEmailAndProviderId(@NotNull String email, @NotNull String providerId) {
-    return userRepository.existsByEmailAndProviderId(email, providerId);
   }
 
   public boolean existsByUsername(@NotNull String username) {

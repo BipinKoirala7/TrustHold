@@ -66,22 +66,20 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
    */
   @Override
   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
-    log.info("logging in oauth user");
+    log.debug("logging in oauth user");
 
     try{
       OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
       if (oAuth2User == null) {
-        log.warn("OAuth2User is null");
-        response.sendRedirect(frontendUrl + "/login?error=oauth");
+        fail(response, "OAuth User is null", "user");
         return;
       }
 
       String providerId = oAuth2User.getAttribute("sub");
 
       if (providerId == null) {
-        log.warn("Provider ID is null");
-        response.sendRedirect(frontendUrl + "/login?error=provider");
+        fail(response, "Provider ID is null", "provider");
         return;
       }
 
@@ -90,28 +88,24 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       String familyName = oAuth2User.getAttribute("family_name");
 
       if(email == null) {
-        log.warn("Email is null");
-        response.sendRedirect(frontendUrl + "/login?error=email");
+        fail(response, "Email is null", "email");
         return;
       }
 
       Boolean emailVerified = oAuth2User.getAttribute("email_verified");
 
       if (!Boolean.TRUE.equals(emailVerified)) {
-        log.warn("Google email is not verified");
-        response.sendRedirect(frontendUrl + "/login");
+        fail(response, "Google email is not verified", null);
         return;
       }
 
       if(givenName == null) {
-        log.warn("Given name is null");
-        response.sendRedirect(frontendUrl + "/login?error=firstname");
+        fail(response, "Given name is null", "firstname");
         return;
       }
 
       if(familyName == null) {
-        log.warn("Family name is null");
-        response.sendRedirect(frontendUrl + "/login?error=lastname");
+        fail(response, "Family name is null", "lastname");
         return;
       }
 
@@ -120,21 +114,26 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       Optional<User> user = userService.getByEmail(email);
 
       if(user.isEmpty()) {
-        log.warn("User not found");
-        log.warn("Registering user first");
+        log.debug("User not found");
+        log.debug("Registering user first before logging in");
 
         HttpSession session = request.getSession(false);
         Object roleObj = session != null ? session.getAttribute("registrationRole") : null;
+
         if(roleObj == null) {
-          log.warn("Role from the session is null");
-          response.sendRedirect(frontendUrl + "/login?error=role");
+          fail(response, "registration role is null", "role");
           return;
         }
 
-        var role = RegistrationRole.valueOf((String) roleObj);
-        log.debug("Role from the session: {}", role);
-
-        session.invalidate();
+        RegistrationRole role;
+        try {
+          role = RegistrationRole.valueOf((String) roleObj);
+          log.debug("Role from the session: {}", role);
+          session.invalidate();
+        } catch (IllegalArgumentException | ClassCastException e) {
+          fail(response, "invalid registration role in session", "role");
+          return;
+        }
 
         String username = givenName.toLowerCase() + "_" + familyName.toLowerCase() + (int) (Math.random() * 9000 + 1000);
         // Create username until it is unique
@@ -143,25 +142,24 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         }
 
         RegisterOAuthUserDto registerOAuthUserDto = new RegisterOAuthUserDto(providerId, givenName, familyName, username, email, role);
-
         loginAndRedirect(authService.registerOAuthUser(registerOAuthUserDto), response);
+        log.info("OAuth User registered and logged in");
       } else {
-
-        if(user.get().getProviderId() == null){
-          log.debug("Provider Id is null");
-          response.sendRedirect(frontendUrl + "/login?error=user");
+        if (user.get().getProviderId() == null) {
+          fail(response, "account {} exists without linked provider", "wrong_provider", user.get().getId());
           return;
         }
 
-        if(!Objects.equals(user.get().getProviderId(), providerId)){
-          log.debug("Provider Id is not matching");
-          response.sendRedirect(frontendUrl + "/login?error=provider");
+        if (!Objects.equals(user.get().getProviderId(), providerId)) {
+          fail(response, "provider id mismatch for user {}", "provider", user.get().getId());
           return;
         }
+
         loginAndRedirect(user.get(), response);
+        log.info("OAuth User logged in for user: userId={}", user.get().getId());
       }
     } catch (Exception e) {
-      log.error("Error occurred while processing OAuth authentication", e);
+      log.error("OAuth login failed unexpectedly", e);
       if (!response.isCommitted()) {
         response.sendRedirect(frontendUrl + "/login?error=internal");
       }
@@ -169,6 +167,7 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
   }
 
   private void loginAndRedirect(User user, HttpServletResponse response) throws IOException{
+    log.info("Logging in user: userId={}", user.getId());
     String newAccessToken = jwtService.generateAccessToken(user);
     String newRefreshToken = jwtService.generateRefreshToken(user);
 
@@ -178,7 +177,12 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     response.addCookie(cookieService.createRefreshTokenCookie(newRefreshToken));
     response.addCookie(cookieService.createAccessTokenCookie(newAccessToken));
 
-
+    log.info("OAuth login succeeded: userId={}, provider=google", user.getId());
     response.sendRedirect(frontendUrl + "/google/callback");
+  }
+
+  private void fail(HttpServletResponse response, String reason, String errorCode, Object... ctx) throws IOException {
+    log.warn("OAuth login rejected: " + reason, ctx);
+    response.sendRedirect(frontendUrl + "/login" + (errorCode != null ? "?error=" + errorCode : ""));
   }
 }

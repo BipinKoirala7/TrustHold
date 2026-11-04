@@ -23,7 +23,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
   @Override
   public void handle(HttpServletRequest request, HttpServletResponse response,
                      AccessDeniedException accessDeniedException) throws IOException {
-    log.debug("Access denied: {}", accessDeniedException.getMessage());
+    log.debug("Access denied - {}", accessDeniedException.getMessage());
 
     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
     response.setContentType("application/json");

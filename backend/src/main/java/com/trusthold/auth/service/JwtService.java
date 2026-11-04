@@ -65,7 +65,6 @@ public class JwtService {
    */
   public String generateRefreshToken(@NotNull User user){
     log.debug("Generating refresh token: userId={}", user.getId());
-
     return Jwts
         .builder()
         .signWith(generateSignInKey(), Jwts.SIG.HS256)

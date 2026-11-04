@@ -12,7 +12,7 @@ import java.util.HexFormat;
 
 @Component
 @NoArgsConstructor
-public class Token {
+public class TokenService {
 
   public static String generateToken(){
     byte[] bytes = new byte[32];
