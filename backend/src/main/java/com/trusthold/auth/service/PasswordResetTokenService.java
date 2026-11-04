@@ -7,6 +7,7 @@ import com.trusthold.auth.repository.PasswordResetTokenRepository;
 import com.trusthold.mail.dtos.PasswordResetEvent;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.exception.AppException;
+import com.trusthold.shared.service.Token;
 import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
 import com.trusthold.user.service.UserService;
@@ -20,10 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
 import java.util.UUID;
 
 @Service
@@ -54,14 +53,11 @@ public class PasswordResetTokenService {
 
   private String createResetPasswordToken(User user){
     deleteStaleUserTokens(user.getId());
-
-    byte[] bytes = new byte[32];
-    new SecureRandom().nextBytes(bytes);
-    String rawToken = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    String rawToken = Token.generateToken();
 
     PasswordResetToken entity = new PasswordResetToken();
     entity.setUserId(user.getId());
-    entity.setTokenHash(TokenHasher.sha256Hex(rawToken));
+    entity.setTokenHash(Token.sha256Hex(rawToken));
     entity.setExpiresAt(Instant.now().plus(TOKEN_EXPIRY_MINUTES, ChronoUnit.MINUTES));
     passwordResetTokenRepository.save(entity);
 
@@ -72,7 +68,7 @@ public class PasswordResetTokenService {
   public void resetPassword(HttpServletResponse response, @NotNull ResetPasswordDto resetPasswordDto){
     log.info("Resetting password");
 
-    String hash = TokenHasher.sha256Hex(resetPasswordDto.rawToken());
+    String hash = Token.sha256Hex(resetPasswordDto.rawToken());
     PasswordResetToken passwordResetToken = passwordResetTokenRepository
         .findByTokenHash(hash)
         .orElseThrow(() -> new AppException(ErrorInfo.INVALID_PASSWORD_RESET_TOKEN));

@@ -18,7 +18,12 @@ public enum ErrorInfo {
   INVALID_CREDENTIALS         ( "AUTH_INVALID_CREDENTIALS",         HttpStatus.UNAUTHORIZED, "Invalid credentials"),
   INVALID_ROLE_FOR_REGISTRATION("AUTH_REGISTRATION_ROLE_INVALID",   HttpStatus.BAD_REQUEST,  "Role not allowed for registration"),
   INVALID_TOKEN               ( "AUTH_INVALID_TOKEN",               HttpStatus.UNAUTHORIZED, "Please Log in"),
-  USER_NOT_FOUND              ( "USER_NOT_FOUND",                   HttpStatus.NOT_FOUND,    "Account not found");
+  USER_NOT_FOUND              ( "USER_NOT_FOUND",                   HttpStatus.NOT_FOUND,    "Account not found"),
+
+  // User
+  DELETION_TOKEN_INVALID(       "DELETION_TOKEN_INVALID",           HttpStatus.BAD_REQUEST,  "This deletion link is invalid or has already been used."),
+  DELETION_TOKEN_EXPIRED(       "DELETION_TOKEN_EXPIRED",           HttpStatus.GONE,         "This deletion link has expired. Please request a new one."),
+  DELETION_BLOCKED_ACTIVE_LEASE("DELETION_BLOCKED_ACTIVE_LEASE",    HttpStatus.CONFLICT,     "You can't delete your account while you have unsettled leases.");
 
   private final String errCode;
   private final HttpStatus httpStatus;

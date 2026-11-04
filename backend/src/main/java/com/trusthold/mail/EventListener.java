@@ -22,4 +22,12 @@ public class EventListener {
   public void onPasswordReset(PasswordResetEvent event) {
     emailService.sendPasswordResetEmail(event.to(), event.firstName(), event.rawToken());
   }
+
+//  @Async
+//  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+//  public void onDeletionRequested(AccountDeletionEvent event) {
+//    String link = frontendUrl + "/confirm-delete?token=" + event.rawToken();
+//    emailService.sendAccountDeletionEmail(
+//        event.email(), event.fullName(), link, event.expiresAt());
+//  }
 }

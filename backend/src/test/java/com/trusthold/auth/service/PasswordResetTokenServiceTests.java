@@ -7,6 +7,7 @@ import com.trusthold.auth.repository.PasswordResetTokenRepository;
 import com.trusthold.mail.dtos.PasswordResetEvent;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.exception.AppException;
+import com.trusthold.shared.service.TokenHasher;
 import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
 import com.trusthold.user.service.UserService;
