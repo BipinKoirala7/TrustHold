@@ -1,31 +1,39 @@
 package com.trusthold.lease.dtos;
 
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
 public record CreateLeaseDto(
-    @NotNull(message = "Property id cannot be null")
+    @NotNull(message = "Property is required")
     UUID propertyId,
 
-    @NotNull(message = "Tenant id cannot be null")
+    @NotNull(message = "Tenant is required")
     UUID tenantId,
 
-    @NotNull(message = "Monthly rent cannot be null")
+    @NotNull(message = "Monthly rent is required")
+    @Positive(message = "Monthly rent must be greater than zero")
+    @Digits(integer = 10, fraction = 2, message = "Monthly rent can have at most 10 digits and 2 decimal places")
     BigDecimal monthlyRent,
 
-    @NotNull(message = "Deposit amount cannot be null")
+    @NotNull(message = "Deposit amount is required")
+    @Positive(message = "Deposit amount must be greater than zero")
+    @Digits(integer = 10, fraction = 2, message = "Deposit amount can have at most 10 digits and 2 decimal places")
     BigDecimal depositAmount,
 
-    @NotNull(message = "Move in initiated date cannot be null")
+    @NotNull(message = "Start date is required")
+    @FutureOrPresent(message = "Start date cannot be in the past")
     Instant startDate,
 
-    @NotNull(message = "End date cannot be null")
+    @NotNull(message = "End date is required")
     Instant endDate,
 
-    @NotNull(message = "Move in date cannot be null")
+    @NotNull(message = "Move in date is required")
     Instant movedInAt
 ) {
 }

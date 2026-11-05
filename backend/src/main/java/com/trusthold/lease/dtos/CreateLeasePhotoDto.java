@@ -4,29 +4,28 @@ import com.trusthold.lease.model.LeasePhotoPhase;
 import com.trusthold.lease.model.PhotoLabel;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import java.time.Instant;
 import java.util.UUID;
 
 public record CreateLeasePhotoDto(
     @NotNull(message = "leaseId is required")
     UUID leaseId,
 
-    @NotNull(message = "phase is required")
+    @NotNull(message = "Photo phase is required")
     LeasePhotoPhase phase,
 
-    @NotNull(message = "label is required")
+    @NotNull(message = "Photo label is required")
     PhotoLabel label,
 
+    @Size(max = 60, message = "Custom label must be at most 60 characters")
     String customLabel,
 
-    @NotBlank(message = "imageUrl is required")
+    @NotBlank(message = "Image URL is required")
+    @Size(max = 500, message = "Image URL must be at most 500 characters")
     String imageUrl,
 
-    @NotNull(message = "uploadedBy is required")
-    UUID uploadedBy,
-
-    @NotNull(message = "uploadedAt is required")
-    Instant uploadedAt
+    @NotNull(message = "Uploader is required")
+    UUID uploadedBy
 ) {
 }
