@@ -1,9 +1,6 @@
 package com.trusthold.lease.dtos;
 
-import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -31,9 +28,11 @@ public record CreateLeaseDto(
     Instant startDate,
 
     @NotNull(message = "End date is required")
-    Instant endDate,
-
-    @NotNull(message = "Move in date is required")
-    Instant movedInAt
+    Instant endDate
 ) {
+
+  @AssertTrue(message = "End date must be after the start date")
+  public boolean isEndDateAfterStartDate() {
+    return startDate == null || endDate == null || endDate.isAfter(startDate);
+  }
 }

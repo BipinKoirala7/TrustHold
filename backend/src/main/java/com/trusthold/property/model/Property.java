@@ -28,7 +28,7 @@ public class Property {
   private UUID id;
 
   @NotNull(message = "Landlord is required")
-  @Column(name = "landlord_id", nullable = false)
+  @Column(name = "landlord_id", nullable = false, updatable = false)
   private UUID landlordId;
 
   @NotBlank(message = "Property name is required")

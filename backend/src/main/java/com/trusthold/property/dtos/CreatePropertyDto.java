@@ -5,17 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.util.UUID;
-
 public record CreatePropertyDto(
-    @NotNull(message = "Landlord is required")
-    UUID landlordId,
-
     @NotBlank(message = "Property name is required")
     @Size(max = 150, message = "Property name must be at most 150 characters")
     String name,
 
-    @NotNull(message = "Property type cannot be null")
+    @NotNull(message = "Property type is required")
     PropertyType type,
 
     @NotBlank(message = "Address line is required")

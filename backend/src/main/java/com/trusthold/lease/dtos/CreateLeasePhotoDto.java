@@ -2,6 +2,7 @@ package com.trusthold.lease.dtos;
 
 import com.trusthold.lease.model.LeasePhotoPhase;
 import com.trusthold.lease.model.PhotoLabel;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -9,7 +10,7 @@ import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
 public record CreateLeasePhotoDto(
-    @NotNull(message = "leaseId is required")
+    @NotNull(message = "Lease is required")
     UUID leaseId,
 
     @NotNull(message = "Photo phase is required")
@@ -28,4 +29,9 @@ public record CreateLeasePhotoDto(
     @NotNull(message = "Uploader is required")
     UUID uploadedBy
 ) {
+
+  @AssertTrue(message = "Custom label is required when the label is Other")
+  public boolean isCustomLabelProvided() {
+    return label != PhotoLabel.OTHER || (customLabel != null && !customLabel.isBlank());
+  }
 }

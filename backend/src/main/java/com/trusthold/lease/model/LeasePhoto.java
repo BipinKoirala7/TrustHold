@@ -14,7 +14,7 @@ import java.util.UUID;
 @Entity
 @Table(
     name = "lease_photos",
-    indexes = @Index(name = "lease_photos_lease_id_idx", columnList = "lease_id")
+    indexes = @Index(name = "idx_lease_photo_lease", columnList = "lease_id")
 )
 @Getter
 @Setter
@@ -24,7 +24,7 @@ public class LeasePhoto {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @NotNull(message = "leaseId is required")
+  @NotNull(message = "Lease is required")
   @Column(name = "lease_id", nullable = false, updatable = false)
   private UUID leaseId;
 
@@ -49,7 +49,7 @@ public class LeasePhoto {
   private String imageUrl;
 
   @NotNull(message = "Uploader is required")
-  @Column(name = "uploaded_by", nullable = false)
+  @Column(name = "uploaded_by", nullable = false, updatable = false)
   private UUID uploadedBy;
 
   @CreationTimestamp
