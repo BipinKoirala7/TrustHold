@@ -7,7 +7,7 @@ import com.trusthold.auth.repository.PasswordResetTokenRepository;
 import com.trusthold.mail.dtos.PasswordResetEvent;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.exception.AppException;
-import com.trusthold.shared.service.TokenHasher;
+import com.trusthold.shared.service.TokenService;
 import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
 import com.trusthold.user.service.UserService;
@@ -158,7 +158,7 @@ public class PasswordResetTokenServiceServiceTests {
       verify(passwordResetTokenRepository).save(tokenCaptor.capture());
 
       PasswordResetToken savedToken = tokenCaptor.getValue();
-      assertThat(savedToken.getTokenHash()).isEqualTo(TokenHasher.sha256Hex(rawToken));
+      assertThat(savedToken.getTokenHash()).isEqualTo(TokenService.sha256Hex(rawToken));
     }
   }
 
@@ -215,14 +215,14 @@ public class PasswordResetTokenServiceServiceTests {
       passwordResetToken = new PasswordResetToken();
       passwordResetToken.setId(UUID.randomUUID());
       passwordResetToken.setUserId(user.getId());
-      passwordResetToken.setTokenHash(TokenHasher.sha256Hex(rawToken));
+      passwordResetToken.setTokenHash(TokenService.sha256Hex(rawToken));
       passwordResetToken.setExpiresAt(Instant.now().plus(30, java.time.temporal.ChronoUnit.MINUTES));
     }
 
     @Test
     void shouldThrowInvalidToken_whenTokenHashNotFound() {
       // Arrange
-      String hash = TokenHasher.sha256Hex(resetPasswordDto.rawToken());
+      String hash = TokenService.sha256Hex(resetPasswordDto.rawToken());
       when(passwordResetTokenRepository.findByTokenHash(hash)).thenReturn(Optional.empty());
 
       // Act & Assert
@@ -236,7 +236,7 @@ public class PasswordResetTokenServiceServiceTests {
     void shouldThrowInvalidToken_whenTokenIsExpired() {
       // Arrange
       passwordResetToken.setExpiresAt(Instant.now().minus(1, java.time.temporal.ChronoUnit.MINUTES));
-      String hash = TokenHasher.sha256Hex(resetPasswordDto.rawToken());
+      String hash = TokenService.sha256Hex(resetPasswordDto.rawToken());
       when(passwordResetTokenRepository.findByTokenHash(hash)).thenReturn(Optional.of(passwordResetToken));
       when(passwordResetTokenRepository.consume(eq(hash), any(Instant.class))).thenReturn(0);
 
@@ -251,7 +251,7 @@ public class PasswordResetTokenServiceServiceTests {
     @Test
     void shouldThrowUserNotFound_whenUserServiceCannotFindUser() {
       // Arrange
-      String hash = TokenHasher.sha256Hex(resetPasswordDto.rawToken());
+      String hash = TokenService.sha256Hex(resetPasswordDto.rawToken());
       when(passwordResetTokenRepository.findByTokenHash(hash)).thenReturn(Optional.of(passwordResetToken));
       when(passwordResetTokenRepository.consume(eq(hash), any(Instant.class))).thenReturn(1);
       when(userService.getUserById(passwordResetToken.getUserId()))
@@ -268,7 +268,7 @@ public class PasswordResetTokenServiceServiceTests {
     @Test
     void shouldResetPasswordAndClearCookies_whenTokenIsValid() {
       // Arrange
-      String hash = TokenHasher.sha256Hex(resetPasswordDto.rawToken());
+      String hash = TokenService.sha256Hex(resetPasswordDto.rawToken());
       String newEncodedPassword = "newEncodedPassword";
 
       when(passwordResetTokenRepository.findByTokenHash(hash)).thenReturn(Optional.of(passwordResetToken));
@@ -295,7 +295,7 @@ public class PasswordResetTokenServiceServiceTests {
     @Test
     void shouldSetNewPasswordHash_onSavedUser() {
       // Arrange
-      String hash = TokenHasher.sha256Hex(resetPasswordDto.rawToken());
+      String hash = TokenService.sha256Hex(resetPasswordDto.rawToken());
       String newEncodedPassword = "newEncodedPassword";
 
       when(passwordResetTokenRepository.findByTokenHash(hash)).thenReturn(Optional.of(passwordResetToken));
@@ -318,7 +318,7 @@ public class PasswordResetTokenServiceServiceTests {
     @Test
     void shouldThrowInvalidToken_whenTokenAlreadyConsumed() {
       // Arrange - token exists and is not expired, but was already consumed (replay attack)
-      String hash = TokenHasher.sha256Hex(resetPasswordDto.rawToken());
+      String hash = TokenService.sha256Hex(resetPasswordDto.rawToken());
       when(passwordResetTokenRepository.findByTokenHash(hash)).thenReturn(Optional.of(passwordResetToken));
       when(passwordResetTokenRepository.consume(eq(hash), any(Instant.class))).thenReturn(0);
 
@@ -334,7 +334,7 @@ public class PasswordResetTokenServiceServiceTests {
     @Test
     void shouldDeleteStaleTokens_afterSuccessfulReset() {
       // Arrange
-      String hash = TokenHasher.sha256Hex(resetPasswordDto.rawToken());
+      String hash = TokenService.sha256Hex(resetPasswordDto.rawToken());
       String newEncodedPassword = "newEncodedPassword";
 
       when(passwordResetTokenRepository.findByTokenHash(hash)).thenReturn(Optional.of(passwordResetToken));
@@ -353,7 +353,7 @@ public class PasswordResetTokenServiceServiceTests {
     @Test
     void shouldPropagateDBError_whenUserSaveFails() {
       // Arrange - token is consumed but saving the user fails
-      String hash = TokenHasher.sha256Hex(resetPasswordDto.rawToken());
+      String hash = TokenService.sha256Hex(resetPasswordDto.rawToken());
       String newEncodedPassword = "newEncodedPassword";
 
       when(passwordResetTokenRepository.findByTokenHash(hash)).thenReturn(Optional.of(passwordResetToken));
