@@ -61,11 +61,9 @@ public class Lease {
   @Column(name = "moved_in_at")
   private Instant movedInAt;
 
-  @NotNull(message = "Move out initiated date cannot be null")
   @Column(name = "move_out_initiated_at")
   private Instant moveOutInitiatedAt;
 
-  @NotNull(message = "Move out initiated by cannot be null")
   @Column(name = "move_out_initiated_by")
   private UUID moveOutInitiatedBy;  // userId of the user who initiated move out
 

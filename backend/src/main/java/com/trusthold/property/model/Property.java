@@ -36,8 +36,8 @@ public class Property {
 
   @NotNull(message = "Property type cannot be null")
   @Enumerated(EnumType.STRING)
-  @Column(name = "property_type", nullable = false, length = 20)
-  private PropertyType propertyType;
+  @Column(name = "type", nullable = false, length = 20)
+  private PropertyType type;
 
   @NotBlank(message = "Address line cannot be null or empty")
   @Column(name = "address_line", nullable = false)
