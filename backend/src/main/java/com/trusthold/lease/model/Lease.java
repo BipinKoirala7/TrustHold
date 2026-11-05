@@ -28,11 +28,13 @@ public class Lease {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @NotNull(message = "Property ID cannot be null")
-  private UUID property;
+  @NotNull(message = "Property ID is required")
+  @Column(name = "property_id", nullable = false, updatable = false)
+  private UUID propertyId;
 
-  @NotNull(message = "Tenant ID cannot be null")
-  private UUID tenant;
+  @NotNull(message = "Tenant ID is required")
+  @Column(name = "tenant_id", nullable = false, updatable = false)
+  private UUID tenantId;
 
   @NotNull(message = "Monthly rent cannot be null")
   @Column(name = "monthly_rent", nullable = false, precision = 12, scale = 2)
@@ -67,17 +69,12 @@ public class Lease {
   @Column(name = "move_out_initiated_by")
   private UUID moveOutInitiatedBy;  // userId of the user who initiated move out
 
-  @NotNull(message = "Moved out date cannot be null")
   @Column(name = "moved_out_at")
   private Instant movedOutAt;
 
   @NotNull(message = "Settled cannot be null")
   @Column(name = "is_settled", nullable = false)
   private boolean settled = false;
-
-  // Plain column for now; becomes a @OneToOne to Settlement in Increment 6
-  //  @Column(name = "settlement_id")
-  //  private UUID settlementId;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)

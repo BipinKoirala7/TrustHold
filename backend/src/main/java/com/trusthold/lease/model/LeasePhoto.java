@@ -18,13 +18,16 @@ public class LeasePhoto {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @NotNull
+  @NotNull(message = "leaseId is required")
+  @Column(name = "lease_id", nullable = false, updatable = false)
   private UUID leaseId;
 
+  @NotNull(message = "Lease phase is required")
   @Enumerated(EnumType.STRING)
   @Column(name = "photo_phase", nullable = false, length = 20)
   private LeasePhotoPhase phase;
 
+  @NotNull(message = "Photo label is required")
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 30)
   private PhotoLabel label;
@@ -33,10 +36,12 @@ public class LeasePhoto {
   @Column(name = "custom_label", length = 60)
   private String customLabel;
 
-  @Column(name = "image_url", nullable = false, length = 500)
+  @NotNull(message = "Image URL is required")
+  @Column(name = "image_url", nullable = false, length = 500, columnDefinition = "VARCHAR(500)")
   private String imageUrl;
 
-  @NotNull
+  @NotNull(message = "Uploaded by user_id is required")
+  @Column(name = "uploaded_by", nullable = false)
   private UUID uploadedBy;
 
   @CreationTimestamp
