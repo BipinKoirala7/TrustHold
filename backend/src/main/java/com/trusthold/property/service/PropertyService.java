@@ -17,6 +17,13 @@ import org.springframework.validation.annotation.Validated;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Property lookups and management.
+ *
+ * <p>Only Authenticated users are able to access the resources.
+ * Throws {@link AppException} if the user is not a landlord.
+ * </p>
+ */
 @Service
 @RequiredArgsConstructor
 @Validated
@@ -29,6 +36,8 @@ public class PropertyService {
 
   /**
    * Creates a new property for the authenticated user.
+   * Landlords can only create property. The target
+   * landlord is taken from the authenticated user.
    *
    * @param authUser authenticated user
    * @param createPropertyDto the property details

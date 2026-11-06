@@ -105,7 +105,7 @@ public class UserService {
   public void isAValidLandlord(@NotNull AuthUser authUser){
     if(authUser.role() != Role.LANDLORD){
       log.debug("User with id {} is not landlord", authUser.id());
-      throw new AppException(ErrorInfo.UNAUTHORIZED);
+      throw new AppException(ErrorInfo.FORBIDDEN);
     }
   }
 
