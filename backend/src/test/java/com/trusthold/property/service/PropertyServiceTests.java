@@ -57,6 +57,15 @@ public class PropertyServiceTests {
   class CreatePropertyTests {
 
     @Test
+    void shouldThrowAppException_whenAuthUserIsNull(){
+      // Act & Assert
+      assertThatThrownBy(() -> propertyService.createProperty(null, createPropertyDto))
+          .isInstanceOf(AppException.class)
+          .extracting("errorInfo")
+          .isEqualTo(ErrorInfo.UNAUTHORIZED);
+    }
+
+    @Test
     void shouldThrowAppException_whenUserIsNotALandlord() {
       // Arrange
       doThrow(new AppException(ErrorInfo.UNAUTHORIZED))

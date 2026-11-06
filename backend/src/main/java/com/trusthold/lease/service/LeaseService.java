@@ -36,9 +36,9 @@ public class LeaseService {
    * @throws AppException if the tenant is not a tenant
    */
   public void createLease(AuthUser authUser, @NotNull CreateLeaseDto createLeaseDto) {
-    log.info("Creating lease with data: {}", createLeaseDto);
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
 
+    log.info("Creating lease with data: {} for user: {}", createLeaseDto, authUser);
     userService.isAValidLandlord(authUser);
 
     if(!propertyService.exists(createLeaseDto.propertyId())){

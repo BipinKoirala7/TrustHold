@@ -47,8 +47,8 @@ public class UserService {
    * @throws AppException if there is no authenticated user or the user is not found
    */
   public PublicUserDto getAuthenticatedUser(AuthUser authUser){
-    log.info("Getting authenticated user");
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
+    log.info("Getting authenticated user for user: {}", authUser.id());
 
     User user = getUserById(authUser.id());
     return userMapper.userToPublicUserDto(user);
@@ -63,8 +63,8 @@ public class UserService {
    */
   @Transactional
   public void updateUser(AuthUser authUser, @NotNull UpdateUserDto updateUserDto){
-    log.debug("Updating user for user: userId={}", authUser.id());
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
+    log.debug("Updating user for user: userId={}", authUser.id());
 
     User user = getUserById(authUser.id());
 

@@ -43,7 +43,9 @@ public class PropertyService {
    * @param createPropertyDto the property details
    * @throws AppException if the user is not a landlord
    */
-  public void createProperty(@NotNull AuthUser authUser, @NotNull CreatePropertyDto createPropertyDto) {
+  public void createProperty(AuthUser authUser, @NotNull CreatePropertyDto createPropertyDto) {
+    Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+
     log.debug("Creating property for user with id {}", authUser.id());
     userService.isAValidLandlord(authUser);
 
@@ -60,9 +62,10 @@ public class PropertyService {
    * @return list of properties
    * @throws AppException if the user is not a landlord
    */
-  public List<Property> getAllProperties(@NotNull AuthUser authUser) {
-    log.debug("Fetching properties for user with id {}", authUser.id());
+  public List<Property> getAllProperties(AuthUser authUser) {
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+
+    log.debug("Fetching properties for user with id {}", authUser.id());
     userService.isAValidLandlord(authUser);
 
     return propertyRepository.findByLandlordId(authUser.id());
@@ -76,9 +79,10 @@ public class PropertyService {
    * @return property
    * @throws AppException if the user is not a landlord or the property is not found
    */
-  public Property getPropertyById(@NotNull AuthUser authUser, @NotNull UUID id){
-    log.debug("Fetching property with id {}", id);
+  public Property getPropertyById(AuthUser authUser, @NotNull UUID id){
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+
+    log.debug("Fetching property with id {}", id);
     userService.isAValidLandlord(authUser);
 
     return propertyRepository
