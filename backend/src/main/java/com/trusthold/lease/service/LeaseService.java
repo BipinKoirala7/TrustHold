@@ -27,6 +27,15 @@ public class LeaseService {
   private final LeaseRepository leaseRepository;
   private final LeaseMapper leaseMapper;
 
+  /**
+   * Creates a new lease for the authenticated user.
+   *
+   * @param authUser authenticated user
+   * @param createLeaseDto the lease details
+   * @throws AppException if the user is not a landlord
+   * @throws AppException if the property does not exist
+   * @throws AppException if the tenant is not a tenant
+   */
   public void createLease(AuthUser authUser, @NotNull CreateLeaseDto createLeaseDto) {
     log.info("Creating lease with data: {}", createLeaseDto);
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
@@ -47,8 +56,8 @@ public class LeaseService {
     }
 
     Lease lease = leaseMapper.toLeaseEntity(createLeaseDto);
-
     leaseRepository.save(lease);
-    log.info("Lease created successfully");
+
+    log.info("Lease created with id {}", lease.getId());
   }
 }

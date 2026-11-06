@@ -27,6 +27,7 @@ public enum ErrorInfo {
 
   // Lease
   TENANT_CANNOT_CREATE_LEASE(   "TENANT_CANNOT_CREATE_LEASE",       HttpStatus.UNAUTHORIZED, "Tenants are not allowed to create leases"),
+  TENANT_CANNOT_CREATE_PROPERTY("TENANT_CANNOT_CREATE_PROPERTY",    HttpStatus.UNAUTHORIZED, "Tenants are not allowed to create properties"),
   PROPERTY_NOT_FOUND(           "PROPERTY_NOT_FOUND",               HttpStatus.NOT_FOUND,    "Property chosen for lease doesn't exists"),
   PROVIDED_TENANT_IS_NOT_A_TENANT("PROVIDED_TENANT_IS_NOT_A_TENANT", HttpStatus.UNAUTHORIZED, "Provided tenant is not a tenant")
   ;
