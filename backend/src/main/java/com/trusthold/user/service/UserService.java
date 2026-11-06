@@ -6,6 +6,7 @@ import com.trusthold.shared.Guard;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.dtos.PublicUserDto;
 import com.trusthold.user.dtos.UpdateUserDto;
+import com.trusthold.user.model.Role;
 import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
@@ -114,6 +115,10 @@ public class UserService {
   /** @throws AppException if no user has this email */
   public User getUserByEmail(@NotNull String email) {
     return userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorInfo.INVALID_CREDENTIALS));
+  }
+
+  public boolean isUserTenant(@NotNull UUID userId) {
+    return getUserById(userId).getRole().equals(Role.TENANT);
   }
 
   public boolean existsByUsername(@NotNull String username) {

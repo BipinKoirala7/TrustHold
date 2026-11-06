@@ -1,0 +1,28 @@
+package com.trusthold.lease.controller;
+
+import com.trusthold.auth.model.AuthUser;
+import com.trusthold.lease.dtos.CreateLeaseDto;
+import com.trusthold.lease.service.LeaseService;
+import com.trusthold.shared.dtos.ApiResponse;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/lease")
+@RequiredArgsConstructor
+@Validated
+public class LeaseController {
+
+  private final LeaseService leaseService;
+
+  @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
+  public ApiResponse<Void> createLease(@AuthenticationPrincipal AuthUser authUser, @RequestBody @Valid CreateLeaseDto createLeaseDto) {
+    leaseService.createLease(authUser, createLeaseDto);
+    return ApiResponse.success();
+  }
+}

@@ -10,6 +10,9 @@ public record CreateLeaseDto(
     @NotNull(message = "Property is required")
     UUID propertyId,
 
+    @NotNull(message = "Landlord is required")
+    UUID landlordId,
+
     @NotNull(message = "Tenant is required")
     UUID tenantId,
 

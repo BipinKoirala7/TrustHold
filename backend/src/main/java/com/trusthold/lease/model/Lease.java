@@ -20,7 +20,8 @@ import java.util.UUID;
     indexes = {
         @Index(name = "idx_lease_property", columnList = "property_id"),
         @Index(name = "idx_lease_tenant", columnList = "tenant_id"),
-        @Index(name = "idx_lease_status", columnList = "status")
+        @Index(name = "idx_lease_status", columnList = "status"),
+        @Index(name = "idx_lease_landlord", columnList = "landlord_id")
     }
 )
 @Getter
@@ -31,13 +32,17 @@ public class Lease {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  // Created so to avoid race conditions
+  // Created so to avoid lock failures
   @Version
   private Long version;
 
   @NotNull(message = "Property is required")
   @Column(name = "property_id", nullable = false, updatable = false)
   private UUID propertyId;
+
+  @NotNull(message = "Landlord is required")
+  @Column(name = "landlord_id", nullable = false, updatable = false)
+  private UUID landlordId;
 
   @NotNull(message = "Tenant is required")
   @Column(name = "tenant_id", nullable = false, updatable = false)
