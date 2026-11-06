@@ -102,6 +102,13 @@ public class UserService {
 
   // ---- Look up helpers ----
 
+  public void isAValidLandlord(@NotNull AuthUser authUser){
+    if(authUser.role() != Role.LANDLORD){
+      log.debug("User with id {} is not landlord", authUser.id());
+      throw new AppException(ErrorInfo.UNAUTHORIZED);
+    }
+  }
+
   /** @return the user, or empty if no user has this email */
   public Optional<User> getByEmail(@NotNull String email) {
     return userRepository.findByEmail(email);

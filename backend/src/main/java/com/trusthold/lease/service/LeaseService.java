@@ -8,7 +8,6 @@ import com.trusthold.property.service.PropertyService;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.Guard;
 import com.trusthold.shared.exception.AppException;
-import com.trusthold.user.model.Role;
 import com.trusthold.user.service.UserService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -40,10 +39,7 @@ public class LeaseService {
     log.info("Creating lease with data: {}", createLeaseDto);
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
 
-    if(authUser.role() != Role.LANDLORD){
-      log.warn("User with id {} is not a landlord", authUser.id());
-      throw new AppException(ErrorInfo.TENANT_CANNOT_CREATE_LEASE);
-    }
+    userService.isAValidLandlord(authUser);
 
     if(!propertyService.exists(createLeaseDto.propertyId())){
       log.warn("Property with id {} does not exist", createLeaseDto.propertyId());
@@ -56,6 +52,7 @@ public class LeaseService {
     }
 
     Lease lease = leaseMapper.toLeaseEntity(createLeaseDto);
+    lease.setLandlordId(authUser.id());
     leaseRepository.save(lease);
 
     log.info("Lease created with id {}", lease.getId());
