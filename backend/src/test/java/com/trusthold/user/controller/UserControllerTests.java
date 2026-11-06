@@ -1,19 +1,13 @@
 package com.trusthold.user.controller;
 
-import com.trusthold.auth.filters.AccessTokenFilter;
-import com.trusthold.auth.handlers.CustomAuthenticationEntryPoint;
 import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.controller.ControllerTestSupport;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.dtos.UpdateUserDto;
 import com.trusthold.user.service.UserService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -30,24 +24,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 415, malformed JSON) are covered once in AuthControllerTests.ExceptionHandlingTests.
  * Auth/401 behavior with the real filter is covered by the integration journey.
  */
-@WebMvcTest(controllers = UserController.class)
-@AutoConfigureMockMvc(addFilters = false)
-public class UserControllerTests {
+public class UserControllerTests extends ControllerTestSupport {
 
   @MockitoBean
   private UserService userService;
-
-  @MockitoBean
-  private AccessTokenFilter accessTokenFilter;
-
-  @MockitoBean
-  private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
 
   @Nested
   class GetAuthenticatedUserTests {
