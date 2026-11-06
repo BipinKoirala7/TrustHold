@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { getCurrentUser } from "../api/auth";
-import { queryKeys } from "../query-cache-key";
+import { getCurrentUser } from "@/lib/api/auth";
+import { queryKeys } from "@/lib/query-cache-key";
 
 export function useAuth() {
   const { data, isLoading } = useQuery({

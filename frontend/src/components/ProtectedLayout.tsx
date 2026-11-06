@@ -1,9 +1,9 @@
 "use client";
 
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { redirect, usePathname } from "next/navigation";
 import { Spinner } from "./ui/spinner";
-import { Role } from "@/lib/schema/authSchema";
+import { Role } from "@/lib/schema/userSchema";
 import { homePathFor } from "@/lib/api/auth";
 
 const ROLE_PREFIXES: Record<string, Role> = {

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { PasswordInput } from "@/components/auth/password-input";
 import { loginSchema, type LoginUserDto } from "@/lib/schema/authSchema";
-import { useLogin } from "@/lib/hooks/useLogin";
+import { useLogin } from "@/hooks/useLogin";
 
 const inputClass = "h-12 bg-card px-4 text-base md:text-base border-border";
 

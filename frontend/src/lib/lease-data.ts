@@ -1,4 +1,4 @@
-import type { Role } from "@/lib/role-config";
+import { Role } from "./schema/userSchema";
 
 export type LeaseStatus =
   | "PENDING_MOVE_IN"
@@ -122,7 +122,7 @@ export const leases: Lease[] = [
 
 // The landlord sees the tenant, the tenant sees the landlord
 export const getOtherParty = (lease: Lease, role: Role) =>
-  role === "landlord" ? lease.tenantName : lease.landlordName;
+  role === "LANDLORD" ? lease.tenantName : lease.landlordName;
 
 export const formatDeposit = (amount: number) =>
   `Rs. ${amount.toLocaleString("en-IN")}`;

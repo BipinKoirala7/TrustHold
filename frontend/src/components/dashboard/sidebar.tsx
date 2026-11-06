@@ -34,13 +34,11 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { Logo } from "../brand/logo";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { logoutUser } from "@/lib/api/auth";
-import { toast } from "sonner";
 import { Spinner } from "../ui/spinner";
-import { queryKeys } from "@/lib/query-cache-key";
+import { useEffect } from "react";
+import { useLogout } from "@/hooks/useLogout";
 
 const activeStyles =
   "data-active:bg-primary data-active:text-primary-foreground data-active:hover:bg-primary/90 data-active:hover:text-primary-foreground " +
@@ -55,30 +53,16 @@ function InsetSeparator() {
 }
 
 export function AppSidebar() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const queryClient = useQueryClient();
   const { state, isMobile, toggleSidebar } = useSidebar();
-  const { mutate, isPending } = useMutation({
-    mutationFn: async () => {
-      await logoutUser();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.me });
-      toast.success("Logged out successfully");
-      router.replace("/login");
-    },
-    onError: (error) => {
-      toast.error("Logout Failed", {
-        description:
-          error instanceof Error ? error.message : "Please try again!",
-      });
-    },
-  });
+  const { mutate, isPending } = useLogout();
 
-  if (!user) return router.replace("/login");
-
+  if (!user) {
+    router.replace("/login");
+    return;
+  }
   const basePath = `/${user.role.toLowerCase()}`;
   const nav = [
     { label: "Dashboard", href: basePath, icon: Home },
@@ -92,6 +76,12 @@ export function AppSidebar() {
   // The dashboard link only matches exactly, the rest match their sub-pages too
   const isActive = (href: string) =>
     href === basePath ? pathname === href : pathname.startsWith(href);
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace("/login");
+    }
+  }, [isLoading, user, router]);
 
   return (
     <Sidebar collapsible="icon">

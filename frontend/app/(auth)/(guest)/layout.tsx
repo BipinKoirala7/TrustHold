@@ -2,7 +2,7 @@
 
 import { Spinner } from "@/components/ui/spinner";
 import { homePathFor } from "@/lib/api/auth";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
