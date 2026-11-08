@@ -19,7 +19,7 @@ export default function DashboardLayout({
           <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 md:hidden">
             <SidebarTrigger />
           </header>
-          <main className="flex-1 p-6 md:p-8">{children}</main>
+          <main className="flex-1 p-6 md:p-8 bg-muted">{children}</main>
         </SidebarInset>
       </SidebarProvider>
     </ProtectedLayout>

@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const registrationRoles = ["LANDLORD", "TENANT"] as const;
 export type RegistrationRole = (typeof registrationRoles)[number];
-export type Role = RegistrationRole | "ADMIN";
 
 export const registerSchema = z
   .object({

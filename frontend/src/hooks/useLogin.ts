@@ -2,11 +2,11 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { getCurrentUser, homePathFor, login } from "../api/auth";
-import { ApiError } from "../api/error";
+import { getCurrentUser, homePathFor, login } from "@/lib/api/auth";
+import { ApiError } from "@/lib/api/error";
 import { toast } from "sonner";
-import { LoginUserDto } from "../schema/authSchema";
-import { queryKeys } from "../query-cache-key";
+import { LoginUserDto } from "@/lib/schema/authSchema";
+import { queryKeys } from "@/lib/query-cache-key";
 
 export function useLogin() {
   const queryClient = useQueryClient();

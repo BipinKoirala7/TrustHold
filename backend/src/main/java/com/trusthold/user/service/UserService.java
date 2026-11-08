@@ -6,6 +6,7 @@ import com.trusthold.shared.Guard;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.dtos.PublicUserDto;
 import com.trusthold.user.dtos.UpdateUserDto;
+import com.trusthold.user.model.Role;
 import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
@@ -46,8 +47,8 @@ public class UserService {
    * @throws AppException if there is no authenticated user or the user is not found
    */
   public PublicUserDto getAuthenticatedUser(AuthUser authUser){
-    log.info("Getting authenticated user");
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
+    log.info("Getting authenticated user for user: {}", authUser.id());
 
     User user = getUserById(authUser.id());
     return userMapper.userToPublicUserDto(user);
@@ -62,8 +63,8 @@ public class UserService {
    */
   @Transactional
   public void updateUser(AuthUser authUser, @NotNull UpdateUserDto updateUserDto){
-    log.debug("Updating user for user: userId={}", authUser.id());
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
+    log.debug("Updating user for user: userId={}", authUser.id());
 
     User user = getUserById(authUser.id());
 
@@ -101,6 +102,13 @@ public class UserService {
 
   // ---- Look up helpers ----
 
+  public void isAValidLandlord(@NotNull AuthUser authUser){
+    if(authUser.role() != Role.LANDLORD){
+      log.debug("User with id {} is not landlord", authUser.id());
+      throw new AppException(ErrorInfo.FORBIDDEN);
+    }
+  }
+
   /** @return the user, or empty if no user has this email */
   public Optional<User> getByEmail(@NotNull String email) {
     return userRepository.findByEmail(email);
@@ -114,6 +122,10 @@ public class UserService {
   /** @throws AppException if no user has this email */
   public User getUserByEmail(@NotNull String email) {
     return userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorInfo.INVALID_CREDENTIALS));
+  }
+
+  public boolean isUserTenant(@NotNull UUID userId) {
+    return getUserById(userId).getRole().equals(Role.TENANT);
   }
 
   public boolean existsByUsername(@NotNull String username) {
