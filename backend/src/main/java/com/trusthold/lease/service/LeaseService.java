@@ -2,7 +2,6 @@ package com.trusthold.lease.service;
 
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.lease.dtos.CreateLeaseDto;
-import com.trusthold.lease.dtos.LandlordDashboardStatsSummaryDto;
 import com.trusthold.lease.model.Lease;
 import com.trusthold.lease.repository.LeaseRepository;
 import com.trusthold.property.service.PropertyService;
@@ -15,10 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-
-import java.time.Instant;
-import java.time.YearMonth;
-import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
@@ -61,14 +56,5 @@ public class LeaseService {
     leaseRepository.save(lease);
 
     log.info("Lease created with id {}", lease.getId());
-  }
-
-  public LandlordDashboardStatsSummaryDto getLandlordDashboardStatsSummary(AuthUser authUser) {
-    ZoneId zoneId = ZoneId.of("Asia/Kathmandu");
-    YearMonth yearMonth = YearMonth.now(zoneId);
-    Instant startOfMonth = yearMonth.atDay(1).atStartOfDay(zoneId).toInstant();
-    Instant endOfMonth = yearMonth.atEndOfMonth().atStartOfDay(zoneId).toInstant();
-
-    return leaseRepository.getDashboardSummary(authUser.id(), startOfMonth, endOfMonth);
   }
 }
