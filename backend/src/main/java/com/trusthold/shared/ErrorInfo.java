@@ -33,6 +33,19 @@ public enum ErrorInfo {
   // Property
   PROPERTY_NOT_FOUND(           "PROPERTY_NOT_FOUND",               HttpStatus.NOT_FOUND,    "Property chosen for lease doesn't exists"),
 
+  // Settlement
+  SETTLEMENT_PROPOSAL_NOT_PENDING("SETTLEMENT_PROPOSAL_NOT_PENDING", HttpStatus.CONFLICT, "This proposal is no longer open for agreement"),
+  SETTLEMENT_PROPOSAL_NOT_AGREED("SETTLEMENT_PROPOSAL_NOT_AGREED", HttpStatus.CONFLICT, "Both parties must agree before a settlement is created"),
+  SETTLEMENT_ALREADY_AGREED_BY_PARTY("SETTLEMENT_ALREADY_AGREED_BY_PARTY", HttpStatus.CONFLICT, "You have already agreed to this proposal"),
+  SETTLEMENT_ALREADY_CLOSED("SETTLEMENT_ALREADY_CLOSED", HttpStatus.CONFLICT, "This settlement is already closed"),
+  SETTLEMENT_NOT_PARTY("SETTLEMENT_NOT_PARTY", HttpStatus.FORBIDDEN, "You are not a party to this lease"),
+  SETTLEMENT_CANNOT_AGREE_OWN("SETTLEMENT_CANNOT_AGREE_OWN", HttpStatus.FORBIDDEN, "The proposer has already agreed; the other party must respond"),
+  SETTLEMENT_AMOUNTS_MISMATCH("SETTLEMENT_AMOUNTS_MISMATCH", HttpStatus.UNPROCESSABLE_CONTENT, "Refund and deduction must add up to the deposit amount"),
+  SETTLEMENT_DEPOSIT_NOT_HELD("SETTLEMENT_DEPOSIT_NOT_HELD", HttpStatus.CONFLICT, "No deposit is currently held for this lease"),
+  LEASE_NOT_MOVED_OUT("LEASE_NOT_MOVED_OUT", HttpStatus.CONFLICT, "Settlement can only be proposed after move-out is complete"),
+  LEASE_NOT_AGREED("LEASE_NOT_AGREED", HttpStatus.CONFLICT, "The lease has no agreed settlement to close"),
+  LEASE_ALREADY_SETTLED("LEASE_ALREADY_SETTLED", HttpStatus.CONFLICT, "This lease is already settled and locked"),
+
   ;
 
   private final String errCode;

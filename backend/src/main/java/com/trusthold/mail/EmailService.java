@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.Objects;
 
 /**
- * Service for sending emails.
+ * service for sending emails.
  */
 @Service
 @Slf4j
