@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class LandlordServiceTest {
+class LandlordServiceTests {
 
   private static final ZoneId KATHMANDU = ZoneId.of("Asia/Kathmandu");
 
