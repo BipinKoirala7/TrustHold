@@ -8,7 +8,7 @@ export function StatsGrid({ stats }: { stats: DashboardStat[] }) {
       : "sm:grid-cols-2 xl:grid-cols-4";
 
   return (
-    <div className={`grid gap-4 ${columns}`}>
+    <div className={`grid gap-2 ${columns}`}>
       {stats.map((stat) => (
         <StatCard key={stat.id} stat={stat} />
       ))}
