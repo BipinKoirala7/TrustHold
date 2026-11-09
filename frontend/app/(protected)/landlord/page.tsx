@@ -1,10 +1,9 @@
 import { GreetingHeader } from "@/components/dashboard/greeting-header";
+import { LandlordStatsGrid } from "@/components/dashboard/landlord-stats-grid";
 import { PendingActionsCard } from "@/components/dashboard/pending-actions-card";
 import { RecentActivityCard } from "@/components/dashboard/recent-activity-card";
-import { StatsGrid } from "@/components/dashboard/stats-grid";
 import {
   currentLandlord,
-  dashboardStats,
   pendingActions,
   recentActivity,
 } from "@/lib/mock-data";
@@ -16,7 +15,7 @@ export default function LandlordDashboardPage() {
         firstName={currentLandlord.firstName}
         subtitle="Here's what's happening across your leases today."
       />
-      <StatsGrid stats={dashboardStats} />
+      <LandlordStatsGrid />
       <div className="grid gap-6 lg:grid-cols-[1.45fr_1fr]">
         <PendingActionsCard actions={pendingActions} />
         <RecentActivityCard entries={recentActivity} />
