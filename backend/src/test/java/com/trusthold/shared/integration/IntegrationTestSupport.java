@@ -1,8 +1,9 @@
-package com.trusthold.shared.dtos;
+package com.trusthold.shared.integration;
 
 import com.trusthold.TestcontainersConfiguration;
 import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.dtos.RegisterUserDto;
+import com.trusthold.shared.dtos.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;

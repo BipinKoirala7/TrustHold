@@ -10,7 +10,7 @@ import com.trusthold.auth.repository.PasswordResetTokenRepository;
 import com.trusthold.mail.EmailService;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.dtos.ApiResponse;
-import com.trusthold.shared.dtos.IntegrationTestSupport;
+import com.trusthold.shared.integration.IntegrationTestSupport;
 import com.trusthold.user.model.AuthProvider;
 import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;

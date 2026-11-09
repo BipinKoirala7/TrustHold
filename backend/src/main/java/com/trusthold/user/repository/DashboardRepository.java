@@ -1,4 +1,4 @@
-package com.trusthold.user.service;
+package com.trusthold.user.repository;
 
 import com.trusthold.lease.model.Lease;
 import com.trusthold.user.dtos.LandlordDashboardSummaryDto;
@@ -14,12 +14,12 @@ public interface DashboardRepository extends Repository<Lease, UUID> {
   @Query(value = """
     SELECT
       COUNT(*) FILTER (WHERE l.status = 'ACTIVE')                                       AS activeLeases,
-      COUNT(*) FILTER (WHERE l.status IN ('ACTIVE','MOVE_OUT_INITIATED')
+      COUNT(*) FILTER (WHERE l.status IN ('ACTIVE','MOVE_OUT_IN_PROGRESS')
                          AND l.end_date >= :monthStart AND l.end_date < :monthEnd)      AS moveOutsThisMonth,
       COALESCE(SUM(l.deposit_amount) FILTER (
-          WHERE l.status IN ('ACTIVE','MOVE_OUT_INITIATED','MOVED_OUT')
+          WHERE l.status IN ('ACTIVE','MOVE_OUT_IN_PROGRESS','MOVED_OUT','AGREED')
             AND (s.id IS NULL OR s.closed_at IS NULL)), 0)                              AS heldInEscrow,
-      COUNT(*) FILTER (WHERE l.status IN ('ACTIVE','MOVE_OUT_INITIATED','MOVED_OUT')
+      COUNT(*) FILTER (WHERE l.status IN ('ACTIVE','MOVE_OUT_IN_PROGRESS','MOVED_OUT','AGREED')
                          AND (s.id IS NULL OR s.closed_at IS NULL))                     AS escrowDepositCount,
       COUNT(*) FILTER (WHERE l.status = 'PENDING_MOVE_IN')                              AS awaitingPayment,
       COALESCE(SUM(l.deposit_amount) FILTER (WHERE l.status = 'PENDING_MOVE_IN'), 0)    AS pendingAmount,

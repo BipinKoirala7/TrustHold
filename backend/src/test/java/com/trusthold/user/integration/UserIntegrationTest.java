@@ -4,7 +4,7 @@ import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.shared.dtos.ApiResponse;
-import com.trusthold.shared.dtos.IntegrationTestSupport;
+import com.trusthold.shared.integration.IntegrationTestSupport;
 import com.trusthold.user.dtos.PublicUserDto;
 import com.trusthold.user.dtos.UpdateUserDto;
 import com.trusthold.user.repository.UserRepository;

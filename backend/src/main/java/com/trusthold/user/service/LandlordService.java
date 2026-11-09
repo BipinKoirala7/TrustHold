@@ -2,6 +2,7 @@ package com.trusthold.user.service;
 
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.user.dtos.LandlordDashboardSummaryDto;
+import com.trusthold.user.repository.DashboardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

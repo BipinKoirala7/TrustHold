@@ -2,13 +2,11 @@ package com.trusthold.auth.controller;
 
 import com.trusthold.auth.dtos.*;
 import com.trusthold.auth.filters.AccessTokenFilter;
-import com.trusthold.auth.handlers.CustomAuthenticationEntryPoint;
-import com.trusthold.auth.handlers.OAuthFailureHandler;
-import com.trusthold.auth.handlers.OAuthSuccessHandler;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.service.PasswordResetTokenService;
 import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.controller.ControllerTestSupport;
 import com.trusthold.shared.exception.AppException;
 import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,12 +14,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -41,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(controllers = AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
-public class AuthControllerTests {
+public class AuthControllerTests extends ControllerTestSupport {
 
   @MockitoBean
   private AuthService authService;
@@ -52,20 +47,6 @@ public class AuthControllerTests {
   @MockitoBean
   private AccessTokenFilter accessTokenFilter;
 
-  @MockitoBean
-  private OAuthSuccessHandler oAuthSuccessHandler;
-
-  @MockitoBean
-  private OAuthFailureHandler oAuthFailureHandler;
-
-  @MockitoBean
-  private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
 
   @Nested
   class RegisterLocalUserTests {
