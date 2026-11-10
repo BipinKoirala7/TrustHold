@@ -2,7 +2,10 @@ package com.trusthold.lease.service;
 
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.lease.dtos.CreateLeaseDto;
+import com.trusthold.lease.dtos.LeaseActivityEvent;
+import com.trusthold.lease.model.Activity;
 import com.trusthold.lease.model.Lease;
+import com.trusthold.lease.repository.LeaseActivityRepository;
 import com.trusthold.lease.repository.LeaseRepository;
 import com.trusthold.property.service.PropertyService;
 import com.trusthold.shared.ErrorInfo;
@@ -12,6 +15,7 @@ import com.trusthold.user.service.UserService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -21,9 +25,12 @@ import org.springframework.validation.annotation.Validated;
 @Slf4j
 public class LeaseService {
 
+  private final ApplicationEventPublisher applicationEventPublisher;
+  private final LeaseActivityRepository leaseActivityRepository;
+  private final LeaseActivityMapper leaseActivityMapper;
   private final PropertyService propertyService;
-  private final UserService userService;
   private final LeaseRepository leaseRepository;
+  private final UserService userService;
   private final LeaseMapper leaseMapper;
 
   /**
@@ -55,6 +62,13 @@ public class LeaseService {
     lease.setLandlordId(authUser.id());
     leaseRepository.save(lease);
 
+    applicationEventPublisher.publishEvent(new LeaseActivityEvent(lease.getId(), Activity.LEASE_CREATED.getLabel(), "Lease created for property with id " + lease.getId()));
+
     log.info("Lease created with id {}", lease.getId());
+  }
+
+  public void createLeaseActivity(@NotNull LeaseActivityEvent leaseActivityEvent){
+    log.debug("Creating lease activity");
+    leaseActivityRepository.save(leaseActivityMapper.toEntity(leaseActivityEvent));
   }
 }

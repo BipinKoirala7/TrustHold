@@ -1,5 +1,8 @@
-package com.trusthold.mail;
+package com.trusthold.shared;
 
+import com.trusthold.lease.dtos.LeaseActivityEvent;
+import com.trusthold.lease.service.LeaseService;
+import com.trusthold.mail.EmailService;
 import com.trusthold.mail.dtos.PasswordResetEvent;
 import com.trusthold.mail.dtos.UserRegisteredEvent;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +17,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class EventListener {
 
   private final EmailService emailService;
+  private final LeaseService leaseService;
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void onUserRegistered(UserRegisteredEvent event) {
@@ -25,6 +29,12 @@ public class EventListener {
   public void onPasswordReset(PasswordResetEvent event) {
     log.info("Password reset event received for {}", event.to());
     emailService.sendPasswordResetEmail(event.to(), event.firstName(), event.rawToken());
+  }
+
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void onLeaseActivity(LeaseActivityEvent event){
+    log.info("Lease activity event received for {}", event.leaseId());
+    leaseService.createLeaseActivity(event);
   }
 
 //  @Async
