@@ -1,9 +1,12 @@
 package com.trusthold.lease.service;
 
+import com.trusthold.auth.model.AuthUser;
 import com.trusthold.lease.dtos.LeaseActivityEvent;
+import com.trusthold.lease.model.Lease;
 import com.trusthold.lease.model.LeaseActivity;
 import com.trusthold.lease.repository.LeaseActivityRepository;
 import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.Guard;
 import com.trusthold.shared.exception.AppException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -16,6 +19,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @EnableAsync
@@ -48,6 +52,15 @@ public class LeaseActivityService {
       throw new AppException(ErrorInfo.LEASE_NOT_FOUND);
     }
 
-    return leaseActivityRepository.findByLeaseId(leaseId);
+    return leaseActivityRepository.findByLeaseIdOrderByCreatedAtDesc(leaseId);
+  }
+
+  public List<LeaseActivity> getRecentActivity(AuthUser authUser){
+    log.debug("Getting recent activity for user={}", authUser.id());
+    Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+
+    List<Lease> leases = leaseService.getUsersLeases(authUser);
+
+    return leaseActivityRepository.findTop5ByLeaseIdInOrderByCreatedAtDesc(leases.stream().map(Lease::getId).collect(Collectors.toList()));
   }
 }

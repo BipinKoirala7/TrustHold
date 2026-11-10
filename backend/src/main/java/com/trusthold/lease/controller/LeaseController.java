@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/lease")
+@RequestMapping("lease")
 @RequiredArgsConstructor
 @Validated
 public class LeaseController {

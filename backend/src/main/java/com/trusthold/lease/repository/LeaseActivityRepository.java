@@ -8,5 +8,6 @@ import java.util.UUID;
 
 public interface LeaseActivityRepository extends JpaRepository<LeaseActivity, UUID> {
 
-  List<LeaseActivity> findByLeaseId(UUID leaseId);
+  List<LeaseActivity> findTop5ByLeaseIdInOrderByCreatedAtDesc(List<UUID> leaseId);
+  List<LeaseActivity> findByLeaseIdOrderByCreatedAtDesc(UUID leaseId);
 }
