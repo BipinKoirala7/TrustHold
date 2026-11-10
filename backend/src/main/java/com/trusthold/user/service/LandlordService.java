@@ -21,7 +21,6 @@ public class LandlordService {
    * @param authUser current authenticated user
    * @return the landlord dashboard stats summary
    */
-//  Todo: You have to see whether the payment has already been made or not
   public LandlordDashboardSummaryDto getLandlordDashboardStatsSummary(AuthUser authUser) {
     ZoneId zoneId = ZoneId.of("Asia/Kathmandu");
     YearMonth yearMonth = YearMonth.now(zoneId);

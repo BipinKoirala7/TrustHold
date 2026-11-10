@@ -1,6 +1,7 @@
-package com.trusthold.mail;
+package com.trusthold.shared;
 
 import com.trusthold.TestcontainersConfiguration;
+import com.trusthold.mail.EmailService;
 import com.trusthold.mail.dtos.PasswordResetEvent;
 import com.trusthold.mail.dtos.UserRegisteredEvent;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,8 +46,7 @@ class EventListenerTest {
 
   @Test
   void userRegistered_sendsEmailAfterCommit() {
-    tx.executeWithoutResult(status ->
-        publisher.publishEvent(event));
+    tx.executeWithoutResult(_ -> publisher.publishEvent(event));
 
     verify(emailService).newlyRegisterUserEmail(event.email(), event.role(), event.name());
   }
@@ -63,8 +63,7 @@ class EventListenerTest {
 
   @Test
   void passwordReset_sendsEmailAfterCommit() {
-    tx.executeWithoutResult(status ->
-        publisher.publishEvent(passwordResetEvent));
+    tx.executeWithoutResult(_ -> publisher.publishEvent(passwordResetEvent));
 
     verify(emailService).sendPasswordResetEmail(
         passwordResetEvent.to(), passwordResetEvent.firstName(), passwordResetEvent.rawToken());
