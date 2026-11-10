@@ -1,9 +1,9 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { registerUser } from "../api/auth";
-import { RegisterUerDto } from "../schema/authSchema";
-import { ApiError } from "../api/error";
+import { registerUser } from "@/lib/api/auth";
+import { RegisterUerDto } from "@/lib/schema/authSchema";
+import { ApiError } from "@/lib/api/error";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 

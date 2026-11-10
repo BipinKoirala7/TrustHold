@@ -23,7 +23,7 @@ import {
   type RegisterValues,
   type RegistrationRole,
 } from "@/lib/schema/authSchema";
-import { useRegister } from "@/lib/hooks/useRegister";
+import { useRegister } from "@/hooks/useRegister";
 
 const inputClass = "h-12 bg-card px-4 text-base md:text-base border-border";
 

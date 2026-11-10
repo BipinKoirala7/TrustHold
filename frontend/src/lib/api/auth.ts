@@ -1,8 +1,8 @@
-import type { LoginUserDto, Role } from "@/lib/schema/authSchema";
+import type { LoginUserDto } from "@/lib/schema/authSchema";
 import type { RegisterUerDto } from "@/lib/schema/authSchema";
 import api from "./axios";
 import { ApiError } from "./error";
-import { PublicUserDto } from "../schema/userSchema";
+import { PublicUserDto, Role } from "@/lib/schema/userSchema";
 
 const REGISTER_PATH = "auth/register";
 export async function registerUser(values: RegisterUerDto): Promise<void> {

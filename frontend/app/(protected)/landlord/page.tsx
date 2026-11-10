@@ -1,7 +1,7 @@
 import { GreetingHeader } from "@/components/dashboard/greeting-header";
-import { LandlordStatsGrid } from "@/components/dashboard/landlord-stats-grid";
+import { LandlordRecentActivity } from "@/components/dashboard/recent-activity/landlord-recent-activity";
+import { LandlordStatsGrid } from "@/components/dashboard/stats/landlord-stats-grid";
 import { PendingActionsCard } from "@/components/dashboard/pending-actions-card";
-import { RecentActivityCard } from "@/components/dashboard/recent-activity-card";
 import {
   currentLandlord,
   pendingActions,
@@ -18,7 +18,7 @@ export default function LandlordDashboardPage() {
       <LandlordStatsGrid />
       <div className="grid gap-6 lg:grid-cols-[1.45fr_1fr]">
         <PendingActionsCard actions={pendingActions} />
-        <RecentActivityCard entries={recentActivity} />
+        <LandlordRecentActivity />
       </div>
     </div>
   );

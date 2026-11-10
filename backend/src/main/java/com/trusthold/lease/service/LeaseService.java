@@ -2,6 +2,8 @@ package com.trusthold.lease.service;
 
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.lease.dtos.CreateLeaseDto;
+import com.trusthold.lease.dtos.LeaseActivityEvent;
+import com.trusthold.lease.model.Activity;
 import com.trusthold.lease.model.Lease;
 import com.trusthold.lease.repository.LeaseRepository;
 import com.trusthold.property.service.PropertyService;
@@ -12,8 +14,13 @@ import com.trusthold.user.service.UserService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,9 +28,10 @@ import org.springframework.validation.annotation.Validated;
 @Slf4j
 public class LeaseService {
 
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final PropertyService propertyService;
-  private final UserService userService;
   private final LeaseRepository leaseRepository;
+  private final UserService userService;
   private final LeaseMapper leaseMapper;
 
   /**
@@ -35,6 +43,7 @@ public class LeaseService {
    * @throws AppException if the property does not exist
    * @throws AppException if the tenant is not a tenant
    */
+  @Transactional
   public void createLease(AuthUser authUser, @NotNull CreateLeaseDto createLeaseDto) {
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
 
@@ -55,6 +64,24 @@ public class LeaseService {
     lease.setLandlordId(authUser.id());
     leaseRepository.save(lease);
 
+    String description = "Lease created for " + propertyService.getPropertyById(authUser, lease.getPropertyId()).getName();
+    applicationEventPublisher.publishEvent(new LeaseActivityEvent(lease.getId(), Activity.LEASE_CREATED.getLabel(), description));
+
     log.info("Lease created with id {}", lease.getId());
+  }
+
+  public List<Lease> getUsersLeases(AuthUser authUser){
+    log.info("Getting leases for user");
+    Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+
+    if(authUser.isLandlord()){
+      return leaseRepository.findAllByLandlordId(authUser.id());
+    } else {
+      return leaseRepository.findAllByTenantId(authUser.id());
+    }
+  }
+
+  public boolean exists(@NotNull UUID leaseId){
+    return leaseRepository.existsById(leaseId);
   }
 }
