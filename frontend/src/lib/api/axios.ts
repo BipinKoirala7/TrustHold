@@ -22,7 +22,7 @@ function refreshSession(): Promise<void> {
     // Use bare axios so this call doesn't go through our interceptor
     refreshPromise = axios
       .post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/token/refresh`,
         {},
         { withCredentials: true },
       )

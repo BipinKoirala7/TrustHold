@@ -6,7 +6,15 @@ import {
 } from "@/lib/api/landlord";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { Building2, CheckCircle2, Clock, Wallet } from "lucide-react";
+import {
+  AlertCircle,
+  Building2,
+  CheckCircle2,
+  Clock,
+  Wallet,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { LandlordStatsSkeleton } from "./landlord-stats-skeleton";
 
 const tones: Record<string, string> = {
   primary: "bg-primary/10 text-primary",
@@ -14,19 +22,38 @@ const tones: Record<string, string> = {
 };
 
 export function LandlordStatsGrid() {
-  const { data, isPending, isError } = useQuery<LandlordDashboardSummaryDto>({
-    queryKey: ["landlord-dashboard-summary-stats"],
-    queryFn: getLandlordDashboardSummaryStats,
-  });
+  const { data, isPending, isError, refetch, isFetching } =
+    useQuery<LandlordDashboardSummaryDto>({
+      queryKey: ["landlord-dashboard-summary-stats"],
+      queryFn: getLandlordDashboardSummaryStats,
+    });
 
   if (isPending) {
-    // Loading State
-    return null;
+    return <LandlordStatsSkeleton />;
   }
 
-  if (data === undefined || isError) {
-    // Error State
-    return null;
+  if (isError || data === undefined) {
+    return (
+      <div
+        role="alert"
+        className="flex items-center justify-between gap-3 rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-3"
+      >
+        <div className="flex items-center gap-2 text-sm text-destructive">
+          <AlertCircle className="size-4 shrink-0" />
+          <span>
+            Couldn&apos;t load your dashboard stats. Please try again.
+          </span>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => refetch()}
+          disabled={isFetching}
+        >
+          {isFetching ? "Retrying..." : "Retry"}
+        </Button>
+      </div>
+    );
   }
 
   return (

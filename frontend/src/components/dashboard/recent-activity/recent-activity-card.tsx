@@ -1,4 +1,4 @@
-import { ActivityItem } from "../activity-item";
+import { ActivityItem } from "./activity-item";
 import { LeaseActivity } from "@/lib/api/landlord";
 
 export function RecentActivityCard({

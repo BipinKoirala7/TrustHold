@@ -1,8 +1,7 @@
 import { GreetingHeader } from "@/components/dashboard/greeting-header";
 import { LandlordRecentActivity } from "@/components/dashboard/recent-activity/landlord-recent-activity";
-import { LandlordStatsGrid } from "@/components/dashboard/landlord-stats-grid";
+import { LandlordStatsGrid } from "@/components/dashboard/stats/landlord-stats-grid";
 import { PendingActionsCard } from "@/components/dashboard/pending-actions-card";
-import { RecentActivityCard } from "@/components/dashboard/recent-activity/recent-activity-card";
 import {
   currentLandlord,
   pendingActions,

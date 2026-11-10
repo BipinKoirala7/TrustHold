@@ -34,14 +34,14 @@ public class AuthController {
   private final AuthService authService;
   private final PasswordResetTokenService passwordResetTokenService;
 
-  @PostMapping("/register")
+  @PostMapping("register")
   @ResponseStatus(HttpStatus.CREATED)
   public ApiResponse<Void> registerLocalUser(@RequestBody @Valid RegisterUserDto registerUserDto) {
     authService.registerLocalUser(registerUserDto);
     return ApiResponse.success();
   }
 
-  @PostMapping("/oauth/register")
+  @PostMapping("oauth/register")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> beginGoogleRegistration(
       @RequestBody @Valid @NotNull GoogleRegistrationRequest body,
@@ -57,21 +57,21 @@ public class AuthController {
     return ApiResponse.success();
   }
 
-  @PostMapping("/login")
+  @PostMapping("login")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> loginUser(@RequestBody @Valid  LoginUserDto loginUserDto, HttpServletResponse response) {
     authService.loginUser(loginUserDto, response);
     return ApiResponse.success();
   }
 
-  @PostMapping("/token/refresh")
+  @PostMapping("token/refresh")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> refreshToken(HttpServletRequest request, HttpServletResponse response){
     authService.refreshToken(request, response);
     return ApiResponse.success();
   }
 
-  @PostMapping("/forgot-password")
+  @PostMapping("forgot-password")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> forgotPassword(
       @RequestBody @Valid ForgotPasswordDto forgotPasswordDto
@@ -80,7 +80,7 @@ public class AuthController {
     return ApiResponse.success();
   }
 
-  @PostMapping("/reset-password")
+  @PostMapping("reset-password")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> resetPassword(
       HttpServletResponse response,
@@ -90,7 +90,7 @@ public class AuthController {
     return ApiResponse.success();
   }
 
-  @PostMapping("/logout")
+  @PostMapping("logout")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> logout(HttpServletResponse response, @AuthenticationPrincipal @Valid AuthUser authUser){
     authService.logoutUser(response, authUser);
