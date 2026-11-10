@@ -1,7 +1,7 @@
 package com.trusthold.shared;
 
 import com.trusthold.lease.dtos.LeaseActivityEvent;
-import com.trusthold.lease.service.LeaseService;
+import com.trusthold.lease.service.LeaseActivityService;
 import com.trusthold.mail.EmailService;
 import com.trusthold.mail.dtos.PasswordResetEvent;
 import com.trusthold.mail.dtos.UserRegisteredEvent;
@@ -17,7 +17,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class EventListener {
 
   private final EmailService emailService;
-  private final LeaseService leaseService;
+  private final LeaseActivityService leaseActivityService;
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void onUserRegistered(UserRegisteredEvent event) {
@@ -34,7 +34,7 @@ public class EventListener {
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void onLeaseActivity(LeaseActivityEvent event){
     log.info("Lease activity event received for {}", event.leaseId());
-    leaseService.createLeaseActivity(event);
+    leaseActivityService.createLeaseActivity(event);
   }
 
 //  @Async

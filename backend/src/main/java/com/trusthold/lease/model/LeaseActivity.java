@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "recent_activity")
+@Table(name = "lease_activity")
 @Getter
 @Setter
 public class LeaseActivity {
