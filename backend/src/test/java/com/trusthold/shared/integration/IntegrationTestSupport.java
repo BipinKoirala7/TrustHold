@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.*;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,7 +23,6 @@ import static org.assertj.core.api.Assertions.assertThat;
     properties = "spring.aop.proxy-target-class=false"
 )
 @Import(TestcontainersConfiguration.class)
-@ActiveProfiles("test")
 @AutoConfigureTestRestTemplate
 public abstract class IntegrationTestSupport {
 

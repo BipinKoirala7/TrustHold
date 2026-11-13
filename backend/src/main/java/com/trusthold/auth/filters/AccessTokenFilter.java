@@ -50,7 +50,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
    * Checks if the request should not be authenticated.
    *
    * <p>
-   *   Filters all the requests except listed on {@code SHOULD_NOT_FILTER}.
+   *   Filters all the requests except listed on {@link AuthConfig#getPublicEndpoints()}.
    * </p>
    * @param request current HTTP request
    * @return if it should not be authenticated
@@ -58,7 +58,10 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getServletPath();
-    boolean shouldNotFilter = authConfig.getPublicEndpoints().stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
+    boolean shouldNotFilter = authConfig
+        .getPublicEndpoints()
+        .stream()
+        .anyMatch(pattern -> pathMatcher.match(pattern, path));
 
     log.debug("Access token filter {} for {}", shouldNotFilter ? "skipped" : "applied", path);
     return shouldNotFilter;
@@ -87,7 +90,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
       try {
         userId = UUID.fromString(claims.getSubject());
         role = Role.valueOf(claims.get("role", String.class));
-      } catch (IllegalArgumentException e) {
+      } catch (IllegalArgumentException | NullPointerException e) {
         throw new JwtException("Signed token has invalid subject or role claim", e);
       }
 

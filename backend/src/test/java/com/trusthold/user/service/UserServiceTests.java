@@ -174,7 +174,7 @@ public class UserServiceTests {
       assertThatThrownBy(() -> userService.deleteUser(null))
           .isInstanceOf(AppException.class)
           .extracting("errorInfo")
-          .isEqualTo(ErrorInfo.INVALID_TOKEN);
+          .isEqualTo(ErrorInfo.UNAUTHORIZED);
     }
 
     @Test

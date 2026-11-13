@@ -257,7 +257,7 @@ public class OAuthSuccessHandlerTests {
         handler.onAuthenticationSuccess(request, response, authentication);
 
         // Assert
-        verify(response).sendRedirect(frontendUrl + "/login?error=internal");
+        verify(response).sendRedirect(frontendUrl + "/login?error=role");
         verify(authService, never()).registerOAuthUser(any(RegisterOAuthUserDto.class));
       }
 
@@ -383,7 +383,7 @@ public class OAuthSuccessHandlerTests {
         handler.onAuthenticationSuccess(request, response, authentication);
 
         // Assert
-        verify(response).sendRedirect(frontendUrl + "/login?error=user");
+        verify(response).sendRedirect(frontendUrl + "/login?error=wrong_provider");
         verify(jwtService, never()).generateRefreshToken(any());
         verify(jwtService, never()).generateAccessToken(any());
       }
@@ -463,7 +463,7 @@ public class OAuthSuccessHandlerTests {
     }
 
     @Test
-    void shouldThrowException_whenActiveRefreshTokenServiceThrows() throws Exception {
+    void shouldThrowException_whenActiveRefreshTokenServiceThrows() {
       // Arrange
       when(jwtService.generateRefreshToken(testUser)).thenReturn("refresh-token");
       when(jwtService.generateAccessToken(testUser)).thenReturn("access-token");
@@ -480,10 +480,6 @@ public class OAuthSuccessHandlerTests {
       when(jwtService.generateRefreshToken(testUser)).thenReturn("refresh-token");
       when(jwtService.generateAccessToken(testUser)).thenReturn("access-token");
       doNothing().when(activeRefreshTokenService).storeActiveRefreshToken(testUser.getId(), "refresh-token");
-      when(cookieService.createRefreshTokenCookie("refresh-token"))
-          .thenReturn(new MockCookie("refresh", "refresh-token"));
-      when(cookieService.createAccessTokenCookie("access-token"))
-          .thenReturn(new MockCookie("access", "access-token"));
       doThrow(new RuntimeException("User update failed"))
           .when(userService).updateUserLastLoginTime(any(UUID.class));
 

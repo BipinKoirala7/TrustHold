@@ -7,6 +7,8 @@ import com.trusthold.user.dtos.UpdateUserDto;
 import com.trusthold.user.service.UserService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -24,6 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 415, malformed JSON) are covered once in AuthControllerTests.ExceptionHandlingTests.
  * Auth/401 behavior with the real filter is covered by the integration journey.
  */
+@WebMvcTest(UserController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class UserControllerTests extends ControllerTestSupport {
 
   @MockitoBean

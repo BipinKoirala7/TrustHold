@@ -77,8 +77,8 @@ public class SecurityConfig {
   }
 
   @Bean
-  public FilterRegistrationBean<AccessTokenFilter> accessTokenFilterFilterRegistrationBean(AccessTokenFilter filter) {
-    FilterRegistrationBean<AccessTokenFilter> registration = new FilterRegistrationBean<>(filter);
+  public FilterRegistrationBean<AccessTokenFilter> accessTokenFilterRegistration(AccessTokenFilter filter) {
+    var registration = new FilterRegistrationBean<>(filter);
     registration.setEnabled(false);
     return registration;
   }

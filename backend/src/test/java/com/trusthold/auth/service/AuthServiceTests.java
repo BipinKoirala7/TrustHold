@@ -383,7 +383,7 @@ public class AuthServiceTests {
       when(cookieService.getRefreshTokenCookie(mockRequest)).thenReturn(null);
 
       // Act & Assert
-      assertThrows(io.jsonwebtoken.JwtException.class, () -> underTest.refreshToken(mockRequest, mockResponse));
+      assertThrows(AppException.class, () -> underTest.refreshToken(mockRequest, mockResponse));
       verify(cookieService).getRefreshTokenCookie(mockRequest);
       verify(activeRefreshTokenService, never()).isRefreshTokenActive(anyString());
     }
@@ -396,7 +396,7 @@ public class AuthServiceTests {
       when(activeRefreshTokenService.isRefreshTokenActive(refreshToken)).thenReturn(false);
 
       // Act & Assert
-      assertThrows(JwtException.class, () -> underTest.refreshToken(mockRequest, mockResponse));
+      assertThrows(AppException.class, () -> underTest.refreshToken(mockRequest, mockResponse));
       verify(cookieService).getRefreshTokenCookie(mockRequest);
       verify(activeRefreshTokenService).isRefreshTokenActive(refreshToken);
       verify(jwtService, never()).validateRefreshToken(anyString());

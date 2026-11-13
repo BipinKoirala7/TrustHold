@@ -72,7 +72,7 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
       if (oAuth2User == null) {
-        fail(response, "OAuth User is null", "user");
+        fail(response, "OAuth User is null", "oauth");
         return;
       }
 
