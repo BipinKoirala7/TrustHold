@@ -7,6 +7,7 @@ import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.dtos.LandlordDashboardSummaryDto;
 import com.trusthold.user.repository.DashboardRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -24,6 +25,7 @@ public class LandlordService {
    * @param authUser current authenticated user
    * @return the landlord dashboard stats summary
    */
+  @PreAuthorize("hasRole('LANDLORD')")
   public LandlordDashboardSummaryDto getLandlordDashboardStatsSummary(AuthUser authUser) {
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
 

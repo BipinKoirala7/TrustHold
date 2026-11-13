@@ -178,11 +178,11 @@ public class AuthService {
     String refreshToken = cookieService.getRefreshTokenCookie(request);
 
     if (refreshToken.isBlank()) {
-      log.debug("Refresh rejected: no refresh token cookie");
+      log.debug("Refresh token rejected: no refresh token cookie");
       throw new AppException(ErrorInfo.INVALID_TOKEN);
     }
     if (!activeRefreshTokenService.isRefreshTokenActive(refreshToken)) {
-      log.warn("Refresh rejected: token is not the active one (possible reuse)");
+      log.warn("Refresh token rejected: token is not the active one (possible reuse)");
       throw new AppException(ErrorInfo.INVALID_TOKEN);
     }
     User user = jwtService.validateRefreshToken(refreshToken);

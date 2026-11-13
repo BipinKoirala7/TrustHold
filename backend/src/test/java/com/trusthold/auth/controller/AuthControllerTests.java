@@ -299,7 +299,7 @@ public class AuthControllerTests extends ControllerTestSupport {
   }
 
   /**
-   * The exception handler is shared by every endpoint, so its generic fallbacks
+   * Every endpoint shares the exception handler, so its generic fallbacks
    * are tested here once instead of once per endpoint.
    */
   @Nested

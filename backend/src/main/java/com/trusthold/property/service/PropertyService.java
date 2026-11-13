@@ -7,7 +7,6 @@ import com.trusthold.property.repository.PropertyRepository;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.Guard;
 import com.trusthold.shared.exception.AppException;
-import com.trusthold.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,7 +30,6 @@ import java.util.UUID;
 public class PropertyService {
 
   private final PropertyRepository propertyRepository;
-  private final UserService userService;
   private final PropertyMapper propertyMapper;
 
   /**

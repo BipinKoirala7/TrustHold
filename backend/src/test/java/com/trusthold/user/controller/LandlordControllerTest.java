@@ -9,6 +9,7 @@ import com.trusthold.user.model.Role;
 import com.trusthold.user.service.LandlordService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -52,46 +53,49 @@ public class LandlordControllerTest extends ControllerTestSupport {
     SecurityContextHolder.clearContext();
   }
 
-  @Test
-  void shouldReturnOkWithWrappedSummary_whenRequestIsSuccessful() throws Exception {
-    when(landlordService.getLandlordDashboardStatsSummary(authUser)).thenReturn(
-        new LandlordDashboardSummaryDto(3L, 1L, new BigDecimal("1500.50"), 2L, 1L, new BigDecimal("300.00"), 4L));
+  @Nested
+  class GetLandlordStatsTests{
+    @Test
+    void shouldReturnOkWithWrappedSummary_whenRequestIsSuccessful() throws Exception {
+      when(landlordService.getLandlordDashboardStatsSummary(authUser)).thenReturn(
+          new LandlordDashboardSummaryDto(3L, 1L, new BigDecimal("1500.50"), 2L, 1L, new BigDecimal("300.00"), 4L));
 
-    mockMvc.perform(get(STATS_ENDPOINT))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.activeLeases").value(3))
-        .andExpect(jsonPath("$.data.moveOutThisMonth").value(1))
-        .andExpect(jsonPath("$.data.totalAmountHeldInEscrow").value(1500.5))
-        .andExpect(jsonPath("$.data.escrowDepositCount").value(2))
-        .andExpect(jsonPath("$.data.totalAmountAwaitingPayment").value(1))
-        .andExpect(jsonPath("$.data.totalPendingAmount").value(300.0))
-        .andExpect(jsonPath("$.data.numbOfAwaitingMyAgreement").value(4))
-        .andExpect(jsonPath("$.error").doesNotExist());
-  }
+      mockMvc.perform(get(STATS_ENDPOINT))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.data.activeLeases").value(3))
+          .andExpect(jsonPath("$.data.moveOutThisMonth").value(1))
+          .andExpect(jsonPath("$.data.totalAmountHeldInEscrow").value(1500.5))
+          .andExpect(jsonPath("$.data.escrowDepositCount").value(2))
+          .andExpect(jsonPath("$.data.totalAmountAwaitingPayment").value(1))
+          .andExpect(jsonPath("$.data.totalPendingAmount").value(300.0))
+          .andExpect(jsonPath("$.data.numbOfAwaitingMyAgreement").value(4))
+          .andExpect(jsonPath("$.error").doesNotExist());
+    }
 
-  @Test
-  void shouldPassAuthenticatedUserToService() throws Exception {
-    when(landlordService.getLandlordDashboardStatsSummary(authUser)).thenReturn(
-        new LandlordDashboardSummaryDto(0L, 0L, BigDecimal.ZERO, 0L, 0L, BigDecimal.ZERO, 0L));
+    @Test
+    void shouldPassAuthenticatedUserToService() throws Exception {
+      when(landlordService.getLandlordDashboardStatsSummary(authUser)).thenReturn(
+          new LandlordDashboardSummaryDto(0L, 0L, BigDecimal.ZERO, 0L, 0L, BigDecimal.ZERO, 0L));
 
-    mockMvc.perform(get(STATS_ENDPOINT)).andExpect(status().isOk());
+      mockMvc.perform(get(STATS_ENDPOINT)).andExpect(status().isOk());
 
-    verify(landlordService).getLandlordDashboardStatsSummary(authUser);
-  }
+      verify(landlordService).getLandlordDashboardStatsSummary(authUser);
+    }
 
-  @Test
-  void shouldReturnMethodNotAllowed_whenUsingPost() throws Exception {
-    mockMvc.perform(post(STATS_ENDPOINT))
-        .andExpect(status().isMethodNotAllowed());
-  }
+    @Test
+    void shouldReturnMethodNotAllowed_whenUsingPost() throws Exception {
+      mockMvc.perform(post(STATS_ENDPOINT))
+          .andExpect(status().isMethodNotAllowed());
+    }
 
-  @Test
-  void shouldMapAppExceptionFromService_toItsHttpStatus() throws Exception {
-    when(landlordService.getLandlordDashboardStatsSummary(authUser))
-        .thenThrow(new AppException(ErrorInfo.USER_NOT_FOUND));
+    @Test
+    void shouldMapAppExceptionFromService_toItsHttpStatus() throws Exception {
+      when(landlordService.getLandlordDashboardStatsSummary(authUser))
+          .thenThrow(new AppException(ErrorInfo.USER_NOT_FOUND));
 
-    mockMvc.perform(get(STATS_ENDPOINT))
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.error.code").value("USER_NOT_FOUND"));
+      mockMvc.perform(get(STATS_ENDPOINT))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.error.code").value("USER_NOT_FOUND"));
+    }
   }
 }

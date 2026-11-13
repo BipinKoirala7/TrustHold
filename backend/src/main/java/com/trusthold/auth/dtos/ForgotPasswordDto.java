@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 
 public record ForgotPasswordDto(
     @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email address")
+    @Email(message = "Email must be a valid email address")
     String email
 ) {
 }

@@ -7,26 +7,25 @@ import com.trusthold.property.repository.PropertyRepository;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.Role;
-import com.trusthold.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class PropertyServiceTests {
+class PropertyServiceTests {
 
   @InjectMocks
   private PropertyService propertyService;
@@ -35,62 +34,45 @@ public class PropertyServiceTests {
   private PropertyRepository propertyRepository;
 
   @Mock
-  private UserService userService;
-
-  @Mock
   private PropertyMapper propertyMapper;
 
   @Mock
   private CreatePropertyDto createPropertyDto;
 
-  private AuthUser sampleAuthUser;
+  @Mock
+  private Property property;
+
+  private AuthUser landlordUser;
   private UUID landlordId;
+  private UUID propertyId;
 
   @BeforeEach
   void setUp() {
     landlordId = UUID.randomUUID();
+    propertyId = UUID.randomUUID();
 
-    sampleAuthUser = new AuthUser(landlordId, "dummy-token", Role.LANDLORD);
+    landlordUser = new AuthUser(landlordId, "dummy-token", Role.LANDLORD);
   }
 
   @Nested
   class CreatePropertyTests {
 
     @Test
-    void shouldThrowAppException_whenAuthUserIsNull(){
-      // Act & Assert
+    void shouldThrowUnauthorized_whenAuthUserIsNull() {
       assertThatThrownBy(() -> propertyService.createProperty(null, createPropertyDto))
           .isInstanceOf(AppException.class)
-          .extracting("errorInfo")
-          .isEqualTo(ErrorInfo.UNAUTHORIZED);
-    }
-
-    @Test
-    void shouldThrowAppException_whenUserIsNotALandlord() {
-      // Arrange
-      doThrow(new AppException(ErrorInfo.UNAUTHORIZED))
-          .when(userService).isAValidLandlord(sampleAuthUser);
-
-      // Act & Assert
-      assertThatThrownBy(() -> propertyService.createProperty(sampleAuthUser, createPropertyDto))
-          .isInstanceOf(AppException.class)
-          .extracting("errorInfo")
-          .isEqualTo(ErrorInfo.UNAUTHORIZED);
+          .hasFieldOrPropertyWithValue("errorInfo", ErrorInfo.UNAUTHORIZED);
 
       verifyNoInteractions(propertyMapper, propertyRepository);
     }
 
     @Test
-    void shouldPropagateError_whenPropertySaveFails() {
-      // Arrange
-      Property property = new Property();
-
+    void shouldPropagateException_whenSaveFails() {
       when(propertyMapper.toPropertyEntity(createPropertyDto)).thenReturn(property);
-      doThrow(new RuntimeException("Database connection failed"))
-          .when(propertyRepository).save(any(Property.class));
+      when(propertyRepository.save(property))
+          .thenThrow(new RuntimeException("Database connection failed"));
 
-      // Act & Assert
-      assertThatThrownBy(() -> propertyService.createProperty(sampleAuthUser, createPropertyDto))
+      assertThatThrownBy(() -> propertyService.createProperty(landlordUser, createPropertyDto))
           .isInstanceOf(RuntimeException.class)
           .hasMessageContaining("Database connection failed");
 
@@ -98,36 +80,96 @@ public class PropertyServiceTests {
     }
 
     @Test
-    void shouldCreatePropertySuccessfully() {
-      // Arrange
-      Property property = new Property();
-
+    void shouldMapAssignLandlordAndSave_inOrder() {
       when(propertyMapper.toPropertyEntity(createPropertyDto)).thenReturn(property);
 
-      // Act
-      propertyService.createProperty(sampleAuthUser, createPropertyDto);
+      propertyService.createProperty(landlordUser, createPropertyDto);
 
-      // Assert
-      InOrder inOrder = inOrder(userService, propertyMapper, propertyRepository);
-      inOrder.verify(userService).isAValidLandlord(sampleAuthUser);
+      InOrder inOrder = inOrder(propertyMapper, property, propertyRepository);
       inOrder.verify(propertyMapper).toPropertyEntity(createPropertyDto);
+      inOrder.verify(property).setLandlordId(landlordId);
       inOrder.verify(propertyRepository).save(property);
+    }
+  }
+
+  @Nested
+  class GetAllPropertiesTests {
+
+    @Test
+    void shouldThrowUnauthorized_whenAuthUserIsNull() {
+      assertThatThrownBy(() -> propertyService.getAllProperties(null))
+          .isInstanceOf(AppException.class)
+          .hasFieldOrPropertyWithValue("errorInfo", ErrorInfo.UNAUTHORIZED);
+
+      verifyNoInteractions(propertyRepository);
     }
 
     @Test
-    void shouldAssignAuthenticatedUserAsLandlord_whenPropertyIsCreated() {
-      // Arrange
-      Property property = new Property();
+    void shouldReturnPropertiesOwnedByLandlord() {
+      List<Property> properties = List.of(property);
+      when(propertyRepository.findByLandlordId(landlordId)).thenReturn(properties);
 
-      when(propertyMapper.toPropertyEntity(createPropertyDto)).thenReturn(property);
+      List<Property> result = propertyService.getAllProperties(landlordUser);
 
-      // Act
-      propertyService.createProperty(sampleAuthUser, createPropertyDto);
+      assertThat(result).isSameAs(properties);
+    }
 
-      // Assert
-      ArgumentCaptor<Property> propertyCaptor = ArgumentCaptor.forClass(Property.class);
-      verify(propertyRepository).save(propertyCaptor.capture());
-      assertThat(propertyCaptor.getValue().getLandlordId()).isEqualTo(landlordId);
+    @Test
+    void shouldReturnEmptyList_whenLandlordHasNoProperties() {
+      when(propertyRepository.findByLandlordId(landlordId)).thenReturn(List.of());
+
+      assertThat(propertyService.getAllProperties(landlordUser)).isEmpty();
+    }
+  }
+
+  @Nested
+  class GetPropertyByIdTests {
+
+    @Test
+    void shouldThrowUnauthorized_whenAuthUserIsNull() {
+      assertThatThrownBy(() -> propertyService.getPropertyById(null, propertyId))
+          .isInstanceOf(AppException.class)
+          .hasFieldOrPropertyWithValue("errorInfo", ErrorInfo.UNAUTHORIZED);
+
+      verifyNoInteractions(propertyRepository);
+    }
+
+    @Test
+    void shouldReturnProperty_whenOwnedByLandlord() {
+      when(propertyRepository.findByIdAndLandlordId(propertyId, landlordId))
+          .thenReturn(Optional.of(property));
+
+      Property result = propertyService.getPropertyById(landlordUser, propertyId);
+
+      assertThat(result).isSameAs(property);
+    }
+
+    @Test
+    void shouldThrowPropertyNotFound_whenPropertyDoesNotExistOrBelongsToAnotherLandlord() {
+      when(propertyRepository.findByIdAndLandlordId(propertyId, landlordId))
+          .thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> propertyService.getPropertyById(landlordUser, propertyId))
+          .isInstanceOf(AppException.class)
+          .hasFieldOrPropertyWithValue("errorInfo", ErrorInfo.PROPERTY_NOT_FOUND);
+    }
+  }
+
+  @Nested
+  class ExistsTests {
+
+    @Test
+    void shouldReturnTrue_whenPropertyExists() {
+      when(propertyRepository.existsById(propertyId)).thenReturn(true);
+
+      assertThat(propertyService.exists(propertyId)).isTrue();
+    }
+
+    @Test
+    void shouldReturnFalse_whenPropertyDoesNotExist() {
+      when(propertyRepository.existsById(propertyId)).thenReturn(false);
+
+      assertThat(propertyService.exists(propertyId)).isFalse();
     }
   }
 }
