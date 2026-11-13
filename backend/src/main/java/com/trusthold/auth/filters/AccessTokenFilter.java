@@ -75,44 +75,36 @@ public class AccessTokenFilter extends OncePerRequestFilter {
    */
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-    MDC.put("RequestId", UUID.randomUUID().toString());
-    MDC.put("RequestMethod", request.getMethod());
-    MDC.put("RequestPath", request.getServletPath());
+    try {
+      String accessToken = cookieService.getAccessTokenCookie(request);
+      if (accessToken == null || accessToken.isBlank()) throw new JwtException("Access token cookie not found");
 
-    try{
+      log.debug("Token Found & Extracting claims");
+
+      Claims claims = jwtService.extractAccessClaims(accessToken);
+      UUID userId;
+      Role role;
       try {
-        String accessToken = cookieService.getAccessTokenCookie(request);
-        if (accessToken == null || accessToken.isBlank()) throw new JwtException("Access token cookie not found");
-
-        log.debug("Token Found & Extracting claims");
-
-        Claims claims = jwtService.extractAccessClaims(accessToken);
-        UUID userId;
-        Role role;
-        try {
-          userId = UUID.fromString(claims.getSubject());
-          role = Role.valueOf(claims.get("role", String.class));
-        } catch (IllegalArgumentException e) {
-          throw new JwtException("Signed token has invalid subject or role claim", e);
-        }
-
-        AuthUser authUser = new AuthUser(userId, accessToken, role);
-        // "ROLE_" prefix is required by Spring Security's hasRole() check
-        var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + authUser.role().toString()));
-        var auth = new UsernamePasswordAuthenticationToken(authUser, null, authorities);
-
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        log.debug("Authentication set");
-        MDC.put("UserId", authUser.id().toString());
-
-      } catch (JwtException | IllegalArgumentException e) {
-        log.warn("Exception : {} ", e.getMessage());
-        SecurityContextHolder.clearContext();
+        userId = UUID.fromString(claims.getSubject());
+        role = Role.valueOf(claims.get("role", String.class));
+      } catch (IllegalArgumentException e) {
+        throw new JwtException("Signed token has invalid subject or role claim", e);
       }
-      filterChain.doFilter(request, response);
-    } finally {
-      MDC.clear();
+
+      AuthUser authUser = new AuthUser(userId, accessToken, role);
+      // "ROLE_" prefix is required by Spring Security's hasRole() check
+      var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + authUser.role().toString()));
+      var auth = new UsernamePasswordAuthenticationToken(authUser, null, authorities);
+
+      SecurityContextHolder.getContext().setAuthentication(auth);
+
+      log.debug("Authentication set");
+      MDC.put("UserId", authUser.id().toString());
+
+    } catch (JwtException | IllegalArgumentException e) {
+      log.warn("Exception : {} ", e.getMessage());
+      SecurityContextHolder.clearContext();
     }
+    filterChain.doFilter(request, response);
   }
 }

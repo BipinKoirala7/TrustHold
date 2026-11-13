@@ -6,6 +6,7 @@ import com.trusthold.auth.handlers.CustomAuthenticationEntryPoint;
 import com.trusthold.auth.handlers.OAuthFailureHandler;
 import com.trusthold.auth.handlers.OAuthSuccessHandler;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -30,12 +31,12 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
+  private final AuthConfig authConfig;
   private final AccessTokenFilter accessTokenFilter;
   private final OAuthSuccessHandler oAuthSuccessHandler;
   private final OAuthFailureHandler oAuthFailureHandler;
-  private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
   private final CustomAccessDeniedHandler customAccessDeniedHandler;
-  private final AuthConfig authConfig;
+  private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
   @Bean
   public SecurityFilterChain httpSecurityFilterChain(HttpSecurity http) {
@@ -47,9 +48,9 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(authConfig.getPublicEndpoints().toArray(String[]::new)).permitAll()
-                .requestMatchers("/tenant/**").hasAnyRole("TENANT")
-                .requestMatchers("/landlord/**").hasAnyRole("LANDLORD")
-                .requestMatchers("/admin/**").hasAnyRole("ADMIN")
+                .requestMatchers("/tenant/**").hasRole("TENANT")
+                .requestMatchers("/landlord/**").hasRole("LANDLORD")
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
         .exceptionHandling(exceptionHandling -> exceptionHandling
@@ -73,5 +74,12 @@ public class SecurityConfig {
     source.registerCorsConfiguration("/**", corsConfiguration);
 
     return source;
+  }
+
+  @Bean
+  public FilterRegistrationBean<AccessTokenFilter> accessTokenFilterFilterRegistrationBean(AccessTokenFilter filter) {
+    FilterRegistrationBean<AccessTokenFilter> registration = new FilterRegistrationBean<>(filter);
+    registration.setEnabled(false);
+    return registration;
   }
 }

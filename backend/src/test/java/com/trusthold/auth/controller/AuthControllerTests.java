@@ -1,7 +1,6 @@
 package com.trusthold.auth.controller;
 
 import com.trusthold.auth.dtos.*;
-import com.trusthold.auth.filters.AccessTokenFilter;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.service.PasswordResetTokenService;
@@ -44,8 +43,8 @@ public class AuthControllerTests extends ControllerTestSupport {
   @MockitoBean
   private PasswordResetTokenService passwordResetTokenService;
 
-  @MockitoBean
-  private AccessTokenFilter accessTokenFilter;
+//  @MockitoBean
+//  private AccessTokenFilter accessTokenFilter;
 
 
   @Nested

@@ -177,7 +177,7 @@ public class AuthService {
 
     String refreshToken = cookieService.getRefreshTokenCookie(request);
 
-    if (refreshToken.isBlank()) {
+    if (refreshToken == null || refreshToken.isBlank()) {
       log.debug("Refresh token rejected: no refresh token cookie");
       throw new AppException(ErrorInfo.INVALID_TOKEN);
     }
