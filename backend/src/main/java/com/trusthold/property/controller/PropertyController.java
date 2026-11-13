@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/property")
+@RequestMapping("property")
 @RequiredArgsConstructor
 @Validated
 public class PropertyController {
@@ -36,7 +36,7 @@ public class PropertyController {
     return ApiResponse.success(propertyService.getAllProperties(authUser));
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("{id}")
   public ApiResponse<Property> getPropertyById(@AuthenticationPrincipal AuthUser authUser, @PathVariable @NotBlank String id) {
     return ApiResponse.success(propertyService.getPropertyById(authUser, UUID.fromString(id)));
   }

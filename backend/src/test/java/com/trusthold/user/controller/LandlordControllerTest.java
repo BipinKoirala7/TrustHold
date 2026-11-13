@@ -1,6 +1,7 @@
 package com.trusthold.user.controller;
 
 import com.trusthold.auth.model.AuthUser;
+import com.trusthold.lease.service.LeaseActivityService;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.controller.ControllerTestSupport;
 import com.trusthold.shared.exception.AppException;
@@ -37,6 +38,9 @@ public class LandlordControllerTest extends ControllerTestSupport {
 
   @MockitoBean
   private LandlordService landlordService;
+
+  @MockitoBean
+  private LeaseActivityService leaseActivityService;
 
   private AuthUser authUser;
 

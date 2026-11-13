@@ -214,7 +214,7 @@ public class AuthControllerTests extends ControllerTestSupport {
 
     @Test
     void shouldReturnNotFound_whenAppExceptionIsUserNotFound() throws Exception {
-      // Pins current behavior (404 lets callers enumerate accounts). Revisit and change
+      // Pins current behavior (404 lets callers list accounts). Revisit and change
       // this test together with the handler/service if you switch to a uniform 200.
       doThrow(new AppException(ErrorInfo.USER_NOT_FOUND))
           .when(passwordResetTokenService)
