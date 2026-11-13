@@ -6,6 +6,7 @@ import com.trusthold.lease.dtos.LeaseActivityEvent;
 import com.trusthold.lease.model.Activity;
 import com.trusthold.lease.model.Lease;
 import com.trusthold.lease.repository.LeaseRepository;
+import com.trusthold.property.model.Property;
 import com.trusthold.property.service.PropertyService;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.Guard;
@@ -15,16 +16,15 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Validated
 @Slf4j
 public class LeaseService {
 
@@ -39,21 +39,15 @@ public class LeaseService {
    *
    * @param authUser authenticated user
    * @param createLeaseDto the lease details
-   * @throws AppException if the user is not a landlord
-   * @throws AppException if the property does not exist
    * @throws AppException if the tenant is not a tenant
    */
+  @PreAuthorize("hasRole('LANDLORD')")
   @Transactional
-  public void createLease(AuthUser authUser, @NotNull CreateLeaseDto createLeaseDto) {
+  public void createLease(AuthUser authUser, CreateLeaseDto createLeaseDto) {
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
-
     log.info("Creating lease with data: {} for user: {}", createLeaseDto, authUser);
-    userService.isAValidLandlord(authUser);
 
-    if(!propertyService.exists(createLeaseDto.propertyId())){
-      log.warn("Property with id {} does not exist", createLeaseDto.propertyId());
-      throw new AppException(ErrorInfo.PROPERTY_NOT_FOUND);
-    }
+    Property property = propertyService.getPropertyById(authUser, createLeaseDto.propertyId());
 
     if(!userService.isUserTenant(createLeaseDto.tenantId())){
       log.warn("User with id {} is not a tenant", createLeaseDto.tenantId());
@@ -64,15 +58,16 @@ public class LeaseService {
     lease.setLandlordId(authUser.id());
     leaseRepository.save(lease);
 
-    String description = "Lease created for " + propertyService.getPropertyById(authUser, lease.getPropertyId()).getName();
+    String description = "Lease created for " + property.getName();
     applicationEventPublisher.publishEvent(new LeaseActivityEvent(lease.getId(), Activity.LEASE_CREATED.getLabel(), description));
 
     log.info("Lease created with id {}", lease.getId());
   }
 
+  @PreAuthorize("isAuthenticated()")
   public List<Lease> getUsersLeases(AuthUser authUser){
-    log.info("Getting leases for user");
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+    log.info("Getting leases for user={}", authUser.id());
 
     if(authUser.isLandlord()){
       return leaseRepository.findAllByLandlordId(authUser.id());

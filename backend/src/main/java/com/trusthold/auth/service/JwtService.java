@@ -7,6 +7,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -117,7 +118,7 @@ public class JwtService {
    * @throws JwtException if the token is malformed, invalid, or doesn't match the expected issuer and audience
    * @throws io.jsonwebtoken.ExpiredJwtException if the token is expired
    */
-  public Claims extractClaims(String token){
+  public Claims extractClaims(@NotBlank String token){
     return Jwts
         .parser()
         .verifyWith(generateSignInKey())
@@ -138,7 +139,7 @@ public class JwtService {
    * @throws JwtException if the token is malformed, invalid, or doesn't match the expected issuer and audience
    * @throws io.jsonwebtoken.ExpiredJwtException if the token is expired
    */
-  public Claims extractAccessClaims(String token) {
+  public Claims extractAccessClaims(@NotBlank String token) {
     log.debug("Extracting access claims");
     Claims claims = extractClaims(token);
     if (!ACCESS_TYPE.equals(claims.get(TOKEN_TYPE, String.class))) {
@@ -158,7 +159,7 @@ public class JwtService {
    * @throws JwtException if the token is malformed, invalid, or doesn't match the expected issuer and audience
    * @throws io.jsonwebtoken.ExpiredJwtException if the token is expired
    */
-  public User validateRefreshToken(String token) {
+  public User validateRefreshToken(@NotBlank String token) {
     log.debug("Validating refresh token");
     Claims claims = extractClaims(token);
     if (!REFRESH_TYPE.equals(claims.get(TOKEN_TYPE, String.class))) {

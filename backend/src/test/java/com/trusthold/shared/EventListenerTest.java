@@ -1,6 +1,9 @@
 package com.trusthold.shared;
 
 import com.trusthold.TestcontainersConfiguration;
+import com.trusthold.lease.dtos.LeaseActivityEvent;
+import com.trusthold.lease.model.Activity;
+import com.trusthold.lease.service.LeaseActivityService;
 import com.trusthold.mail.EmailService;
 import com.trusthold.mail.dtos.PasswordResetEvent;
 import com.trusthold.mail.dtos.UserRegisteredEvent;
@@ -14,6 +17,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import java.util.UUID;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -31,6 +36,9 @@ class EventListenerTest {
 
   @MockitoBean
   private EmailService emailService;
+
+  @MockitoBean
+  private LeaseActivityService activityService;
 
   private TransactionTemplate tx;
 
@@ -67,5 +75,12 @@ class EventListenerTest {
 
     verify(emailService).sendPasswordResetEmail(
         passwordResetEvent.to(), passwordResetEvent.firstName(), passwordResetEvent.rawToken());
+  }
+
+  @Test
+  void leaseCreation_createsActivityAfterCommit(){
+    LeaseActivityEvent leaseActivityEvent = new LeaseActivityEvent(UUID.randomUUID(), Activity.LEASE_PHOTOS_UPLOADED.getLabel(), "description");
+    tx.executeWithoutResult(_ -> publisher.publishEvent(leaseActivityEvent));
+    verify(activityService).createLeaseActivity(leaseActivityEvent);
   }
 }

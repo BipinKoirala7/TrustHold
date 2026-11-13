@@ -12,6 +12,7 @@ import com.trusthold.user.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -46,6 +47,7 @@ public class UserService {
    *
    * @throws AppException if there is no authenticated user or the user is not found
    */
+  @PreAuthorize("isAuthenticated()")
   public PublicUserDto getAuthenticatedUser(AuthUser authUser){
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
     log.info("Getting authenticated user for user: {}", authUser.id());
@@ -62,7 +64,8 @@ public class UserService {
    * @throws AppException if there is no authenticated user or the user is not found
    */
   @Transactional
-  public void updateUser(AuthUser authUser, @NotNull UpdateUserDto updateUserDto){
+  @PreAuthorize("isAuthenticated()")
+  public void updateUser(AuthUser authUser, UpdateUserDto updateUserDto){
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
     log.debug("Updating user for user: userId={}", authUser.id());
 
@@ -92,23 +95,16 @@ public class UserService {
    * @param authUser an authenticated user
    */
   @Transactional
-  public void deleteUser(@NotNull AuthUser authUser) {
+  @PreAuthorize("isAuthenticated()")
+  public void deleteUser(AuthUser authUser) {
     // TODO: Have a mechanism of deleting userId after confirming though the email.
 
-    Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
+    Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
     log.debug("Deleting user: userId={}", authUser.id());
     userRepository.deleteById(authUser.id());
   }
 
   // ---- Look up helpers ----
-
-  public void isAValidLandlord(@NotNull AuthUser authUser){
-    if(authUser.role() != Role.LANDLORD){
-      log.debug("User with id {} is not landlord", authUser.id());
-      throw new AppException(ErrorInfo.FORBIDDEN);
-    }
-  }
-
   /** @return the user, or empty if no user has this email */
   public Optional<User> getByEmail(@NotNull String email) {
     return userRepository.findByEmail(email);

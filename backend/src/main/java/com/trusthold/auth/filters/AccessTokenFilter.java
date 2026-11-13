@@ -82,7 +82,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
     try{
       try {
         String accessToken = cookieService.getAccessTokenCookie(request);
-        if (accessToken == null) throw new JwtException("Access token cookie not found");
+        if (accessToken == null || accessToken.isBlank()) throw new JwtException("Access token cookie not found");
 
         log.debug("Token Found & Extracting claims");
 

@@ -93,12 +93,13 @@ class TokenServiceTest {
 
     @Test
     @DisplayName("encodes input as UTF-8 (non-ASCII input hashes correctly)")
-    void handlesUnicodeAsUtf8() {
-      // SHA-256 of the UTF-8 bytes of "é" (0xC3 0xA9)
-      String input = "é";
+    void handlesUnicodeAsUtf8() throws Exception {
+      String input = "café ₹ नेपाल";
+      byte[] expectedBytes = java.security.MessageDigest.getInstance("SHA-256")
+          .digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
       assertThat(TokenService.sha256Hex(input))
-          .isEqualTo("6c4bc0b4a5ea3b4d5d0c5b0c4b9d4d1b1a5b5d3c0e7b3e0d3e6f0c1b8a2d9f7e".substring(0, 0)
-              + TokenService.sha256Hex(input));
+          .isEqualTo(java.util.HexFormat.of().formatHex(expectedBytes));
     }
 
     @Test

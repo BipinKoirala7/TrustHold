@@ -2,16 +2,15 @@ package com.trusthold.auth.controller;
 
 import com.trusthold.auth.dtos.*;
 import com.trusthold.auth.model.AuthUser;
-import com.trusthold.shared.ErrorInfo;
-import com.trusthold.shared.exception.AppException;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.service.PasswordResetTokenService;
+import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.dtos.ApiResponse;
+import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.Role;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -44,7 +43,7 @@ public class AuthController {
   @PostMapping("oauth/register")
   @ResponseStatus(HttpStatus.OK)
   public ApiResponse<Void> beginGoogleRegistration(
-      @RequestBody @Valid @NotNull GoogleRegistrationRequest body,
+      @RequestBody @Valid GoogleRegistrationRequest body,
       HttpServletRequest request
   ) {
     Role role = Role.valueOf(body.role().toString());
@@ -73,9 +72,7 @@ public class AuthController {
 
   @PostMapping("forgot-password")
   @ResponseStatus(HttpStatus.OK)
-  public ApiResponse<Void> forgotPassword(
-      @RequestBody @Valid ForgotPasswordDto forgotPasswordDto
-  ){
+  public ApiResponse<Void> forgotPassword(@RequestBody @Valid ForgotPasswordDto forgotPasswordDto){
     passwordResetTokenService.forgotPassword(forgotPasswordDto);
     return ApiResponse.success();
   }
@@ -92,7 +89,7 @@ public class AuthController {
 
   @PostMapping("logout")
   @ResponseStatus(HttpStatus.OK)
-  public ApiResponse<Void> logout(HttpServletResponse response, @AuthenticationPrincipal @Valid AuthUser authUser){
+  public ApiResponse<Void> logout(HttpServletResponse response, @AuthenticationPrincipal AuthUser authUser){
     authService.logoutUser(response, authUser);
     return ApiResponse.success();
   }

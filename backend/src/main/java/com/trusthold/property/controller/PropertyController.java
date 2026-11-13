@@ -6,6 +6,7 @@ import com.trusthold.property.model.Property;
 import com.trusthold.property.service.PropertyService;
 import com.trusthold.shared.dtos.ApiResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,7 +37,7 @@ public class PropertyController {
   }
 
   @GetMapping("/{id}")
-  public ApiResponse<Property> getPropertyById(@AuthenticationPrincipal AuthUser authUser, @PathVariable String id) {
+  public ApiResponse<Property> getPropertyById(@AuthenticationPrincipal AuthUser authUser, @PathVariable @NotBlank String id) {
     return ApiResponse.success(propertyService.getPropertyById(authUser, UUID.fromString(id)));
   }
 }
