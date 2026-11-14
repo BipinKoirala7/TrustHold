@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/trusthold}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
@@ -18,6 +18,8 @@ spring:
       enabled: false
 
 app:
+  frontend:
+    url: ${APP_FRONTEND_URL:http://localhost:3000}
   jwt:
     applicationSignature: ${APP_JWT_APPLICATION_SIGNATURE:secret}
     accessTokenExpiration: ${APP_JWT_ACCESS_TOKEN_EXPIRATION_TIME:3600}
@@ -34,7 +36,7 @@ app:
 
 mail:
   from: ${MAIL_FROM:TrustHold <noreply@email.bipin-koirala.com.np>}
-  support: ${MAIL_SUPPORT_EMAIL:your-real-email@gmail.com}
+  support: ${MAIL_SUPPORT_EMAIL:support@trusthold.com}
 
 resend:
   api:
