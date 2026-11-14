@@ -1,7 +1,7 @@
 package com.trusthold.auth.service;
 
 import com.trusthold.config.JwtConfig;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.UserError;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.Role;
 import com.trusthold.user.model.User;
@@ -200,11 +200,11 @@ public class JwtServiceTests {
     @Test
     void shouldThrowAppException_whenUserNotFound() {
       // Arrange
-      when(userService.getUserById(user.getId())).thenThrow(new AppException(ErrorInfo.USER_NOT_FOUND));
+      when(userService.getUserById(user.getId())).thenThrow(new AppException(UserError.USER_NOT_FOUND));
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.validateRefreshToken(validRefreshToken));
-      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.USER_NOT_FOUND);
+      assertThat(ex.getErrorCode()).isEqualTo(UserError.USER_NOT_FOUND);
       verify(userService).getUserById(user.getId());
     }
 

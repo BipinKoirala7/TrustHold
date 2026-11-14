@@ -4,7 +4,7 @@ import com.trusthold.auth.dtos.*;
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.service.PasswordResetTokenService;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.AuthError;
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.Role;
@@ -49,7 +49,7 @@ public class AuthController {
     Role role = Role.valueOf(body.role().toString());
 
     if (role != Role.TENANT && role != Role.LANDLORD) {
-      throw new AppException(ErrorInfo.INVALID_ROLE_FOR_REGISTRATION);
+      throw new AppException(AuthError.INVALID_ROLE_FOR_REGISTRATION);
     }
 
     request.getSession(true).setAttribute("registrationRole", role.toString());

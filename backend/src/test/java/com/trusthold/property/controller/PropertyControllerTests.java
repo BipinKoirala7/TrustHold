@@ -4,7 +4,7 @@ import com.trusthold.auth.model.AuthUser;
 import com.trusthold.property.dtos.CreatePropertyDto;
 import com.trusthold.property.model.PropertyType;
 import com.trusthold.property.service.PropertyService;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.PropertyError;
 import com.trusthold.shared.controller.ControllerTestSupport;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.Role;
@@ -107,8 +107,8 @@ public class PropertyControllerTests extends ControllerTestSupport {
     }
 
     @ParameterizedTest
-    @EnumSource(ErrorInfo.class)
-    void shouldReturnErrorInfoResponse_whenServiceThrowsAppException(ErrorInfo errorInfo) throws Exception {
+    @EnumSource(PropertyError.class)
+    void shouldReturnErrorInfoResponse_whenServiceThrowsAppException(PropertyError errorInfo) throws Exception {
       // Arrange
       doThrow(new AppException(errorInfo))
           .when(propertyService).createProperty(eq(sampleAuthUser), any(CreatePropertyDto.class));

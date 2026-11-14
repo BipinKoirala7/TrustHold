@@ -5,8 +5,9 @@ import com.trusthold.lease.dtos.LeaseActivityEvent;
 import com.trusthold.lease.model.Lease;
 import com.trusthold.lease.model.LeaseActivity;
 import com.trusthold.lease.repository.LeaseActivityRepository;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.AuthError;
 import com.trusthold.shared.Guard;
+import com.trusthold.shared.LeaseError;
 import com.trusthold.shared.exception.AppException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -50,7 +51,7 @@ public class LeaseActivityService {
 
     if(!leaseService.exists(leaseId)){
       log.warn("Lease with id={} does not exist", leaseId);
-      throw new AppException(ErrorInfo.LEASE_NOT_FOUND);
+      throw new AppException(LeaseError.LEASE_NOT_FOUND);
     }
 
     return leaseActivityRepository.findByLeaseIdOrderByCreatedAtDesc(leaseId);
@@ -58,7 +59,7 @@ public class LeaseActivityService {
 
   @PreAuthorize("isAuthenticated()")
   public List<LeaseActivity> getRecentActivity(AuthUser authUser){
-    Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
     log.debug("Getting recent activity for user={}", authUser.id());
 
     List<Lease> leases = leaseService.getUsersLeases(authUser);

@@ -4,8 +4,9 @@ import com.trusthold.auth.model.AuthUser;
 import com.trusthold.property.dtos.CreatePropertyDto;
 import com.trusthold.property.model.Property;
 import com.trusthold.property.repository.PropertyRepository;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.AuthError;
 import com.trusthold.shared.Guard;
+import com.trusthold.shared.PropertyError;
 import com.trusthold.shared.exception.AppException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,7 @@ public class PropertyService {
    */
   @PreAuthorize("hasRole('LANDLORD')")
   public void createProperty(AuthUser authUser, CreatePropertyDto createPropertyDto) {
-    Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
     log.debug("Creating property for user with id {}", authUser.id());
 
     Property property = propertyMapper.toPropertyEntity(createPropertyDto);
@@ -60,7 +61,7 @@ public class PropertyService {
    */
   @PreAuthorize("hasRole('LANDLORD')")
   public List<Property> getAllProperties(AuthUser authUser) {
-    Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
     log.debug("Fetching properties for user with id {}", authUser.id());
 
     return propertyRepository.findByLandlordId(authUser.id());
@@ -76,12 +77,12 @@ public class PropertyService {
    */
   @PreAuthorize("hasRole('LANDLORD')")
   public Property getPropertyById(AuthUser authUser, UUID id){
-    Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
     log.debug("Fetching property with id {}", id);
 
     return propertyRepository
         .findByIdAndLandlordId(id, authUser.id())
-        .orElseThrow(() -> new AppException(ErrorInfo.PROPERTY_NOT_FOUND));
+        .orElseThrow(() -> new AppException(PropertyError.PROPERTY_NOT_FOUND));
   }
 
   // Helper Methods
