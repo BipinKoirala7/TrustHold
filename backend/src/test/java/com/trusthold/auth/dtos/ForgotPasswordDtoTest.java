@@ -23,13 +23,12 @@ public class ForgotPasswordDtoTest extends DtoValidationTestSupport {
   @MethodSource("invalidEmails")
   @DisplayName("malformed email fails with the configured message")
   void invalidEmail(String email, String validation) {
-    assertThat(messagesFor(new ForgotPasswordDto(email), "email"))
-        .containsExactly(validation);
+    assertThat(messagesFor(new ForgotPasswordDto(email), "email")).containsExactly(validation);
   }
 
   private static Stream<Arguments> invalidEmails() {
     String validation1 = "Email is required";
-    String validation2 = "Invalid email address";
+    String validation2 = "Email must be a valid email address";
     return Stream.of(
         Arguments.of(null, validation1),
         Arguments.of("", validation1),

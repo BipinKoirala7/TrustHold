@@ -7,10 +7,9 @@ import com.trusthold.property.repository.PropertyRepository;
 import com.trusthold.shared.ErrorInfo;
 import com.trusthold.shared.Guard;
 import com.trusthold.shared.exception.AppException;
-import com.trusthold.user.service.UserService;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -31,7 +30,6 @@ import java.util.UUID;
 public class PropertyService {
 
   private final PropertyRepository propertyRepository;
-  private final UserService userService;
   private final PropertyMapper propertyMapper;
 
   /**
@@ -41,13 +39,11 @@ public class PropertyService {
    *
    * @param authUser authenticated user
    * @param createPropertyDto the property details
-   * @throws AppException if the user is not a landlord
    */
-  public void createProperty(AuthUser authUser, @NotNull CreatePropertyDto createPropertyDto) {
+  @PreAuthorize("hasRole('LANDLORD')")
+  public void createProperty(AuthUser authUser, CreatePropertyDto createPropertyDto) {
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
-
     log.debug("Creating property for user with id {}", authUser.id());
-    userService.isAValidLandlord(authUser);
 
     Property property = propertyMapper.toPropertyEntity(createPropertyDto);
     property.setLandlordId(authUser.id());
@@ -62,11 +58,10 @@ public class PropertyService {
    * @return list of properties
    * @throws AppException if the user is not a landlord
    */
+  @PreAuthorize("hasRole('LANDLORD')")
   public List<Property> getAllProperties(AuthUser authUser) {
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
-
     log.debug("Fetching properties for user with id {}", authUser.id());
-    userService.isAValidLandlord(authUser);
 
     return propertyRepository.findByLandlordId(authUser.id());
   }
@@ -79,11 +74,10 @@ public class PropertyService {
    * @return property
    * @throws AppException if the user is not a landlord or the property is not found
    */
-  public Property getPropertyById(AuthUser authUser, @NotNull UUID id){
+  @PreAuthorize("hasRole('LANDLORD')")
+  public Property getPropertyById(AuthUser authUser, UUID id){
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
-
     log.debug("Fetching property with id {}", id);
-    userService.isAValidLandlord(authUser);
 
     return propertyRepository
         .findByIdAndLandlordId(id, authUser.id())

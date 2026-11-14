@@ -1,9 +1,13 @@
 package com.trusthold.user.service;
 
 import com.trusthold.auth.model.AuthUser;
+import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.Guard;
+import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.dtos.LandlordDashboardSummaryDto;
 import com.trusthold.user.repository.DashboardRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -21,8 +25,10 @@ public class LandlordService {
    * @param authUser current authenticated user
    * @return the landlord dashboard stats summary
    */
-//  Todo: You have to see whether the payment has already been made or not
+  @PreAuthorize("hasRole('LANDLORD')")
   public LandlordDashboardSummaryDto getLandlordDashboardStatsSummary(AuthUser authUser) {
+    Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+
     ZoneId zoneId = ZoneId.of("Asia/Kathmandu");
     YearMonth yearMonth = YearMonth.now(zoneId);
     Instant startOfMonth = yearMonth.atDay(1).atStartOfDay(zoneId).toInstant();

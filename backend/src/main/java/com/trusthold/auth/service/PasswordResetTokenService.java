@@ -70,7 +70,7 @@ public class PasswordResetTokenService {
   }
 
   @Transactional
-  public void resetPassword(HttpServletResponse response, @NotNull ResetPasswordDto resetPasswordDto){
+  public void resetPassword(HttpServletResponse response, ResetPasswordDto resetPasswordDto){
     log.info("Resetting password");
 
     String hash = TokenService.sha256Hex(resetPasswordDto.rawToken());

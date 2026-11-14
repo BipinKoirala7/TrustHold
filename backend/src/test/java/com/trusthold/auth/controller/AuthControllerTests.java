@@ -1,7 +1,6 @@
 package com.trusthold.auth.controller;
 
 import com.trusthold.auth.dtos.*;
-import com.trusthold.auth.filters.AccessTokenFilter;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.service.PasswordResetTokenService;
@@ -44,8 +43,8 @@ public class AuthControllerTests extends ControllerTestSupport {
   @MockitoBean
   private PasswordResetTokenService passwordResetTokenService;
 
-  @MockitoBean
-  private AccessTokenFilter accessTokenFilter;
+//  @MockitoBean
+//  private AccessTokenFilter accessTokenFilter;
 
 
   @Nested
@@ -214,7 +213,7 @@ public class AuthControllerTests extends ControllerTestSupport {
 
     @Test
     void shouldReturnNotFound_whenAppExceptionIsUserNotFound() throws Exception {
-      // Pins current behavior (404 lets callers enumerate accounts). Revisit and change
+      // Pins current behavior (404 lets callers list accounts). Revisit and change
       // this test together with the handler/service if you switch to a uniform 200.
       doThrow(new AppException(ErrorInfo.USER_NOT_FOUND))
           .when(passwordResetTokenService)
@@ -299,7 +298,7 @@ public class AuthControllerTests extends ControllerTestSupport {
   }
 
   /**
-   * The exception handler is shared by every endpoint, so its generic fallbacks
+   * Every endpoint shares the exception handler, so its generic fallbacks
    * are tested here once instead of once per endpoint.
    */
   @Nested

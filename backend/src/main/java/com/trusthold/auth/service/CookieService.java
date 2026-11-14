@@ -5,7 +5,7 @@ import com.trusthold.config.JwtConfig;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -81,11 +81,11 @@ public class CookieService {
     return null;
   }
 
-  public Cookie createRefreshTokenCookie(@NotNull String refreshToken){
+  public Cookie createRefreshTokenCookie(@NotBlank String refreshToken){
     return createCookie(REFRESH_COOKIE, refreshToken, cookieConfig.getRefreshCookiePath(), (int) jwtConfig.getRefreshTokenExpiration(), cookieConfig.getSameSite());
   }
 
-  public Cookie createAccessTokenCookie(@NotNull String accessToken){
+  public Cookie createAccessTokenCookie(@NotBlank String accessToken){
     return createCookie(ACCESS_COOKIE, accessToken, cookieConfig.getAccessCookiePath(), (int) jwtConfig.getAccessTokenExpiration(), cookieConfig.getSameSite());
   }
 

@@ -72,7 +72,7 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
       if (oAuth2User == null) {
-        fail(response, "OAuth User is null", "user");
+        fail(response, "OAuth User is null", "oauth");
         return;
       }
 
@@ -87,7 +87,7 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
       String givenName = oAuth2User.getAttribute("given_name");
       String familyName = oAuth2User.getAttribute("family_name");
 
-      if(email == null) {
+      if(email == null || email.isBlank()) {
         fail(response, "Email is null", "email");
         return;
       }
@@ -99,12 +99,12 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         return;
       }
 
-      if(givenName == null) {
+      if(givenName == null || givenName.isBlank()) {
         fail(response, "Given name is null", "firstname");
         return;
       }
 
-      if(familyName == null) {
+      if(familyName == null || familyName.isBlank()) {
         fail(response, "Family name is null", "lastname");
         return;
       }

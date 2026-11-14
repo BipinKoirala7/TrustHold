@@ -15,10 +15,12 @@ import com.trusthold.user.service.UserMapper;
 import com.trusthold.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,7 +70,7 @@ public class AuthService {
    * @throws AppException if the username is taken or the email is already registered
    */
   @Transactional
-  public void registerLocalUser(@NotNull RegisterUserDto registerUserDto) {
+  public void registerLocalUser(RegisterUserDto registerUserDto) {
     log.debug("Registering local user: {}", registerUserDto.username());
 
     if(userRepository.existsByUsername(registerUserDto.username())) {
@@ -97,8 +99,9 @@ public class AuthService {
    * @return the saved user, so the OAuth success handler can issue tokens for it
    * @throws AppException if the username is taken or the email is already registered
    */
+  // @Valid because it is called from OAuthSuccessHandler not from a validated source
   @Transactional
-  public User registerOAuthUser(@NotNull RegisterOAuthUserDto registerOAuthUserDto){
+  public User registerOAuthUser(@NotNull @Valid RegisterOAuthUserDto registerOAuthUserDto){
     log.debug("Registering OAuth User: {}", registerOAuthUserDto.username());
 
     if(userRepository.existsByUsername(registerOAuthUserDto.username())) {
@@ -134,7 +137,7 @@ public class AuthService {
    * @throws AppException if no user has this email or the password does not match
    */
   @Transactional
-  public void loginUser(@NotNull LoginUserDto loginUserDto, HttpServletResponse response) {
+  public void loginUser(LoginUserDto loginUserDto, HttpServletResponse response) {
     log.debug("Login attempt");
 
     User user = userService.getUserByEmail(loginUserDto.email());
@@ -174,12 +177,12 @@ public class AuthService {
 
     String refreshToken = cookieService.getRefreshTokenCookie(request);
 
-    if (refreshToken == null) {
-      log.debug("Refresh rejected: no refresh token cookie");
+    if (refreshToken == null || refreshToken.isBlank()) {
+      log.debug("Refresh token rejected: no refresh token cookie");
       throw new AppException(ErrorInfo.INVALID_TOKEN);
     }
     if (!activeRefreshTokenService.isRefreshTokenActive(refreshToken)) {
-      log.warn("Refresh rejected: token is not the active one (possible reuse)");
+      log.warn("Refresh token rejected: token is not the active one (possible reuse)");
       throw new AppException(ErrorInfo.INVALID_TOKEN);
     }
     User user = jwtService.validateRefreshToken(refreshToken);
@@ -202,6 +205,7 @@ public class AuthService {
    * @throws AppException if there is no authenticated user
    */
   @Transactional
+  @PreAuthorize("isAuthenticated()")
   public void logoutUser(HttpServletResponse response, AuthUser authUser){
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
 

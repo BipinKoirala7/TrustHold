@@ -44,8 +44,7 @@ public class Lease {
   @Column(name = "landlord_id", nullable = false, updatable = false)
   private UUID landlordId;
 
-  @NotNull(message = "Tenant is required")
-  @Column(name = "tenant_id", nullable = false, updatable = false)
+  @Column(name = "tenant_id")
   private UUID tenantId;
 
   @NotNull(message = "Monthly rent is required")

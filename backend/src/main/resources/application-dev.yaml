@@ -41,6 +41,8 @@ resend:
     key: ${RESEND_API_KEY}
 
 logging:
+  pattern:
+    level: "%5p [%X{RequestId:-}] [%X{RequestMethod:-} %X{RequestPath:-}] [%X{UserId:-}]"
   level:
     com.trusthold: DEBUG
     org.hibernate.SQL: DEBUG

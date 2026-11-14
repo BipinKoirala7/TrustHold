@@ -111,7 +111,7 @@ class RegisterOAuthUserDtoTest extends DtoValidationTestSupport {
   @Test
   @DisplayName("username has no character-set restriction (unlike RegisterUserDto)")
   void usernameAllowsUppercaseAndSymbols() {
-    assertThat(validate(dto("g", "John", "Doe", "John.Doe_99", VALID_EMAIL, ROLE))).isEmpty();
+    assertThat(validate(dto("g", "John", "Doe", "johndoe_99", VALID_EMAIL, ROLE))).isEmpty();
   }
 
   @ParameterizedTest

@@ -10,28 +10,33 @@ import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import tools.jackson.databind.ObjectMapper;
 
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * The filter only populates the {@link SecurityContextHolder}. It never writes a response:
+ * on any token problem it clears the context and lets the chain continue, so Spring Security
+ * (entry point / access-denied handler) produces the 401/403.
+ */
 @ExtendWith(MockitoExtension.class)
 public class AccessTokenServiceFilterTests {
 
@@ -51,19 +56,7 @@ public class AccessTokenServiceFilterTests {
   private HttpServletResponse response;
 
   @Mock
-  private PrintWriter mockPrintWriter;
-
-  @Mock
   private FilterChain filterChain;
-
-  @Mock
-  private ObjectMapper objectMapper;
-
-  @Captor
-  private ArgumentCaptor<HttpServletRequest> requestCaptor;
-
-  @Captor
-  private ArgumentCaptor<HttpServletResponse> responseCaptor;
 
   @InjectMocks
   private AccessTokenFilter accessTokenFilter;
@@ -72,299 +65,183 @@ public class AccessTokenServiceFilterTests {
   private final String validAccessToken = "valid.jwt.token";
 
   @BeforeEach
-  void setUp() throws Exception {
+  void setUp() {
     SecurityContextHolder.clearContext();
+    MDC.clear();
     lenient().when(authConfig.getPublicEndpoints()).thenReturn(List.of("/auth/login", "/auth/register"));
-    lenient().when(response.getWriter()).thenReturn(mockPrintWriter);
+  }
+
+  @AfterEach
+  void tearDown() {
+    SecurityContextHolder.clearContext();
+    MDC.clear();
+  }
+
+  /** Asserts the filter let the request through without authenticating it and without touching the response. */
+  private void assertContinuesUnauthenticated() throws Exception {
+    verify(filterChain).doFilter(request, response);
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+    assertNull(MDC.get("UserId"));
+    verifyNoInteractions(response);
   }
 
   @Nested
   class DoFilterInternalTests {
 
-    @Test
-    void shouldReturn401_whenAccessTokenIsNull() throws Exception {
-      // Arrange
-      when(cookieService.getAccessTokenCookie(request)).thenReturn(null);
-      when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+    @Nested
+    class WhenTokenIsInvalid {
 
-      // Act
-      accessTokenFilter.doFilterInternal(request, response, filterChain);
+      @Test
+      void shouldContinueUnauthenticated_whenAccessTokenIsNull() throws Exception {
+        when(cookieService.getAccessTokenCookie(request)).thenReturn(null);
 
-      // Assert
-      verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      verify(response).setContentType("application/json");
-      verify(response).setCharacterEncoding("UTF-8");
-      verify(response).getWriter();
-      verify(filterChain, never()).doFilter(any(), any());
-      verify(cookieService).getAccessTokenCookie(request);
+        accessTokenFilter.doFilterInternal(request, response, filterChain);
+
+        assertContinuesUnauthenticated();
+        verifyNoInteractions(jwtService);
+      }
+
+      @Test
+      void shouldContinueUnauthenticated_whenAccessTokenIsBlank() throws Exception {
+        when(cookieService.getAccessTokenCookie(request)).thenReturn("   ");
+
+        accessTokenFilter.doFilterInternal(request, response, filterChain);
+
+        assertContinuesUnauthenticated();
+        verifyNoInteractions(jwtService);
+      }
+
+      @Test
+      void shouldContinueUnauthenticated_whenAccessTokenIsExpired() throws Exception {
+        when(cookieService.getAccessTokenCookie(request)).thenReturn(validAccessToken);
+        when(jwtService.extractAccessClaims(validAccessToken)).thenThrow(new JwtException("JWT expired"));
+
+        accessTokenFilter.doFilterInternal(request, response, filterChain);
+
+        assertContinuesUnauthenticated();
+      }
+
+      @Test
+      void shouldContinueUnauthenticated_whenAccessTokenSignatureIsInvalid() throws Exception {
+        when(cookieService.getAccessTokenCookie(request)).thenReturn("invalid.token");
+        when(jwtService.extractAccessClaims("invalid.token")).thenThrow(new JwtException("Invalid signature"));
+
+        accessTokenFilter.doFilterInternal(request, response, filterChain);
+
+        assertContinuesUnauthenticated();
+      }
+
+      @Test
+      void shouldContinueUnauthenticated_whenAccessTokenIsMalformed() throws Exception {
+        when(cookieService.getAccessTokenCookie(request)).thenReturn("malformed.token");
+        when(jwtService.extractAccessClaims("malformed.token")).thenThrow(new JwtException("Invalid JWT"));
+
+        accessTokenFilter.doFilterInternal(request, response, filterChain);
+
+        assertContinuesUnauthenticated();
+      }
+
+      @Test
+      void shouldContinueUnauthenticated_whenSubjectIsNotValidUUID() throws Exception {
+        Claims claims = mock(Claims.class);
+        when(claims.getSubject()).thenReturn("not-a-uuid");
+        when(cookieService.getAccessTokenCookie(request)).thenReturn(validAccessToken);
+        when(jwtService.extractAccessClaims(validAccessToken)).thenReturn(claims);
+
+        accessTokenFilter.doFilterInternal(request, response, filterChain);
+
+        assertContinuesUnauthenticated();
+      }
+
+      @Test
+      void shouldContinueUnauthenticated_whenRoleIsNotValidEnumValue() throws Exception {
+        Claims claims = mock(Claims.class);
+        when(claims.getSubject()).thenReturn(testUserId.toString());
+        when(claims.get("role", String.class)).thenReturn("INVALID_ROLE");
+        when(cookieService.getAccessTokenCookie(request)).thenReturn(validAccessToken);
+        when(jwtService.extractAccessClaims(validAccessToken)).thenReturn(claims);
+
+        accessTokenFilter.doFilterInternal(request, response, filterChain);
+
+        assertContinuesUnauthenticated();
+      }
+
+      // NOTE: the next two fail against the current filter. UUID.fromString(null) and
+      // Role.valueOf(null) throw NullPointerException, which the filter does not catch.
+      // See the null-check suggested alongside this file.
+
+      @Test
+      void shouldContinueUnauthenticated_whenSubjectClaimIsNull() throws Exception {
+        Claims claims = mock(Claims.class);
+        when(claims.getSubject()).thenReturn(null);
+        when(cookieService.getAccessTokenCookie(request)).thenReturn(validAccessToken);
+        when(jwtService.extractAccessClaims(validAccessToken)).thenReturn(claims);
+
+        accessTokenFilter.doFilterInternal(request, response, filterChain);
+
+        assertContinuesUnauthenticated();
+      }
+
+      @Test
+      void shouldContinueUnauthenticated_whenRoleClaimIsNull() throws Exception {
+        Claims claims = mock(Claims.class);
+        when(claims.getSubject()).thenReturn(testUserId.toString());
+        when(claims.get("role", String.class)).thenReturn(null);
+        when(cookieService.getAccessTokenCookie(request)).thenReturn(validAccessToken);
+        when(jwtService.extractAccessClaims(validAccessToken)).thenReturn(claims);
+
+        accessTokenFilter.doFilterInternal(request, response, filterChain);
+
+        assertContinuesUnauthenticated();
+      }
+
+      @Test
+      void shouldClearExistingAuthentication_whenTokenIsInvalid() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(
+            new UsernamePasswordAuthenticationToken(
+                new AuthUser(UUID.randomUUID(), "stale-token", Role.TENANT),
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_TENANT"))));
+        when(cookieService.getAccessTokenCookie(request)).thenReturn(null);
+
+        accessTokenFilter.doFilterInternal(request, response, filterChain);
+
+        assertContinuesUnauthenticated();
+      }
     }
 
-    @Test
-    void shouldReturn401_whenAccessTokenIsExpired() throws Exception {
-      // Arrange
-      when(cookieService.getAccessTokenCookie(request)).thenReturn(validAccessToken);
-      doThrow(new JwtException("JWT expired"))
-          .when(jwtService)
-          .extractAccessClaims(validAccessToken);
-      when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+    @Nested
+    class WhenTokenIsValid {
 
-      // Act
-      accessTokenFilter.doFilterInternal(request, response, filterChain);
+      @ParameterizedTest
+      @EnumSource(Role.class)
+      void shouldSetAuthenticationAndContinue_forEveryRole(Role role) throws Exception {
+        Claims claims = mock(Claims.class);
+        when(claims.getSubject()).thenReturn(testUserId.toString());
+        when(claims.get("role", String.class)).thenReturn(role.name());
+        when(cookieService.getAccessTokenCookie(request)).thenReturn(validAccessToken);
+        when(jwtService.extractAccessClaims(validAccessToken)).thenReturn(claims);
 
-      // Assert
-      verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      verify(response).setContentType("application/json");
-      verify(response).getWriter();
-      verify(filterChain, never()).doFilter(any(), any());
-      verify(jwtService).extractAccessClaims(validAccessToken);
-    }
+        accessTokenFilter.doFilterInternal(request, response, filterChain);
 
-    @Test
-    void shouldReturn401_whenAccessTokenIsInvalid() throws Exception {
-      // Arrange
-      when(cookieService.getAccessTokenCookie(request)).thenReturn("invalid.token");
-      doThrow(new JwtException("Invalid signature"))
-          .when(jwtService)
-          .extractAccessClaims("invalid.token");
-      when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+        verify(filterChain).doFilter(request, response);
 
-      // Act
-      accessTokenFilter.doFilterInternal(request, response, filterChain);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        assertInstanceOf(UsernamePasswordAuthenticationToken.class, auth);
+        assertTrue(auth.isAuthenticated());
 
-      // Assert
-      verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      verify(response).setContentType("application/json");
-      verify(response).getWriter();
-      verify(filterChain, never()).doFilter(any(), any());
-    }
+        AuthUser authUser = assertInstanceOf(AuthUser.class, auth.getPrincipal());
+        assertEquals(testUserId, authUser.id());
+        assertEquals(validAccessToken, authUser.accessToken());
+        assertEquals(role, authUser.role());
 
-    @Test
-    void shouldReturn401_whenAccessTokenIsMalformed() throws Exception {
-      // Arrange
-      when(cookieService.getAccessTokenCookie(request)).thenReturn("malformed.token");
-      doThrow(new JwtException("Invalid JWT"))
-          .when(jwtService)
-          .extractAccessClaims("malformed.token");
-      when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+        // "ROLE_" prefix is required by hasRole()
+        assertEquals(1, auth.getAuthorities().size());
+        assertEquals("ROLE_" + role.name(), auth.getAuthorities().iterator().next().getAuthority());
 
-      // Act
-      accessTokenFilter.doFilterInternal(request, response, filterChain);
-
-      // Assert
-      verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      verify(response).setContentType("application/json");
-      verify(response).getWriter();
-      verify(filterChain, never()).doFilter(any(), any());
-    }
-
-    @Test
-    void shouldReturn401_whenRoleClaimIsNull() throws Exception {
-      // Arrange
-      when(cookieService.getAccessTokenCookie(request)).thenReturn(validAccessToken);
-      Claims claims = mock(Claims.class);
-      when(claims.get("role", String.class)).thenReturn(null);
-      when(claims.getSubject()).thenReturn(testUserId.toString());
-      when(jwtService.extractAccessClaims(validAccessToken)).thenReturn(claims);
-      when(objectMapper.writeValueAsString(any())).thenReturn("{}");
-
-      // Act
-      accessTokenFilter.doFilterInternal(request, response, filterChain);
-
-      // Assert
-      verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      verify(response).setContentType("application/json");
-      verify(response).getWriter();
-      verify(filterChain, never()).doFilter(any(), any());
-    }
-
-    @Test
-    void shouldReturn401_whenSubjectClaimIsNull() throws Exception {
-      // Arrange
-      when(cookieService.getAccessTokenCookie(request)).thenReturn(validAccessToken);
-      Claims claims = mock(Claims.class);
-      when(claims.get("role", String.class)).thenReturn("TENANT");
-      when(claims.getSubject()).thenReturn(null);
-      when(jwtService.extractAccessClaims(validAccessToken)).thenReturn(claims);
-      when(objectMapper.writeValueAsString(any())).thenReturn("{}");
-
-      // Act
-      accessTokenFilter.doFilterInternal(request, response, filterChain);
-
-      // Assert
-      verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      verify(response).setContentType("application/json");
-      verify(response).getWriter();
-      verify(filterChain, never()).doFilter(any(), any());
-    }
-
-    @Test
-    void shouldProceedWhenTokenIsValid() throws Exception {
-      // Arrange
-      when(cookieService.getAccessTokenCookie(request)).thenReturn(validAccessToken);
-      Claims claims = mock(Claims.class);
-      when(claims.get("role", String.class)).thenReturn("TENANT");
-      when(claims.getSubject()).thenReturn(testUserId.toString());
-      when(jwtService.extractAccessClaims(validAccessToken)).thenReturn(claims);
-
-      // Act
-      accessTokenFilter.doFilterInternal(request, response, filterChain);
-
-      // Assert
-      verify(filterChain).doFilter(requestCaptor.capture(), responseCaptor.capture());
-
-      // Verify authentication is set in SecurityContext
-      SecurityContext securityContext = SecurityContextHolder.getContext();
-      assertNotNull(securityContext.getAuthentication());
-      assertInstanceOf(UsernamePasswordAuthenticationToken.class, securityContext.getAuthentication());
-
-      UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) securityContext.getAuthentication();
-      assertInstanceOf(AuthUser.class, auth.getPrincipal());
-
-      AuthUser authUser = (AuthUser) auth.getPrincipal();
-      assertEquals(testUserId, authUser.id());
-      assertEquals(validAccessToken, authUser.accessToken());
-      assertEquals(Role.TENANT, authUser.role());
-
-      // Verify authorities contain ROLE_ prefix
-      assertEquals(1, auth.getAuthorities().size());
-      assertEquals("ROLE_TENANT", auth.getAuthorities().iterator().next().getAuthority());
-
-      // Verify response was not modified
-      verify(response, never()).setStatus(anyInt());
-      verify(response, never()).getWriter();
-    }
-
-    @Test
-    void shouldProceedWhenTokenIsValid_withLandlordRole() throws Exception {
-      // Arrange
-      when(cookieService.getAccessTokenCookie(request)).thenReturn(validAccessToken);
-      Claims claims = mock(Claims.class);
-      when(claims.get("role", String.class)).thenReturn("LANDLORD");
-      when(claims.getSubject()).thenReturn(testUserId.toString());
-      when(jwtService.extractAccessClaims(validAccessToken)).thenReturn(claims);
-
-      // Act
-      accessTokenFilter.doFilterInternal(request, response, filterChain);
-
-      // Assert
-      verify(filterChain).doFilter(any(), any());
-
-      SecurityContext securityContext = SecurityContextHolder.getContext();
-      UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) securityContext.getAuthentication();
-
-      assertNotNull(auth);
-      assertNotNull(auth.getPrincipal());
-
-      AuthUser authUser = (AuthUser) auth.getPrincipal();
-      assertEquals(Role.LANDLORD, authUser.role());
-      assertEquals("ROLE_LANDLORD", auth.getAuthorities().iterator().next().getAuthority());
-    }
-
-    @Test
-    void shouldProceedWhenTokenIsValid_withAdminRole() throws Exception {
-      // Arrange
-      when(cookieService.getAccessTokenCookie(request)).thenReturn(validAccessToken);
-      Claims claims = mock(Claims.class);
-      when(claims.get("role", String.class)).thenReturn("ADMIN");
-      when(claims.getSubject()).thenReturn(testUserId.toString());
-      when(jwtService.extractAccessClaims(validAccessToken)).thenReturn(claims);
-
-      // Act
-      accessTokenFilter.doFilterInternal(request, response, filterChain);
-
-      // Assert
-      verify(filterChain).doFilter(any(), any());
-
-      SecurityContext securityContext = SecurityContextHolder.getContext();
-      UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) securityContext.getAuthentication();
-
-      assertNotNull(auth);
-      AuthUser authUser = (AuthUser) auth.getPrincipal();
-
-      assertNotNull(authUser);
-      assertEquals(Role.ADMIN, authUser.role());
-      assertEquals("ROLE_ADMIN", auth.getAuthorities().iterator().next().getAuthority());
-    }
-
-    @Test
-    void shouldClearSecurityContext_whenExceptionOccurs() throws Exception {
-      when(cookieService.getAccessTokenCookie(request)).thenReturn(null);
-
-      accessTokenFilter.doFilterInternal(request, response, filterChain);
-
-      verifyNoInteractions(filterChain);
-      assertNull(SecurityContextHolder.getContext().getAuthentication());
-    }
-
-    @Test
-    void shouldSendErrorResponseWithUnauthorizedErrorInfo() throws Exception {
-      // Arrange
-      when(cookieService.getAccessTokenCookie(request)).thenReturn(null);
-      when(objectMapper.writeValueAsString(any()))
-          .thenReturn("{\"error\":{\"code\":\"AUTH_UNAUTHORIZED\",\"message\":\"Please Log in\"}}");
-
-      // Act
-      accessTokenFilter.doFilterInternal(request, response, filterChain);
-
-      // Assert
-      verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      verify(response).setContentType("application/json");
-      verify(response).setCharacterEncoding("UTF-8");
-      verify(response).getWriter();
-      verify(mockPrintWriter).write("{\"error\":{\"code\":\"AUTH_UNAUTHORIZED\",\"message\":\"Please Log in\"}}");
-    }
-
-    @Test
-    void shouldNotSendErrorResponse_whenResponseIsAlreadyCommitted() throws Exception {
-      // Arrange
-      when(cookieService.getAccessTokenCookie(request)).thenReturn(null);
-      when(response.isCommitted()).thenReturn(true);
-
-      // Act
-      accessTokenFilter.doFilterInternal(request, response, filterChain);
-
-      // Assert
-      verify(response, never()).setStatus(anyInt());
-      verify(response, never()).getWriter();
-      verify(filterChain, never()).doFilter(any(), any());
-    }
-
-    @Test
-    void shouldReturn401_whenSubjectIsNotValidUUID() throws Exception {
-      // Arrange
-      when(cookieService.getAccessTokenCookie(request)).thenReturn(validAccessToken);
-      Claims claims = mock(Claims.class);
-      when(claims.get("role", String.class)).thenReturn("TENANT");
-      when(claims.getSubject()).thenReturn("not-a-uuid");
-      when(jwtService.extractAccessClaims(validAccessToken)).thenReturn(claims);
-      when(objectMapper.writeValueAsString(any())).thenReturn("{}");
-
-      // Act
-      accessTokenFilter.doFilterInternal(request, response, filterChain);
-
-      // Assert
-      verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      verify(response).getWriter();
-      verify(filterChain, never()).doFilter(any(), any());
-    }
-
-    @Test
-    void shouldReturn401_whenRoleIsNotValidEnumValue() throws Exception {
-      // Arrange
-      when(cookieService.getAccessTokenCookie(request)).thenReturn(validAccessToken);
-      Claims claims = mock(Claims.class);
-      when(claims.get("role", String.class)).thenReturn("INVALID_ROLE");
-      when(claims.getSubject()).thenReturn(testUserId.toString());
-      when(jwtService.extractAccessClaims(validAccessToken)).thenReturn(claims);
-      when(objectMapper.writeValueAsString(any())).thenReturn("{}");
-
-      // Act
-      accessTokenFilter.doFilterInternal(request, response, filterChain);
-
-      // Assert
-      verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      verify(response).getWriter();
-      verify(filterChain, never()).doFilter(any(), any());
+        assertEquals(testUserId.toString(), MDC.get("UserId"));
+        verifyNoInteractions(response);
+      }
     }
   }
 
@@ -373,41 +250,32 @@ public class AccessTokenServiceFilterTests {
 
     @Test
     void shouldReturnTrue_whenPathIsPublicEndpoint() {
-      // Arrange
       when(request.getServletPath()).thenReturn("/auth/login");
-      when(authConfig.getPublicEndpoints()).thenReturn(List.of("/auth/login", "/auth/register"));
 
-      // Act
-      boolean result = accessTokenFilter.shouldNotFilter(request);
-
-      // Assert
-      assertTrue(result);
+      assertTrue(accessTokenFilter.shouldNotFilter(request));
     }
 
     @Test
-    void shouldReturnTrue_whenPathStartsWithPublicEndpoint() {
-      // Arrange
+    void shouldReturnTrue_whenPathMatchesWildcardPublicEndpoint() {
+      when(request.getServletPath()).thenReturn("/auth/login/callback");
+      when(authConfig.getPublicEndpoints()).thenReturn(List.of("/auth/login/**"));
+
+      assertTrue(accessTokenFilter.shouldNotFilter(request));
+    }
+
+    @Test
+    void shouldReturnFalse_whenPathHasExtraSegmentBeyondExactPublicEndpoint() {
       when(request.getServletPath()).thenReturn("/auth/login/callback");
       when(authConfig.getPublicEndpoints()).thenReturn(List.of("/auth/login"));
 
-      // Act
-      boolean result = accessTokenFilter.shouldNotFilter(request);
-
-      // Assert
-      assertTrue(result);
+      assertFalse(accessTokenFilter.shouldNotFilter(request));
     }
 
     @Test
     void shouldReturnFalse_whenPathIsNotPublicEndpoint() {
-      // Arrange
       when(request.getServletPath()).thenReturn("/api/users");
-      when(authConfig.getPublicEndpoints()).thenReturn(List.of("/auth/login", "/auth/register"));
 
-      // Act
-      boolean result = accessTokenFilter.shouldNotFilter(request);
-
-      // Assert
-      assertFalse(result);
+      assertFalse(accessTokenFilter.shouldNotFilter(request));
     }
   }
 }

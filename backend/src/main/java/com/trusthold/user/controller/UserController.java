@@ -19,22 +19,22 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
   private final UserService userService;
 
-  @GetMapping("/me")
+  @GetMapping("me")
   @ResponseStatus(HttpStatus.OK)
-  public ApiResponse<PublicUserDto> getAuthenticatedUser(@Valid @AuthenticationPrincipal AuthUser authUser){
+  public ApiResponse<PublicUserDto> getAuthenticatedUser(@AuthenticationPrincipal AuthUser authUser){
     return ApiResponse.success(userService.getAuthenticatedUser(authUser));
   }
 
   @PutMapping
   @ResponseStatus(HttpStatus.OK)
-  public ApiResponse<Void> updateUser(@Valid @AuthenticationPrincipal AuthUser authUser, @RequestBody @Valid UpdateUserDto updateUserDto){
+  public ApiResponse<Void> updateUser(@AuthenticationPrincipal AuthUser authUser, @RequestBody @Valid UpdateUserDto updateUserDto){
     userService.updateUser(authUser, updateUserDto);
     return ApiResponse.success();
   }
 
   @DeleteMapping
   @ResponseStatus(HttpStatus.OK)
-  public ApiResponse<Void> deleteUser(@Valid @AuthenticationPrincipal AuthUser authUser){
+  public ApiResponse<Void> deleteUser(@AuthenticationPrincipal AuthUser authUser){
     userService.deleteUser(authUser);
     return ApiResponse.success();
   }

@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -55,9 +56,10 @@ public class LeaseActivityService {
     return leaseActivityRepository.findByLeaseIdOrderByCreatedAtDesc(leaseId);
   }
 
+  @PreAuthorize("isAuthenticated()")
   public List<LeaseActivity> getRecentActivity(AuthUser authUser){
-    log.debug("Getting recent activity for user={}", authUser.id());
     Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+    log.debug("Getting recent activity for user={}", authUser.id());
 
     List<Lease> leases = leaseService.getUsersLeases(authUser);
 

@@ -45,13 +45,15 @@ public class EmailServiceTests {
       String userRole = "TENANT";
       String userName = "testuser";
       String html = "<html>Welcome</html>";
+      String subject = "Welcome to TrustHold, " + userName;
 
       when(welcomeEmailTemplate.render(userRole, userName, "http://localhost:3000", "support@example.com"))
           .thenReturn(html);
+      when(welcomeEmailTemplate.subject(userName)).thenReturn(subject);
 
       EmailService spy = spy(emailService);
       doThrow(new ResendException("API error"))
-          .when(spy).sendMail(anyString(), anyString(), anyString());
+          .when(spy).sendMail(anyString(), any(), anyString());
 
       // Act
       spy.newlyRegisterUserEmail(to, userRole, userName);
@@ -72,12 +74,14 @@ public class EmailServiceTests {
       String userRole = "LANDLORD";
       String userName = "landlordUser";
       String html = "<html>Welcome Landlord</html>";
+      String subject = "Welcome to TrustHold, " + userName;
 
       when(welcomeEmailTemplate.render(userRole, userName, "http://localhost:3000", "support@example.com"))
           .thenReturn(html);
+      when(welcomeEmailTemplate.subject(userName)).thenReturn(subject);
 
       EmailService spy = spy(emailService);
-      doAnswer(invocation -> null).when(spy).sendMail(anyString(), anyString(), anyString());
+      doAnswer(invocation -> null).when(spy).sendMail(anyString(), any(), anyString());
 
       // Act
       spy.newlyRegisterUserEmail(to, userRole, userName);

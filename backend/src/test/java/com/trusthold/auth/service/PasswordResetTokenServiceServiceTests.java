@@ -242,7 +242,7 @@ public class PasswordResetTokenServiceServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.resetPassword(mockResponse, resetPasswordDto));
-      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.INVALID_PASSWORD_RESET_TOKEN);
+      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.EXPIRED_PASSWORD_RESET_TOKEN);
       verify(passwordResetTokenRepository).findByTokenHash(hash);
       verify(passwordResetTokenRepository).consume(eq(hash), any(Instant.class));
       verify(userService, never()).getUserById(any(UUID.class));
@@ -324,7 +324,7 @@ public class PasswordResetTokenServiceServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.resetPassword(mockResponse, resetPasswordDto));
-      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.INVALID_PASSWORD_RESET_TOKEN);
+      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.EXPIRED_PASSWORD_RESET_TOKEN);
       verify(passwordResetTokenRepository).findByTokenHash(hash);
       verify(passwordResetTokenRepository).consume(eq(hash), any(Instant.class));
       verify(userService, never()).getUserById(any(UUID.class));
