@@ -6,13 +6,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Lease } from "@/lib/lease-data";
 import { LeaseRow } from "./lease-row";
+import { LeaseSummaryDto } from "@/lib/api/lease";
 
 const headClass =
   "text-xs font-semibold tracking-wide text-muted-foreground uppercase";
 
-export function LeasesTable({ leases }: { leases: Lease[] }) {
+export function LeasesTable({ leases }: { leases: LeaseSummaryDto[] }) {
   return (
     <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
       <Table>

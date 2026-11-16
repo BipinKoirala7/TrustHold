@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { formatDeposit, formatLeaseDate, type Lease } from "@/lib/lease-data";
+import { formatDeposit, formatLeaseDate, Lease } from "@/lib/lease-data";
 import { LeaseStatusBadge } from "./lease-status-badge";
+import { LeaseSummaryDto } from "@/lib/api/lease";
 
-export function LeaseRow({ lease }: { lease: Lease }) {
+export function LeaseRow({ lease }: { lease: LeaseSummaryDto }) {
   const router = useRouter();
   const href = `/landlord/leases/${lease.id}`;
 
@@ -19,13 +20,13 @@ export function LeaseRow({ lease }: { lease: Lease }) {
           onClick={(e) => e.stopPropagation()}
           className="font-semibold hover:underline"
         >
-          {lease.propertyName}
+          {lease.property.name}
         </Link>
-        <p className="text-xs text-muted-foreground">{lease.propertyDetail}</p>
+        <p className="text-xs text-muted-foreground">{lease.property.city}</p>
       </TableCell>
       <TableCell className="hidden md:table-cell">{lease.tenantName}</TableCell>
       <TableCell className="font-semibold">
-        {formatDeposit(lease.deposit)}
+        {formatDeposit(lease.depositAmount)}
       </TableCell>
       <TableCell>
         <LeaseStatusBadge status={lease.status} />

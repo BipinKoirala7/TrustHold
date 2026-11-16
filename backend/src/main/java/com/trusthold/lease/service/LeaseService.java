@@ -3,15 +3,19 @@ package com.trusthold.lease.service;
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.lease.dtos.CreateLeaseDto;
 import com.trusthold.lease.dtos.LeaseActivityEvent;
+import com.trusthold.lease.dtos.LeaseSummaryDto;
 import com.trusthold.lease.model.Activity;
 import com.trusthold.lease.model.Lease;
 import com.trusthold.lease.repository.LeaseRepository;
+import com.trusthold.property.dtos.PropertySummaryDto;
 import com.trusthold.property.model.Property;
+import com.trusthold.property.service.PropertyMapper;
 import com.trusthold.property.service.PropertyService;
 import com.trusthold.shared.AuthError;
 import com.trusthold.shared.Guard;
 import com.trusthold.shared.LeaseError;
 import com.trusthold.shared.exception.AppException;
+import com.trusthold.user.model.User;
 import com.trusthold.user.service.UserService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +38,7 @@ public class LeaseService {
   private final LeaseRepository leaseRepository;
   private final UserService userService;
   private final LeaseMapper leaseMapper;
+  private final PropertyMapper propertyMapper;
 
   /**
    * Creates a new lease for the authenticated user.
@@ -66,10 +71,25 @@ public class LeaseService {
   }
 
   @PreAuthorize("isAuthenticated()")
-  public List<Lease> getUsersLeases(AuthUser authUser){
+  public List<LeaseSummaryDto> getUsersLeases(AuthUser authUser){
     Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
     log.info("Getting leases for user={}", authUser.id());
 
+    List<Lease> leases = getLeasesByUserType(authUser);
+    return leases
+        .stream()
+        .map(lease -> {
+          Property property = propertyService.getPropertyById(authUser, lease.getPropertyId());
+          PropertySummaryDto propertyInfo = propertyMapper.toPropertyInfo(property);
+          User tenant = userService.getUserByIdOrNull(lease.getTenantId()).orElse(null);
+          String tenantName = tenant == null ? null : tenant.getFirstName() + " " + tenant.getLastName();
+
+          return new LeaseSummaryDto(lease, propertyInfo, tenantName);
+        })
+        .toList();
+  }
+
+  public List<Lease> getLeasesByUserType(AuthUser authUser){
     if(authUser.isLandlord()){
       return leaseRepository.findAllByLandlordId(authUser.id());
     } else {

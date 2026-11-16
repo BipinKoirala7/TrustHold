@@ -207,7 +207,7 @@ class LeaseServiceTests {
       List<Lease> leases = List.of(lease);
       when(leaseRepository.findAllByLandlordId(landlordId)).thenReturn(leases);
 
-      List<Lease> result = leaseService.getUsersLeases(landlordUser);
+      List<Lease> result = leaseService.getLeasesByUserType(landlordUser);
 
       assertThat(result).isSameAs(leases);
       verify(leaseRepository, never()).findAllByTenantId(any());
@@ -218,7 +218,7 @@ class LeaseServiceTests {
       List<Lease> leases = List.of(lease);
       when(leaseRepository.findAllByTenantId(tenantId)).thenReturn(leases);
 
-      List<Lease> result = leaseService.getUsersLeases(tenantUser);
+      List<Lease> result = leaseService.getLeasesByUserType(tenantUser);
 
       assertThat(result).isSameAs(leases);
       verify(leaseRepository, never()).findAllByLandlordId(any());

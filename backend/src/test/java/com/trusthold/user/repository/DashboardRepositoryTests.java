@@ -122,7 +122,6 @@ public class DashboardRepositoryTests {
     persistLease(landlordId, tenantId, LeaseStatus.ACTIVE, "1000.00", AFTER_MONTH);
     persistLease(landlordId, tenantId, LeaseStatus.MOVE_OUT_IN_PROGRESS, "1000.00", AFTER_MONTH);
     persistLease(landlordId, tenantId, LeaseStatus.PENDING_MOVE_IN, "1000.00", AFTER_MONTH);
-    persistLease(landlordId, tenantId, LeaseStatus.SETTLED, "1000.00", BEFORE_MONTH);
 
     assertThat(summaryFor(landlordId).activeLeases()).isEqualTo(2);
   }
@@ -167,9 +166,8 @@ public class DashboardRepositoryTests {
     persistLease(landlordId, tenantId, LeaseStatus.ACTIVE, "1000.00", AFTER_MONTH);
     // not counted: wrong status
     persistLease(landlordId, tenantId, LeaseStatus.MOVED_OUT, "1000.00", IN_MONTH);
-    persistLease(landlordId, tenantId, LeaseStatus.AGREED, "1000.00", IN_MONTH);
+    persistLease(landlordId, tenantId, LeaseStatus.SETTLEMENT_AGREED, "1000.00", IN_MONTH);
     persistLease(landlordId, tenantId, LeaseStatus.PENDING_MOVE_IN, "1000.00", IN_MONTH);
-    persistLease(landlordId, tenantId, LeaseStatus.SETTLED, "1000.00", IN_MONTH);
 
     assertThat(summaryFor(landlordId).moveOutThisMonth()).isEqualTo(3);
   }
@@ -183,7 +181,7 @@ public class DashboardRepositoryTests {
     persistSettlement(movedOut, null);
 
     // both parties agreed, waiting on admin to close: deposit is still held
-    Lease agreed = persistLease(landlordId, tenantId, LeaseStatus.AGREED, "2500.00", BEFORE_MONTH);
+    Lease agreed = persistLease(landlordId, tenantId, LeaseStatus.SETTLEMENT_AGREED, "2500.00", BEFORE_MONTH);
     persistSettlement(agreed, null);
 
     LandlordDashboardSummaryDto result = summaryFor(landlordId);
@@ -196,9 +194,6 @@ public class DashboardRepositoryTests {
   void heldInEscrow_excludesClosedSettlementsAndNonEscrowStatuses() {
     Lease closed = persistLease(landlordId, tenantId, LeaseStatus.MOVED_OUT, "4000.00", BEFORE_MONTH);
     persistSettlement(closed, Instant.parse("2026-11-05T00:00:00Z"));
-
-    Lease settled = persistLease(landlordId, tenantId, LeaseStatus.SETTLED, "6000.00", BEFORE_MONTH);
-    persistSettlement(settled, Instant.parse("2026-11-05T00:00:00Z"));
 
     persistLease(landlordId, tenantId, LeaseStatus.PENDING_MOVE_IN, "5000.00", AFTER_MONTH);
 

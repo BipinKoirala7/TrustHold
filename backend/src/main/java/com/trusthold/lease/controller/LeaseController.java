@@ -2,7 +2,7 @@ package com.trusthold.lease.controller;
 
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.lease.dtos.CreateLeaseDto;
-import com.trusthold.lease.model.Lease;
+import com.trusthold.lease.dtos.LeaseSummaryDto;
 import com.trusthold.lease.model.LeaseActivity;
 import com.trusthold.lease.service.LeaseActivityService;
 import com.trusthold.lease.service.LeaseService;
@@ -35,7 +35,7 @@ public class LeaseController {
 
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  public ApiResponse<List<Lease>> getLeases(@AuthenticationPrincipal AuthUser authUser) {
+  public ApiResponse<List<LeaseSummaryDto>> getLeases(@AuthenticationPrincipal AuthUser authUser) {
     return ApiResponse.success(leaseService.getUsersLeases(authUser));
   }
 

@@ -1,6 +1,7 @@
 package com.trusthold.property.service;
 
 import com.trusthold.property.dtos.CreatePropertyDto;
+import com.trusthold.property.dtos.PropertySummaryDto;
 import com.trusthold.property.model.Property;
 import org.mapstruct.Mapper;
 
@@ -8,5 +9,5 @@ import org.mapstruct.Mapper;
 public interface PropertyMapper {
 
   Property toPropertyEntity(CreatePropertyDto createPropertyDto);
-
+  PropertySummaryDto toPropertyInfo(Property property);
 }

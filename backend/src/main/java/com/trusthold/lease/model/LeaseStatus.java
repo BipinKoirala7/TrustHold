@@ -3,11 +3,11 @@ package com.trusthold.lease.model;
 public enum LeaseStatus {
   PENDING_TENANT,
   PENDING_MOVE_IN,
-  DEPOSIT_PAID,
+  PENDING_DEPOSIT,
   ACTIVE,
   MOVE_OUT_IN_PROGRESS,
-  AGREED,
-  SETTLED,
+  PENDING_SETTLEMENT,
+  SETTLEMENT_AGREED,
   CANCELLED,
   MOVED_OUT
 }
