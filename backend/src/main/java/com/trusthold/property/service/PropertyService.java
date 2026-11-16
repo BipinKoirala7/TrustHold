@@ -85,6 +85,23 @@ public class PropertyService {
         .orElseThrow(() -> new AppException(PropertyError.PROPERTY_NOT_FOUND));
   }
 
+  /**
+   * Retrieves a property by its ID for the authenticated landlord. This is only for
+   * lease Service to use.
+   *
+   * @param id       property ID
+   * @return property
+   * @throws AppException if the user is not a landlord or the property is not found
+   */
+  @PreAuthorize("isAuthenticated()")
+  public Property getPropertyById(UUID id){
+    log.debug("Getting property with id {}", id);
+
+    return propertyRepository
+        .findById(id)
+        .orElseThrow(() -> new AppException(PropertyError.PROPERTY_NOT_FOUND));
+  }
+
   // Helper Methods
   public boolean exists(UUID id){
     return propertyRepository.existsById(id);

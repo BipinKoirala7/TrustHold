@@ -79,7 +79,7 @@ public class LeaseService {
     return leases
         .stream()
         .map(lease -> {
-          Property property = propertyService.getPropertyById(authUser, lease.getPropertyId());
+          Property property = propertyService.getPropertyById(lease.getPropertyId());
           PropertySummaryDto propertyInfo = propertyMapper.toPropertyInfo(property);
           User tenant = userService.getUserByIdOrNull(lease.getTenantId()).orElse(null);
           String tenantName = tenant == null ? null : tenant.getFirstName() + " " + tenant.getLastName();
