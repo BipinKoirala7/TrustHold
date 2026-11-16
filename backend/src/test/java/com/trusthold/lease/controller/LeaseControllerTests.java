@@ -2,9 +2,15 @@ package com.trusthold.lease.controller;
 
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.lease.dtos.CreateLeaseDto;
+import com.trusthold.lease.dtos.LeaseSummaryDto;
+import com.trusthold.lease.model.LeaseStatus;
 import com.trusthold.lease.service.LeaseActivityService;
 import com.trusthold.lease.service.LeaseService;
+import com.trusthold.property.dtos.PropertySummaryDto;
+import com.trusthold.shared.AuthError;
+import com.trusthold.shared.PropertyError;
 import com.trusthold.shared.controller.ControllerTestSupport;
+import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.Role;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +30,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -80,6 +91,98 @@ public class LeaseControllerTests extends ControllerTestSupport {
           .andExpect(jsonPath("$.timestamp").exists())
           .andExpect(jsonPath("$.data").doesNotExist())
           .andExpect(jsonPath("$.error").doesNotExist());
+    }
+  }
+
+  @Nested
+  class GetLeasesTests {
+
+    @Test
+    void shouldReturnOk_withLeaseSummaries_whenUserHasLeases() throws Exception {
+      // Arrange
+      UUID leaseId = UUID.randomUUID();
+      Instant startDate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+      LeaseSummaryDto summary = new LeaseSummaryDto(
+          leaseId,
+          new PropertySummaryDto("Sunrise Apartment", null, "Pokhara"),
+          "John Doe",
+          new BigDecimal("50000.00"),
+          LeaseStatus.ACTIVE,
+          startDate);
+      when(leaseService.getUsersLeases(sampleAuthUser)).thenReturn(List.of(summary));
+
+      // Act & Assert
+      mockMvc.perform(get(BASE_URL))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.timestamp").exists())
+          .andExpect(jsonPath("$.error").doesNotExist())
+          .andExpect(jsonPath("$.data", hasSize(1)))
+          .andExpect(jsonPath("$.data[0].id").value(leaseId.toString()))
+          .andExpect(jsonPath("$.data[0].propertyInfo.name").value("Sunrise Apartment"))
+          .andExpect(jsonPath("$.data[0].propertyInfo.city").value("Pokhara"))
+          .andExpect(jsonPath("$.data[0].tenantName").value("John Doe"))
+          .andExpect(jsonPath("$.data[0].depositAmount").value(50000.0))
+          .andExpect(jsonPath("$.data[0].status").value("ACTIVE"))
+          .andExpect(jsonPath("$.data[0].startDate").exists());
+
+      verify(leaseService).getUsersLeases(sampleAuthUser);
+    }
+
+    @Test
+    void shouldReturnOk_withEmptyList_whenUserHasNoLeases() throws Exception {
+      // Arrange
+      when(leaseService.getUsersLeases(sampleAuthUser)).thenReturn(List.of());
+
+      // Act & Assert
+      mockMvc.perform(get(BASE_URL))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.timestamp").exists())
+          .andExpect(jsonPath("$.error").doesNotExist())
+          .andExpect(jsonPath("$.data", hasSize(0)))
+          .andExpect(jsonPath("$.error").doesNotExist());
+    }
+
+    @Test
+    void shouldReturnTenantNameAsNull_whenTenantIsMissing() throws Exception {
+      // Arrange
+      LeaseSummaryDto summary = new LeaseSummaryDto(
+          UUID.randomUUID(),
+          new PropertySummaryDto("Sunrise Apartment", null, "Pokhara"),
+          null,
+          new BigDecimal("50000.00"),
+          LeaseStatus.ACTIVE,
+          Instant.now());
+      when(leaseService.getUsersLeases(sampleAuthUser)).thenReturn(List.of(summary));
+
+      // Act & Assert
+      mockMvc.perform(get(BASE_URL))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.data[0].tenantName").value(nullValue()));
+    }
+
+    @Test
+    void shouldReturnUnauthorizedError_whenServiceThrowsUnauthorized() throws Exception {
+      // Arrange
+      when(leaseService.getUsersLeases(sampleAuthUser))
+          .thenThrow(new AppException(AuthError.UNAUTHORIZED));
+
+      // Act & Assert
+      mockMvc.perform(get(BASE_URL))
+          .andExpect(status().is(AuthError.UNAUTHORIZED.getHttpStatus().value()))
+          .andExpect(jsonPath("$.error.code").value(AuthError.UNAUTHORIZED.getErrCode()))
+          .andExpect(jsonPath("$.data").doesNotExist());
+    }
+
+    @Test
+    void shouldReturnPropertyNotFoundError_whenServiceThrowsPropertyNotFound() throws Exception {
+      // Arrange
+      when(leaseService.getUsersLeases(sampleAuthUser))
+          .thenThrow(new AppException(PropertyError.PROPERTY_NOT_FOUND));
+
+      // Act & Assert
+      mockMvc.perform(get(BASE_URL))
+          .andExpect(status().is(PropertyError.PROPERTY_NOT_FOUND.getHttpStatus().value()))
+          .andExpect(jsonPath("$.error.code").value(PropertyError.PROPERTY_NOT_FOUND.getErrCode()));
     }
   }
 }
