@@ -1,7 +1,7 @@
 package com.trusthold.user.service;
 
 import com.trusthold.auth.model.AuthUser;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.AuthError;
 import com.trusthold.shared.Guard;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.dtos.LandlordDashboardSummaryDto;
@@ -27,7 +27,7 @@ public class LandlordService {
    */
   @PreAuthorize("hasRole('LANDLORD')")
   public LandlordDashboardSummaryDto getLandlordDashboardStatsSummary(AuthUser authUser) {
-    Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
 
     ZoneId zoneId = ZoneId.of("Asia/Kathmandu");
     YearMonth yearMonth = YearMonth.now(zoneId);

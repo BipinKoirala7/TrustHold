@@ -1,7 +1,8 @@
 package com.trusthold.user.service;
 
 import com.trusthold.auth.model.AuthUser;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.AuthError;
+import com.trusthold.shared.UserError;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.dtos.PublicUserDto;
 import com.trusthold.user.dtos.UpdateUserDto;
@@ -65,8 +66,8 @@ public class UserServiceTests {
       // Act & Assert
       assertThatThrownBy(() -> userService.getAuthenticatedUser(null))
           .isInstanceOf(AppException.class)
-          .extracting("errorInfo")
-          .isEqualTo(ErrorInfo.INVALID_TOKEN);
+          .extracting("errorCode")
+          .isEqualTo(AuthError.INVALID_TOKEN);
     }
 
     @Test
@@ -77,8 +78,8 @@ public class UserServiceTests {
       // Act & Assert
       assertThatThrownBy(() -> userService.getAuthenticatedUser(sampleAuthUser))
           .isInstanceOf(AppException.class)
-          .extracting("errorInfo")
-          .isEqualTo(ErrorInfo.USER_NOT_FOUND);
+          .extracting("errorCode")
+          .isEqualTo(UserError.USER_NOT_FOUND);
     }
 
     @Test
@@ -113,8 +114,8 @@ public class UserServiceTests {
       // Act & Assert
       assertThatThrownBy(() -> userService.updateUser(null, updateUserDto))
           .isInstanceOf(AppException.class)
-          .extracting("errorInfo")
-          .isEqualTo(ErrorInfo.INVALID_TOKEN);
+          .extracting("errorCode")
+          .isEqualTo(AuthError.INVALID_TOKEN);
     }
 
     @Test
@@ -173,8 +174,8 @@ public class UserServiceTests {
       // Act & Assert
       assertThatThrownBy(() -> userService.deleteUser(null))
           .isInstanceOf(AppException.class)
-          .extracting("errorInfo")
-          .isEqualTo(ErrorInfo.UNAUTHORIZED);
+          .extracting("errorCode")
+          .isEqualTo(AuthError.UNAUTHORIZED);
     }
 
     @Test

@@ -8,7 +8,9 @@ import com.trusthold.lease.model.Lease;
 import com.trusthold.lease.repository.LeaseRepository;
 import com.trusthold.property.model.Property;
 import com.trusthold.property.service.PropertyService;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.AuthError;
+import com.trusthold.shared.LeaseError;
+import com.trusthold.shared.PropertyError;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.Role;
 import com.trusthold.user.service.UserService;
@@ -86,7 +88,7 @@ class LeaseServiceTests {
     void shouldThrowUnauthorized_whenAuthUserIsNull() {
       assertThatThrownBy(() -> leaseService.createLease(null, createLeaseDto))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorInfo", ErrorInfo.UNAUTHORIZED);
+          .hasFieldOrPropertyWithValue("errorCode", AuthError.UNAUTHORIZED);
 
       verifyNoInteractions(propertyService, userService, leaseMapper, leaseRepository,
           applicationEventPublisher);
@@ -96,11 +98,11 @@ class LeaseServiceTests {
     void shouldPropagateException_whenPropertyLookupFails() {
       when(createLeaseDto.propertyId()).thenReturn(propertyId);
       when(propertyService.getPropertyById(landlordUser, propertyId))
-          .thenThrow(new AppException(ErrorInfo.PROPERTY_NOT_FOUND));
+          .thenThrow(new AppException(PropertyError.PROPERTY_NOT_FOUND));
 
       assertThatThrownBy(() -> leaseService.createLease(landlordUser, createLeaseDto))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorInfo", ErrorInfo.PROPERTY_NOT_FOUND);
+          .hasFieldOrPropertyWithValue("errorCode", PropertyError.PROPERTY_NOT_FOUND);
 
       verifyNoInteractions(userService, leaseMapper, leaseRepository, applicationEventPublisher);
     }
@@ -114,7 +116,7 @@ class LeaseServiceTests {
 
       assertThatThrownBy(() -> leaseService.createLease(landlordUser, createLeaseDto))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorInfo", ErrorInfo.PROVIDED_TENANT_IS_NOT_A_TENANT);
+          .hasFieldOrPropertyWithValue("errorCode", LeaseError.PROVIDED_TENANT_IS_NOT_A_TENANT);
 
       verifyNoInteractions(leaseMapper, leaseRepository, applicationEventPublisher);
     }
@@ -195,7 +197,7 @@ class LeaseServiceTests {
     void shouldThrowUnauthorized_whenAuthUserIsNull() {
       assertThatThrownBy(() -> leaseService.getUsersLeases(null))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorInfo", ErrorInfo.UNAUTHORIZED);
+          .hasFieldOrPropertyWithValue("errorCode", AuthError.UNAUTHORIZED);
 
       verifyNoInteractions(leaseRepository);
     }

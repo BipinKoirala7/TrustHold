@@ -1,8 +1,9 @@
 package com.trusthold.user.service;
 
 import com.trusthold.auth.model.AuthUser;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.AuthError;
 import com.trusthold.shared.Guard;
+import com.trusthold.shared.UserError;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.dtos.PublicUserDto;
 import com.trusthold.user.dtos.UpdateUserDto;
@@ -49,7 +50,7 @@ public class UserService {
    */
   @PreAuthorize("isAuthenticated()")
   public PublicUserDto getAuthenticatedUser(AuthUser authUser){
-    Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
+    Guard.requireNotNull(authUser, new AppException(AuthError.INVALID_TOKEN));
     log.info("Getting authenticated user for user: {}", authUser.id());
 
     User user = getUserById(authUser.id());
@@ -66,7 +67,7 @@ public class UserService {
   @Transactional
   @PreAuthorize("isAuthenticated()")
   public void updateUser(AuthUser authUser, UpdateUserDto updateUserDto){
-    Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
+    Guard.requireNotNull(authUser, new AppException(AuthError.INVALID_TOKEN));
     log.debug("Updating user for user: userId={}", authUser.id());
 
     User user = getUserById(authUser.id());
@@ -99,7 +100,7 @@ public class UserService {
   public void deleteUser(AuthUser authUser) {
     // TODO: Have a mechanism of deleting userId after confirming though the email.
 
-    Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
     log.debug("Deleting user: userId={}", authUser.id());
     userRepository.deleteById(authUser.id());
   }
@@ -112,12 +113,12 @@ public class UserService {
 
   /** @throws AppException if no user has this id */
   public User getUserById(@NotNull UUID userId) {
-    return userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorInfo.USER_NOT_FOUND));
+    return userRepository.findById(userId).orElseThrow(() -> new AppException(UserError.USER_NOT_FOUND));
   }
 
   /** @throws AppException if no user has this email */
   public User getUserByEmail(@NotNull String email) {
-    return userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorInfo.INVALID_CREDENTIALS));
+    return userRepository.findByEmail(email).orElseThrow(() -> new AppException(AuthError.INVALID_CREDENTIALS));
   }
 
   public boolean isUserTenant(@NotNull UUID userId) {

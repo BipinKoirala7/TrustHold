@@ -5,7 +5,7 @@ import com.trusthold.auth.dtos.RegisterOAuthUserDto;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.mail.dtos.UserRegisteredEvent;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.AuthError;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.user.model.AuthProvider;
@@ -113,7 +113,7 @@ public class AuthServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.registerLocalUser(registerUserDto));
-      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.USERNAME_ALREADY_EXISTS);
+      assertThat(ex.getErrorCode()).isEqualTo(AuthError.USERNAME_ALREADY_EXISTS);
       verify(userRepository).existsByUsername(registerUserDto.username());
       verify(userRepository, never()).existsByEmail(registerUserDto.email());
       verify(userMapper, never()).createUserDtoToUser(registerUserDto);
@@ -129,7 +129,7 @@ public class AuthServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.registerLocalUser(registerUserDto));
-      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.EMAIL_ALREADY_EXISTS);
+      assertThat(ex.getErrorCode()).isEqualTo(AuthError.EMAIL_ALREADY_EXISTS);
       verify(userRepository).existsByUsername(registerUserDto.username());
       verify(userRepository).existsByEmail(registerUserDto.email());
       verify(userMapper, never()).createUserDtoToUser(registerUserDto);
@@ -199,7 +199,7 @@ public class AuthServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.registerOAuthUser(registerOAuthUserDto));
-      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.USERNAME_ALREADY_EXISTS);
+      assertThat(ex.getErrorCode()).isEqualTo(AuthError.USERNAME_ALREADY_EXISTS);
       verify(userRepository).existsByUsername(registerOAuthUserDto.username());
       verify(userRepository, never()).existsByEmail(registerOAuthUserDto.email());
       verify(userMapper, never()).createOAuthUserDtoToUser(registerOAuthUserDto);
@@ -214,7 +214,7 @@ public class AuthServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.registerOAuthUser(registerOAuthUserDto));
-      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.EMAIL_ALREADY_EXISTS);
+      assertThat(ex.getErrorCode()).isEqualTo(AuthError.EMAIL_ALREADY_EXISTS);
       verify(userRepository).existsByUsername(registerOAuthUserDto.username());
       verify(userRepository).existsByEmail(registerOAuthUserDto.email());
       verify(userMapper, never()).createOAuthUserDtoToUser(registerOAuthUserDto);
@@ -272,7 +272,7 @@ public class AuthServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.loginUser(loginUserDto, mockResponse));
-      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.INVALID_CREDENTIALS);
+      assertThat(ex.getErrorCode()).isEqualTo(AuthError.INVALID_CREDENTIALS);
       verify(userService).getUserByEmail(loginUserDto.email());
       verify(jwtService, never()).generateRefreshToken(any(User.class));
       verify(jwtService, never()).generateAccessToken(any(User.class));
@@ -286,7 +286,7 @@ public class AuthServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.loginUser(loginUserDto, mockResponse));
-      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.INVALID_CREDENTIALS);
+      assertThat(ex.getErrorCode()).isEqualTo(AuthError.INVALID_CREDENTIALS);
       verify(passwordEncoder).matches(loginUserDto.password(), localUser.getPassword());
       verify(jwtService, never()).generateRefreshToken(any(User.class));
       verify(jwtService, never()).generateAccessToken(any(User.class));
@@ -467,7 +467,7 @@ public class AuthServiceTests {
     void shouldThrowAppException_whenAuthUserIsNull() {
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.logoutUser(mockResponse, null));
-      assertThat(ex.getErrorInfo()).isEqualTo(ErrorInfo.INVALID_TOKEN);
+      assertThat(ex.getErrorCode()).isEqualTo(AuthError.INVALID_TOKEN);
       verify(cookieService, never()).deleteRefreshTokenCookie(any(HttpServletResponse.class));
       verify(cookieService, never()).deleteAccessTokenCookie(any(HttpServletResponse.class));
       verify(activeRefreshTokenService, never()).removeActiveRefreshToken(any(UUID.class));

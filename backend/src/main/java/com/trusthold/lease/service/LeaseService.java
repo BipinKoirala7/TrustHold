@@ -8,8 +8,9 @@ import com.trusthold.lease.model.Lease;
 import com.trusthold.lease.repository.LeaseRepository;
 import com.trusthold.property.model.Property;
 import com.trusthold.property.service.PropertyService;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.AuthError;
 import com.trusthold.shared.Guard;
+import com.trusthold.shared.LeaseError;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.service.UserService;
 import jakarta.validation.constraints.NotNull;
@@ -44,14 +45,14 @@ public class LeaseService {
   @PreAuthorize("hasRole('LANDLORD')")
   @Transactional
   public void createLease(AuthUser authUser, CreateLeaseDto createLeaseDto) {
-    Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
     log.info("Creating lease with data: {} for user: {}", createLeaseDto, authUser);
 
     Property property = propertyService.getPropertyById(authUser, createLeaseDto.propertyId());
 
     if(!userService.isUserTenant(createLeaseDto.tenantId())){
       log.warn("User with id {} is not a tenant", createLeaseDto.tenantId());
-      throw new AppException(ErrorInfo.PROVIDED_TENANT_IS_NOT_A_TENANT);
+      throw new AppException(LeaseError.PROVIDED_TENANT_IS_NOT_A_TENANT);
     }
 
     Lease lease = leaseMapper.toLeaseEntity(createLeaseDto);
@@ -66,7 +67,7 @@ public class LeaseService {
 
   @PreAuthorize("isAuthenticated()")
   public List<Lease> getUsersLeases(AuthUser authUser){
-    Guard.requireNotNull(authUser, new AppException(ErrorInfo.UNAUTHORIZED));
+    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
     log.info("Getting leases for user={}", authUser.id());
 
     if(authUser.isLandlord()){

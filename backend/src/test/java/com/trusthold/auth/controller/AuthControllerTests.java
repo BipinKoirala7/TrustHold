@@ -4,7 +4,8 @@ import com.trusthold.auth.dtos.*;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.service.PasswordResetTokenService;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.AuthError;
+import com.trusthold.shared.UserError;
 import com.trusthold.shared.controller.ControllerTestSupport;
 import com.trusthold.shared.exception.AppException;
 import io.jsonwebtoken.JwtException;
@@ -87,7 +88,7 @@ public class AuthControllerTests extends ControllerTestSupport {
     @Test
     void shouldReturnConflict_whenAppExceptionIsAConflict() throws Exception {
       // One representative case: proves AppException(conflict) -> 409 in the handler.
-      doThrow(new AppException(ErrorInfo.USERNAME_ALREADY_EXISTS))
+      doThrow(new AppException(AuthError.USERNAME_ALREADY_EXISTS))
           .when(authService)
           .registerLocalUser(any(RegisterUserDto.class));
 
@@ -156,7 +157,7 @@ public class AuthControllerTests extends ControllerTestSupport {
     @Test
     void shouldReturnUnauthorized_whenAppExceptionIsInvalidCredentials() throws Exception {
       // One representative case: proves AppException(INVALID_CREDENTIALS) -> 401 in the handler.
-      doThrow(new AppException(ErrorInfo.INVALID_CREDENTIALS))
+      doThrow(new AppException(AuthError.INVALID_CREDENTIALS))
           .when(authService)
           .loginUser(any(LoginUserDto.class), any());
 
@@ -215,7 +216,7 @@ public class AuthControllerTests extends ControllerTestSupport {
     void shouldReturnNotFound_whenAppExceptionIsUserNotFound() throws Exception {
       // Pins current behavior (404 lets callers list accounts). Revisit and change
       // this test together with the handler/service if you switch to a uniform 200.
-      doThrow(new AppException(ErrorInfo.USER_NOT_FOUND))
+      doThrow(new AppException(UserError.USER_NOT_FOUND))
           .when(passwordResetTokenService)
           .forgotPassword(any(ForgotPasswordDto.class));
 
@@ -258,7 +259,7 @@ public class AuthControllerTests extends ControllerTestSupport {
     @Test
     void shouldReturnBadRequest_whenAppExceptionIsInvalidResetToken() throws Exception {
       // Covers both "not found" and "expired": the controller can't tell them apart.
-      doThrow(new AppException(ErrorInfo.INVALID_PASSWORD_RESET_TOKEN))
+      doThrow(new AppException(AuthError.INVALID_PASSWORD_RESET_TOKEN))
           .when(passwordResetTokenService)
           .resetPassword(any(), any(ResetPasswordDto.class));
 
@@ -287,7 +288,7 @@ public class AuthControllerTests extends ControllerTestSupport {
     void shouldReturnUnauthorized_whenAppExceptionIsInvalidToken() throws Exception {
       // Proves AppException(INVALID_TOKEN) -> 401 in the handler. The real
       // "no/expired cookie" path is covered by the integration journey, not here.
-      doThrow(new AppException(ErrorInfo.INVALID_TOKEN))
+      doThrow(new AppException(AuthError.INVALID_TOKEN))
           .when(authService)
           .logoutUser(any(), any());
 

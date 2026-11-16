@@ -1,7 +1,7 @@
 package com.trusthold.shared.dtos;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.ErrorCode;
 
 import java.time.Instant;
 
@@ -20,8 +20,8 @@ public record ApiResponse<T>(T data, ApiError error, Instant timestamp) {
     return new ApiResponse<>(null, new ApiError(code, message), Instant.now());
   }
 
-  public static <T> ApiResponse<T> error(ErrorInfo errorInfo){
-    return new ApiResponse<>(null, new ApiError(errorInfo.getErrCode(), errorInfo.getMessage()), Instant.now());
+  public static <T> ApiResponse<T> error(ErrorCode errorCode){
+    return new ApiResponse<>(null, new ApiError(errorCode.getErrCode(), errorCode.getMessage()), Instant.now());
   }
 }
 

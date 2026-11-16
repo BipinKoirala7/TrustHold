@@ -1,7 +1,12 @@
 package com.trusthold.shared.controller;
 
 import com.trusthold.auth.model.AuthUser;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.AuthError;
+import com.trusthold.shared.ErrorCode;
+import com.trusthold.shared.LeaseError;
+import com.trusthold.shared.PropertyError;
+import com.trusthold.shared.SettlementError;
+import com.trusthold.shared.UserError;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.controller.UserController;
 import com.trusthold.user.dtos.UpdateUserDto;
@@ -11,7 +16,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -19,8 +24,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -79,19 +86,29 @@ public class ErrorInfoControllerTest extends ControllerTestSupport {
   }
 
   @ParameterizedTest
-  @EnumSource(ErrorInfo.class)
-  void shouldReturnErrorInfoResponse_whenServiceThrowsAppException(ErrorInfo errorInfo) throws Exception {
+  @MethodSource("allErrorCodes")
+  void shouldReturnErrorInfoResponse_whenServiceThrowsAppException(ErrorCode errorCode) throws Exception {
     // Arrange
-    doThrow(new AppException(errorInfo))
+    doThrow(new AppException(errorCode))
         .when(userService).updateUser(eq(sampleAuthUser), eq(sampleUpdateUserDto));
 
     // Act & Assert
     mockMvc.perform(put(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(sampleUpdateUserDto)))
-        .andExpect(status().is(errorInfo.getHttpStatus().value()))
-        .andExpect(jsonPath("$.error.code").value(errorInfo.getErrCode()))
-        .andExpect(jsonPath("$.error.message").value(errorInfo.getMessage()));
+        .andExpect(status().is(errorCode.getHttpStatus().value()))
+        .andExpect(jsonPath("$.error.code").value(errorCode.getErrCode()))
+        .andExpect(jsonPath("$.error.message").value(errorCode.getMessage()));
+  }
+
+  static Stream<ErrorCode> allErrorCodes() {
+    return Stream.of(
+        AuthError.values(),
+        UserError.values(),
+        LeaseError.values(),
+        PropertyError.values(),
+        SettlementError.values()
+    ).flatMap(Arrays::stream);
   }
 
   @Test

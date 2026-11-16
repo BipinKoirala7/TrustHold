@@ -5,7 +5,7 @@ import com.trusthold.auth.dtos.RegisterOAuthUserDto;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.mail.dtos.UserRegisteredEvent;
-import com.trusthold.shared.ErrorInfo;
+import com.trusthold.shared.AuthError;
 import com.trusthold.shared.Guard;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.AuthProvider;
@@ -75,12 +75,12 @@ public class AuthService {
 
     if(userRepository.existsByUsername(registerUserDto.username())) {
       log.debug("Registration local user rejected: username already taken");
-      throw new AppException(ErrorInfo.USERNAME_ALREADY_EXISTS);
+      throw new AppException(AuthError.USERNAME_ALREADY_EXISTS);
     }
 
     if(userRepository.existsByEmail(registerUserDto.email())) {
       log.debug("Registration local user rejected: email already taken");
-      throw new AppException(ErrorInfo.EMAIL_ALREADY_EXISTS);
+      throw new AppException(AuthError.EMAIL_ALREADY_EXISTS);
     }
 
     User user = userMapper.createUserDtoToUser(registerUserDto);
@@ -88,7 +88,7 @@ public class AuthService {
     user.setPassword(passwordEncoder.encode(user.getPassword()));
     User savedUser = userRepository.save(user);
 
-    log.info("User registered: userId={}, provider={}", savedUser.getId(), AuthProvider.LOCAL);
+    log.info("User registered: userId={}, provider={}", savedUser.getId(), savedUser.getAuthProvider());
     applicationEventPublisher.publishEvent(new UserRegisteredEvent(savedUser.getEmail(), savedUser.getRole().toString(), savedUser.getUsername()));
   }
 
@@ -106,18 +106,18 @@ public class AuthService {
 
     if(userRepository.existsByUsername(registerOAuthUserDto.username())) {
       log.debug("OAuth registration rejected: username already taken");
-      throw new AppException(ErrorInfo.USERNAME_ALREADY_EXISTS);
+      throw new AppException(AuthError.USERNAME_ALREADY_EXISTS);
     }
 
     if(userRepository.existsByEmail(registerOAuthUserDto.email())) {
       log.debug("OAuth registration rejected: email already taken");
-      throw new AppException(ErrorInfo.EMAIL_ALREADY_EXISTS);
+      throw new AppException(AuthError.EMAIL_ALREADY_EXISTS);
     }
 
     User user = userMapper.createOAuthUserDtoToUser(registerOAuthUserDto);
     user.setAuthProvider(AuthProvider.GOOGLE);
     User savedUser = userRepository.save(user);
-    log.info("OAuth User registered: userId={}, provider={}", savedUser.getId(), AuthProvider.GOOGLE);
+    log.info("OAuth User registered: userId={}, provider={}", savedUser.getId(), savedUser.getAuthProvider());
     applicationEventPublisher.publishEvent(new UserRegisteredEvent(savedUser.getEmail(), savedUser.getRole().toString(), savedUser.getUsername()));
 
     return savedUser;
@@ -144,12 +144,12 @@ public class AuthService {
 
     if(user.getAuthProvider() != AuthProvider.LOCAL) {
       log.warn("Login failed: user is not local, userId={}", user.getId());
-      throw new AppException(ErrorInfo.INVALID_CREDENTIALS);
+      throw new AppException(AuthError.INVALID_CREDENTIALS);
     }
 
     if(!passwordEncoder.matches(loginUserDto.password(), user.getPassword())) {
       log.warn("Login failed: wrong password, userId={}", user.getId());
-      throw new AppException(ErrorInfo.INVALID_CREDENTIALS);
+      throw new AppException(AuthError.INVALID_CREDENTIALS);
     }
 
     String newRefreshToken = jwtService.generateRefreshToken(user);
@@ -179,11 +179,11 @@ public class AuthService {
 
     if (refreshToken == null || refreshToken.isBlank()) {
       log.debug("Refresh token rejected: no refresh token cookie");
-      throw new AppException(ErrorInfo.INVALID_TOKEN);
+      throw new AppException(AuthError.INVALID_TOKEN);
     }
     if (!activeRefreshTokenService.isRefreshTokenActive(refreshToken)) {
       log.warn("Refresh token rejected: token is not the active one (possible reuse)");
-      throw new AppException(ErrorInfo.INVALID_TOKEN);
+      throw new AppException(AuthError.INVALID_TOKEN);
     }
     User user = jwtService.validateRefreshToken(refreshToken);
     String newRefreshToken = jwtService.generateRefreshToken(user);
@@ -207,7 +207,7 @@ public class AuthService {
   @Transactional
   @PreAuthorize("isAuthenticated()")
   public void logoutUser(HttpServletResponse response, AuthUser authUser){
-    Guard.requireNotNull(authUser, new AppException(ErrorInfo.INVALID_TOKEN));
+    Guard.requireNotNull(authUser, new AppException(AuthError.INVALID_TOKEN));
 
     cookieService.deleteRefreshTokenCookie(response);
     cookieService.deleteAccessTokenCookie(response);

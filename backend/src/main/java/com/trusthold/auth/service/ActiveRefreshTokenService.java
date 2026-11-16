@@ -50,7 +50,7 @@ public class ActiveRefreshTokenService {
     ActiveRefreshToken activeRefreshToken = new ActiveRefreshToken();
     activeRefreshToken.setUserId(userId);
     activeRefreshToken.setRefreshToken(refreshToken);
-    activeRefreshToken.setExpiresAt(Instant.now().plusMillis(jwtConfig.getRefreshTokenExpiration()));
+    activeRefreshToken.setExpiresAt(Instant.now().plusSeconds(jwtConfig.getRefreshTokenExpiration()));
     activeRefreshTokenRepository.save(activeRefreshToken);
 
     log.debug("Active refresh token stored for user with ID: {}", userId);
