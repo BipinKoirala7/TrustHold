@@ -4,9 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { formatDeposit, formatLeaseDate, Lease } from "@/lib/lease-data";
 import { LeaseStatusBadge } from "./lease-status-badge";
-import { LeaseSummaryDto } from "@/lib/api/lease";
+import {
+  formatDeposit,
+  formatLeaseDate,
+  LeaseSummaryDto,
+} from "@/lib/api/lease";
 
 export function LeaseRow({ lease }: { lease: LeaseSummaryDto }) {
   const router = useRouter();

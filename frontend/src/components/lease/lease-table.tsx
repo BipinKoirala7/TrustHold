@@ -31,18 +31,9 @@ export function LeasesTable({ leases }: { leases: LeaseSummaryDto[] }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {leases.length === 0 ? (
-            <TableRow className="hover:bg-transparent">
-              <TableCell
-                colSpan={6}
-                className="h-32 text-center text-muted-foreground"
-              >
-                No leases match your search.
-              </TableCell>
-            </TableRow>
-          ) : (
-            leases.map((lease) => <LeaseRow key={lease.id} lease={lease} />)
-          )}
+          {leases.map((lease) => (
+            <LeaseRow key={lease.id} lease={lease} />
+          ))}
         </TableBody>
       </Table>
     </div>
