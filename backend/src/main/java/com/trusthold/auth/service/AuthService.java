@@ -88,7 +88,7 @@ public class AuthService {
     user.setPassword(passwordEncoder.encode(user.getPassword()));
     User savedUser = userRepository.save(user);
 
-    log.info("User registered: userId={}, provider={}", savedUser.getId(), AuthProvider.LOCAL);
+    log.info("User registered: userId={}, provider={}", savedUser.getId(), savedUser.getAuthProvider());
     applicationEventPublisher.publishEvent(new UserRegisteredEvent(savedUser.getEmail(), savedUser.getRole().toString(), savedUser.getUsername()));
   }
 
@@ -117,7 +117,7 @@ public class AuthService {
     User user = userMapper.createOAuthUserDtoToUser(registerOAuthUserDto);
     user.setAuthProvider(AuthProvider.GOOGLE);
     User savedUser = userRepository.save(user);
-    log.info("OAuth User registered: userId={}, provider={}", savedUser.getId(), AuthProvider.GOOGLE);
+    log.info("OAuth User registered: userId={}, provider={}", savedUser.getId(), savedUser.getAuthProvider());
     applicationEventPublisher.publishEvent(new UserRegisteredEvent(savedUser.getEmail(), savedUser.getRole().toString(), savedUser.getUsername()));
 
     return savedUser;
