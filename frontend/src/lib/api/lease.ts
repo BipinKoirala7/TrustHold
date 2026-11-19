@@ -35,7 +35,7 @@ export interface Lease {
 
 export interface LeaseSummaryDto {
   id: string;
-  property: PropertySummaryDto;
+  propertyInfo: PropertySummaryDto;
   tenantName: string;
   depositAmount: number;
   status: LeaseStatus;

@@ -23,9 +23,11 @@ export function LeaseRow({ lease }: { lease: LeaseSummaryDto }) {
           onClick={(e) => e.stopPropagation()}
           className="font-semibold hover:underline"
         >
-          {lease.property.name}
+          {lease.propertyInfo.name}
         </Link>
-        <p className="text-xs text-muted-foreground">{lease.property.city}</p>
+        <p className="text-xs text-muted-foreground">
+          {lease.propertyInfo.city}
+        </p>
       </TableCell>
       <TableCell className="hidden md:table-cell">{lease.tenantName}</TableCell>
       <TableCell className="font-semibold">
