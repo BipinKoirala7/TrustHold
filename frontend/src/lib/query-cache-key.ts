@@ -1,5 +1,6 @@
 export const queryKeys = {
   me: ["me"] as const,
-  landlordRecentActivity: ["landlordRecentActivity"] as const,
-  landlordDashboardSummaryStats: ["landlordDashboardSummaryStats"] as const,
+  properties: ["properties"] as const,
+  landlordRecentActivity: ["landlord-recent-activity"] as const,
+  landlordDashboardSummaryStats: ["landlord-dashboard-summary-stats"] as const,
 } as const;

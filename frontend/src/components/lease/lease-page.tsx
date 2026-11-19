@@ -4,8 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { LeasesView } from "./lease-view";
 import { Spinner } from "../ui/spinner";
 import { redirect } from "next/navigation";
-import { Button } from "../ui/button";
+import { Button, buttonVariants } from "../ui/button";
 import { Plus } from "lucide-react";
+import Link from "next/link";
 
 function LeasePage() {
   const { user, isLoading } = useAuth();
@@ -32,14 +33,13 @@ function LeasePage() {
           </p>
         </div>
         {user.role === "LANDLORD" && (
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => redirect("/landlord/leases/new")}
+          <Link
+            href="/landlord/leases/new"
+            className={buttonVariants({ size: "sm" })}
           >
             <Plus className="mr-2 h-4 w-4" />
             New Lease
-          </Button>
+          </Link>
         )}
       </div>
       <LeasesView />
