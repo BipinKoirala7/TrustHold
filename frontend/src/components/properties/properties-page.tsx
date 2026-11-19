@@ -1,9 +1,8 @@
-// app/(protected)/landlord/properties/page.tsx
 "use client";
 
 import { useState } from "react";
-import { Filter, Plus, Search } from "lucide-react";
-import { PropertyType } from "@/lib/api/property";
+import { Filter, Search } from "lucide-react";
+import { PropertyType, propertyTypeLabels } from "@/lib/api/property";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -13,8 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import PropertiesTable from "@/components/properties/properties-table";
-import { Button, buttonVariants } from "../ui/button";
-import Link from "next/link";
+import CreatePropertyDialog from "@/components/properties/create-property-dialog";
 
 function PropertiesPage() {
   const [search, setSearch] = useState("");
@@ -29,12 +27,7 @@ function PropertiesPage() {
             View the properties linked to your leases.
           </p>
         </div>
-        <Link
-          href="/landlord/properties/create"
-          className={buttonVariants({ size: "sm" })}
-        >
-          <Plus /> <span>New Property</span>
-        </Link>
+        <CreatePropertyDialog />
       </div>
 
       <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm sm:flex-row">
@@ -54,10 +47,12 @@ function PropertiesPage() {
         >
           <SelectTrigger className="sm:w-48">
             <Filter className="size-4" />
-            <SelectValue />
+            <SelectValue>
+              {type === "ALL" ? "All" : propertyTypeLabels[type]}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">All types</SelectItem>
+            <SelectItem value="ALL">All</SelectItem>
             <SelectItem value="APARTMENT">Apartment</SelectItem>
             <SelectItem value="HOUSE">House</SelectItem>
             <SelectItem value="LAND">Land</SelectItem>
