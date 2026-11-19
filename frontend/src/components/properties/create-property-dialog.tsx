@@ -4,12 +4,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
-import { toast } from "sonner";
-import { queryKeys } from "@/lib/query-cache-key";
 import {
-  createProperty,
   CreatePropertyDto,
   createPropertySchema,
   propertyTypeLabels,
@@ -35,10 +30,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCreateProperty } from "@/hooks/useCreateProperty";
 
 function CreatePropertyDialog() {
   const [open, setOpen] = useState(false);
-  const queryClient = useQueryClient();
 
   const {
     register,
@@ -57,22 +52,9 @@ function CreatePropertyDialog() {
     },
   });
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: createProperty,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.properties });
-      toast.success("Property created");
-      setOpen(false);
-      reset();
-    },
-    onError: (error) => {
-      const message = isAxiosError(error)
-        ? error.response?.data?.error?.message
-        : undefined;
-      toast.error("Could not create property", {
-        description: message ?? "Something went wrong. Please try again.",
-      });
-    },
+  const { mutate, isPending } = useCreateProperty(() => {
+    setOpen(false);
+    reset();
   });
 
   function handleOpenChange(next: boolean) {
@@ -83,11 +65,15 @@ function CreatePropertyDialog() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger>
-        <Button>
-          <Plus /> <span>New Property</span>
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <>
+            <Button>
+              <Plus /> <span>New Property</span>
+            </Button>
+          </>
+        }
+      ></DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
