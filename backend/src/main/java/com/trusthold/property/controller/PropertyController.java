@@ -18,8 +18,8 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("property")
-@RequiredArgsConstructor
 @Validated
+@RequiredArgsConstructor
 public class PropertyController {
 
   private final PropertyService propertyService;
