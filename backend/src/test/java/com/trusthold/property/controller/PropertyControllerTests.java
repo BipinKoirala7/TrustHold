@@ -6,14 +6,12 @@ import com.trusthold.property.model.PropertyType;
 import com.trusthold.property.service.PropertyService;
 import com.trusthold.shared.controller.ControllerTestSupport;
 import com.trusthold.shared.exception.AppException;
-import com.trusthold.shared.exception.PropertyException;
+import com.trusthold.shared.exception.AuthException;
 import com.trusthold.user.model.Role;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -27,8 +25,8 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -42,11 +40,13 @@ public class PropertyControllerTests extends ControllerTestSupport {
   private PropertyService propertyService;
 
   private AuthUser sampleAuthUser;
+  private UUID propertyId;
   private CreatePropertyDto createPropertyDto;
 
   @BeforeEach
   void setUp() {
     sampleAuthUser = new AuthUser(UUID.randomUUID(), "dummy-token", Role.LANDLORD);
+    propertyId = UUID.randomUUID();
 
     SecurityContextHolder.getContext().setAuthentication(
         new UsernamePasswordAuthenticationToken(
@@ -81,20 +81,90 @@ public class PropertyControllerTests extends ControllerTestSupport {
           .andExpect(jsonPath("$.error").doesNotExist());
     }
 
-    @ParameterizedTest
-    @EnumSource(PropertyException.class)
-    void shouldReturnErrorInfoResponse_whenServiceThrowsAppException(PropertyException errorInfo) throws Exception {
+    @Test
+    void shouldReturnUnauthorized_whenServiceThrowsUnauthorized() throws Exception {
       // Arrange
-      doThrow(new AppException(errorInfo))
+      doThrow(new AppException(AuthException.UNAUTHORIZED))
           .when(propertyService).createProperty(eq(sampleAuthUser), any(CreatePropertyDto.class));
 
       // Act & Assert
       mockMvc.perform(post(BASE_URL)
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(createPropertyDto)))
-          .andExpect(status().is(errorInfo.getHttpStatus().value()))
-          .andExpect(jsonPath("$.error.code").value(errorInfo.getErrCode()))
-          .andExpect(jsonPath("$.error.message").value(errorInfo.getMessage()));
+          .andExpect(status().is(AuthException.UNAUTHORIZED.getHttpStatus().value()))
+          .andExpect(jsonPath("$.error.code").value(AuthException.UNAUTHORIZED.getErrCode()))
+          .andExpect(jsonPath("$.error.message").value(AuthException.UNAUTHORIZED.getMessage()));
+    }
+
+  }
+
+  @Nested
+  class GetAllPropertiesTests {
+
+    @Test
+    void shouldReturnUnauthorized_whenServiceThrowsUnauthorized() throws Exception {
+      // Arrange
+      when(propertyService.getAllProperties(eq(sampleAuthUser)))
+          .thenThrow(new AppException(AuthException.UNAUTHORIZED));
+
+      // Act & Assert
+      mockMvc.perform(get(BASE_URL))
+          .andExpect(status().is(AuthException.UNAUTHORIZED.getHttpStatus().value()))
+          .andExpect(jsonPath("$.error.code").value(AuthException.UNAUTHORIZED.getErrCode()))
+          .andExpect(jsonPath("$.error.message").value(AuthException.UNAUTHORIZED.getMessage()));
+    }
+
+  }
+
+  @Nested
+  class GetPropertyByIdTests {
+
+    @Test
+    void shouldReturnUnauthorized_whenServiceThrowsUnauthorized() throws Exception {
+      // Arrange
+      when(propertyService.getPropertyInfo(eq(sampleAuthUser), eq(propertyId)))
+          .thenThrow(new AppException(AuthException.UNAUTHORIZED));
+
+      // Act & Assert
+      mockMvc.perform(get(BASE_URL + "/{id}", propertyId))
+          .andExpect(status().is(AuthException.UNAUTHORIZED.getHttpStatus().value()))
+          .andExpect(jsonPath("$.error.code").value(AuthException.UNAUTHORIZED.getErrCode()))
+          .andExpect(jsonPath("$.error.message").value(AuthException.UNAUTHORIZED.getMessage()));
+    }
+
+    @Test
+    void shouldReturnClientError_whenIdIsNotAValidUuid() throws Exception {
+      // Act & Assert
+      mockMvc.perform(get(BASE_URL + "/{id}", "not-a-uuid"))
+          .andExpect(status().is5xxServerError());
+
+      verifyNoInteractions(propertyService);
+    }
+  }
+
+  @Nested
+  class ArchivePropertyTests {
+
+    @Test
+    void shouldReturnUnauthorized_whenServiceThrowsUnauthorized() throws Exception {
+      // Arrange
+      doThrow(new AppException(AuthException.UNAUTHORIZED))
+          .when(propertyService).archiveProperty(eq(sampleAuthUser), eq(propertyId));
+
+      // Act & Assert
+      mockMvc.perform(delete(BASE_URL + "/{id}", propertyId))
+          .andExpect(status().is(AuthException.UNAUTHORIZED.getHttpStatus().value()))
+          .andExpect(jsonPath("$.error.code").value(AuthException.UNAUTHORIZED.getErrCode()))
+          .andExpect(jsonPath("$.error.message").value(AuthException.UNAUTHORIZED.getMessage()));
+    }
+
+    @Test
+    void shouldReturnClientError_whenIdIsNotAValidUuid() throws Exception {
+      // Act & Assert
+      mockMvc.perform(delete(BASE_URL + "/{id}", "not-a-uuid"))
+          .andExpect(status().is5xxServerError());
+
+      verifyNoInteractions(propertyService);
     }
   }
 }

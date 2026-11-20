@@ -4,11 +4,10 @@ import com.trusthold.auth.dtos.*;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.service.PasswordResetTokenService;
-import com.trusthold.shared.exception.AuthException;
-import com.trusthold.shared.exception.UserException;
 import com.trusthold.shared.controller.ControllerTestSupport;
 import com.trusthold.shared.exception.AppException;
-import io.jsonwebtoken.JwtException;
+import com.trusthold.shared.exception.AuthException;
+import com.trusthold.shared.exception.UserException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -292,43 +291,6 @@ public class AuthControllerTests extends ControllerTestSupport {
       mockMvc.perform(post(LOGOUT_ENDPOINT)
               .contentType("application/json"))
           .andExpect(status().isUnauthorized());
-    }
-  }
-
-  /**
-   * Every endpoint shares the exception handler, so its generic fallbacks
-   * are tested here once instead of once per endpoint.
-   */
-  @Nested
-  class ExceptionHandlingTests {
-
-    @Test
-    void shouldReturnInternalServerError_whenUnexpectedExceptionIsThrown() throws Exception {
-      doThrow(new RuntimeException("Database error"))
-          .when(authService)
-          .registerLocalUser(any(RegisterUserDto.class));
-
-      RegisterUserDto dto = new RegisterUserDto(
-          "Test", "User", "testuser123", "testuser@example.com",
-          "Test@Password1", "+1234567890", RegistrationRole.TENANT);
-
-      mockMvc.perform(post("/auth/register")
-              .contentType("application/json")
-              .content(objectMapper.writeValueAsString(dto)))
-          .andExpect(status().isInternalServerError());
-    }
-
-    @Test
-    void shouldReturnInternalServerError_whenJwtExceptionIsThrown() throws Exception {
-      // Pins CURRENT behavior. An invalid/expired refresh token should probably be 401;
-      // when you fix the handler, this is the single test to update.
-      doThrow(new JwtException("Invalid signature"))
-          .when(authService)
-          .refreshToken(any(), any());
-
-      mockMvc.perform(post("/auth/token/refresh")
-              .contentType("application/json"))
-          .andExpect(status().isInternalServerError());
     }
   }
 }

@@ -11,10 +11,11 @@ import com.trusthold.property.dtos.PropertySummaryDto;
 import com.trusthold.property.model.Property;
 import com.trusthold.property.service.PropertyMapper;
 import com.trusthold.property.service.PropertyService;
-import com.trusthold.shared.exception.AuthException;
 import com.trusthold.shared.Guard;
-import com.trusthold.shared.exception.LeaseException;
 import com.trusthold.shared.exception.AppException;
+import com.trusthold.shared.exception.AuthException;
+import com.trusthold.shared.exception.LeaseException;
+import com.trusthold.shared.exception.PropertyException;
 import com.trusthold.user.model.User;
 import com.trusthold.user.service.UserService;
 import jakarta.validation.constraints.NotNull;
@@ -62,7 +63,7 @@ public class LeaseService {
 
     if(property.getIsArchived()){
       log.warn("Property with id {} is archived and cannot be used for lease", property.getId());
-      throw new AppException(LeaseException.PROPERTY_IS_ARCHIVED);
+      throw new AppException(PropertyException.PROPERTY_IS_ARCHIVED);
     }
 
     Lease lease = leaseMapper.toLeaseEntity(createLeaseDto);

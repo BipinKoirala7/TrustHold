@@ -203,7 +203,7 @@ public class JwtServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.validateRefreshToken(validRefreshToken));
-      assertThat(ex.getExceptionCode()).isEqualTo(UserException.USER_NOT_FOUND);
+      assertThat(ex.getCode()).isEqualTo(UserException.USER_NOT_FOUND);
       verify(userService).getUserById(user.getId());
     }
 

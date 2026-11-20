@@ -89,7 +89,7 @@ public class PasswordResetTokenServiceServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.forgotPassword(forgotPasswordDto));
-      assertThat(ex.getExceptionCode()).isEqualTo(UserException.USER_NOT_FOUND);
+      assertThat(ex.getCode()).isEqualTo(UserException.USER_NOT_FOUND);
       verify(userRepository).findByEmail(forgotPasswordDto.email());
       verify(passwordResetTokenRepository, never()).save(any(PasswordResetToken.class));
       verify(applicationEventPublisher, never()).publishEvent(any(PasswordResetEvent.class));
@@ -228,7 +228,7 @@ public class PasswordResetTokenServiceServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.resetPassword(mockResponse, resetPasswordDto));
-      assertThat(ex.getExceptionCode()).isEqualTo(AuthException.INVALID_PASSWORD_RESET_TOKEN);
+      assertThat(ex.getCode()).isEqualTo(AuthException.INVALID_PASSWORD_RESET_TOKEN);
       verify(passwordResetTokenRepository).findByTokenHash(hash);
       verify(passwordResetTokenRepository, never()).consume(anyString(), any());
     }
@@ -243,7 +243,7 @@ public class PasswordResetTokenServiceServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.resetPassword(mockResponse, resetPasswordDto));
-      assertThat(ex.getExceptionCode()).isEqualTo(AuthException.EXPIRED_PASSWORD_RESET_TOKEN);
+      assertThat(ex.getCode()).isEqualTo(AuthException.EXPIRED_PASSWORD_RESET_TOKEN);
       verify(passwordResetTokenRepository).findByTokenHash(hash);
       verify(passwordResetTokenRepository).consume(eq(hash), any(Instant.class));
       verify(userService, never()).getUserById(any(UUID.class));
@@ -260,7 +260,7 @@ public class PasswordResetTokenServiceServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.resetPassword(mockResponse, resetPasswordDto));
-      assertThat(ex.getExceptionCode()).isEqualTo(UserException.USER_NOT_FOUND);
+      assertThat(ex.getCode()).isEqualTo(UserException.USER_NOT_FOUND);
       verify(passwordResetTokenRepository).findByTokenHash(hash);
       verify(passwordResetTokenRepository).consume(eq(hash), any(Instant.class));
       verify(userService).getUserById(passwordResetToken.getUserId());
@@ -325,7 +325,7 @@ public class PasswordResetTokenServiceServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.resetPassword(mockResponse, resetPasswordDto));
-      assertThat(ex.getExceptionCode()).isEqualTo(AuthException.EXPIRED_PASSWORD_RESET_TOKEN);
+      assertThat(ex.getCode()).isEqualTo(AuthException.EXPIRED_PASSWORD_RESET_TOKEN);
       verify(passwordResetTokenRepository).findByTokenHash(hash);
       verify(passwordResetTokenRepository).consume(eq(hash), any(Instant.class));
       verify(userService, never()).getUserById(any(UUID.class));
