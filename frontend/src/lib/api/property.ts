@@ -63,17 +63,17 @@ const CREATE_PROPERTY_PATH = "/property";
 export async function createProperty(
   property: CreatePropertyDto,
 ): Promise<void> {
-  api.post<ApiResponse<Property>>(CREATE_PROPERTY_PATH, property);
+  await api.post<ApiResponse<Property>>(CREATE_PROPERTY_PATH, property);
 }
 
 const GET_LANDLORD_PROPERTIES_PATH = "/property";
 export async function getLandlordProperties(): Promise<Property[]> {
-  return api
+  return await api
     .get<ApiResponse<Property[]>>(GET_LANDLORD_PROPERTIES_PATH)
     .then((res) => res.data.data);
 }
 
 const DELETE_PROPERTY_PATH = "/property";
 export async function deleteProperty(id: string): Promise<void> {
-  api.delete<ApiResponse<void>>(`${DELETE_PROPERTY_PATH}/${id}`);
+  await api.delete<ApiResponse<void>>(`${DELETE_PROPERTY_PATH}/${id}`);
 }

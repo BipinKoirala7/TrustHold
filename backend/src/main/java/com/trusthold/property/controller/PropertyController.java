@@ -38,6 +38,12 @@ public class PropertyController {
 
   @GetMapping("{id}")
   public ApiResponse<Property> getPropertyById(@AuthenticationPrincipal AuthUser authUser, @PathVariable @NotBlank String id) {
-    return ApiResponse.success(propertyService.getPropertyById(authUser, UUID.fromString(id)));
+    return ApiResponse.success(propertyService.getPropertyInfo(authUser, UUID.fromString(id)));
+  }
+
+  @DeleteMapping("{id}")
+  public ApiResponse<Void> archiveProperty(@AuthenticationPrincipal AuthUser authUser, @PathVariable @NotBlank String id) {
+    propertyService.archiveProperty(authUser, UUID.fromString(id));
+    return ApiResponse.success();
   }
 }

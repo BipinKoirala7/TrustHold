@@ -111,7 +111,7 @@ class LeaseServiceTests {
     @Test
     void shouldPropagateException_whenPropertyLookupFails() {
       when(createLeaseDto.propertyId()).thenReturn(propertyId);
-      when(propertyService.getPropertyById(landlordUser, propertyId))
+      when(propertyService.getPropertyInfo(landlordUser, propertyId))
           .thenThrow(new AppException(PropertyError.PROPERTY_NOT_FOUND));
 
       assertThatThrownBy(() -> leaseService.createLease(landlordUser, createLeaseDto))
@@ -125,7 +125,7 @@ class LeaseServiceTests {
     void shouldThrowAppException_whenProvidedTenantIsNotATenant() {
       when(createLeaseDto.propertyId()).thenReturn(propertyId);
       when(createLeaseDto.tenantId()).thenReturn(tenantId);
-      when(propertyService.getPropertyById(landlordUser, propertyId)).thenReturn(property);
+      when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
       when(userService.isUserTenant(tenantId)).thenReturn(false);
 
       assertThatThrownBy(() -> leaseService.createLease(landlordUser, createLeaseDto))
@@ -139,7 +139,7 @@ class LeaseServiceTests {
     void shouldPropagateException_andNotPublishEvent_whenSaveFails() {
       when(createLeaseDto.propertyId()).thenReturn(propertyId);
       when(createLeaseDto.tenantId()).thenReturn(tenantId);
-      when(propertyService.getPropertyById(landlordUser, propertyId)).thenReturn(property);
+      when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
       when(userService.isUserTenant(tenantId)).thenReturn(true);
       when(leaseMapper.toLeaseEntity(createLeaseDto)).thenReturn(lease);
       when(leaseRepository.save(lease)).thenThrow(new RuntimeException("Database connection failed"));
@@ -160,7 +160,7 @@ class LeaseServiceTests {
 
       InOrder inOrder = inOrder(propertyService, userService, leaseMapper, lease,
           leaseRepository, applicationEventPublisher);
-      inOrder.verify(propertyService).getPropertyById(landlordUser, propertyId);
+      inOrder.verify(propertyService).getPropertyInfo(landlordUser, propertyId);
       inOrder.verify(userService).isUserTenant(tenantId);
       inOrder.verify(leaseMapper).toLeaseEntity(createLeaseDto);
       inOrder.verify(lease).setLandlordId(landlordId);
@@ -197,7 +197,7 @@ class LeaseServiceTests {
     private void stubHappyPath() {
       when(createLeaseDto.propertyId()).thenReturn(propertyId);
       when(createLeaseDto.tenantId()).thenReturn(tenantId);
-      when(propertyService.getPropertyById(landlordUser, propertyId)).thenReturn(property);
+      when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
       when(userService.isUserTenant(tenantId)).thenReturn(true);
       when(leaseMapper.toLeaseEntity(createLeaseDto)).thenReturn(lease);
       when(lease.getId()).thenReturn(leaseId);
@@ -233,7 +233,7 @@ class LeaseServiceTests {
       Instant startDate = Instant.now();
       stubLease(lease, leaseId, propertyId, tenantId, startDate);
       when(leaseRepository.findAllByLandlordId(landlordId)).thenReturn(List.of(lease));
-      when(propertyService.getPropertyById(landlordUser, propertyId)).thenReturn(property);
+      when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
       when(propertyMapper.toPropertyInfo(property)).thenReturn(propertyInfo);
       when(userService.getUserByIdOrNull(tenantId)).thenReturn(Optional.of(tenant));
       when(tenant.getFirstName()).thenReturn("John");
@@ -257,7 +257,7 @@ class LeaseServiceTests {
     void shouldReturnLeasesByTenantId_whenUserIsTenant() {
       stubLease(lease, leaseId, propertyId, tenantId, Instant.now());
       when(leaseRepository.findAllByTenantId(tenantId)).thenReturn(List.of(lease));
-      when(propertyService.getPropertyById(tenantUser, propertyId)).thenReturn(property);
+      when(propertyService.getPropertyInfo(tenantUser, propertyId)).thenReturn(property);
       when(propertyMapper.toPropertyInfo(property)).thenReturn(propertyInfo);
       when(userService.getUserByIdOrNull(tenantId)).thenReturn(Optional.of(tenant));
       when(tenant.getFirstName()).thenReturn("John");
@@ -273,7 +273,7 @@ class LeaseServiceTests {
     void shouldSetTenantNameToNull_whenTenantIsNotFound() {
       stubLease(lease, leaseId, propertyId, tenantId, Instant.now());
       when(leaseRepository.findAllByLandlordId(landlordId)).thenReturn(List.of(lease));
-      when(propertyService.getPropertyById(landlordUser, propertyId)).thenReturn(property);
+      when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
       when(propertyMapper.toPropertyInfo(property)).thenReturn(propertyInfo);
       when(userService.getUserByIdOrNull(tenantId)).thenReturn(Optional.empty());
 
@@ -297,8 +297,8 @@ class LeaseServiceTests {
       stubLease(secondLease, secondLeaseId, secondPropertyId, secondTenantId, Instant.now());
       when(leaseRepository.findAllByLandlordId(landlordId)).thenReturn(List.of(lease, secondLease));
 
-      when(propertyService.getPropertyById(landlordUser, propertyId)).thenReturn(property);
-      when(propertyService.getPropertyById(landlordUser, secondPropertyId)).thenReturn(secondProperty);
+      when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
+      when(propertyService.getPropertyInfo(landlordUser, secondPropertyId)).thenReturn(secondProperty);
       when(propertyMapper.toPropertyInfo(property)).thenReturn(propertyInfo);
       when(propertyMapper.toPropertyInfo(secondProperty)).thenReturn(secondInfo);
 
@@ -323,7 +323,7 @@ class LeaseServiceTests {
     void shouldPropagateException_whenPropertyLookupFails() {
       when(lease.getPropertyId()).thenReturn(propertyId);
       when(leaseRepository.findAllByLandlordId(landlordId)).thenReturn(List.of(lease));
-      when(propertyService.getPropertyById(landlordUser, propertyId))
+      when(propertyService.getPropertyInfo(landlordUser, propertyId))
           .thenThrow(new AppException(PropertyError.PROPERTY_NOT_FOUND));
 
       assertThatThrownBy(() -> leaseService.getUsersLeases(landlordUser))

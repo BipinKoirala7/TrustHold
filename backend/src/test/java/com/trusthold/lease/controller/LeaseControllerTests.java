@@ -102,13 +102,15 @@ public class LeaseControllerTests extends ControllerTestSupport {
       // Arrange
       UUID leaseId = UUID.randomUUID();
       Instant startDate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+      Instant endDate = startDate.plus(1, ChronoUnit.YEARS);
       LeaseSummaryDto summary = new LeaseSummaryDto(
           leaseId,
           new PropertySummaryDto("Sunrise Apartment", null, "Pokhara"),
           "John Doe",
           new BigDecimal("50000.00"),
           LeaseStatus.ACTIVE,
-          startDate);
+          startDate,
+          endDate);
       when(leaseService.getUsersLeases(sampleAuthUser)).thenReturn(List.of(summary));
 
       // Act & Assert
@@ -151,7 +153,8 @@ public class LeaseControllerTests extends ControllerTestSupport {
           null,
           new BigDecimal("50000.00"),
           LeaseStatus.ACTIVE,
-          Instant.now());
+          Instant.now(),
+          Instant.now().plus(1, ChronoUnit.YEARS));
       when(leaseService.getUsersLeases(sampleAuthUser)).thenReturn(List.of(summary));
 
       // Act & Assert

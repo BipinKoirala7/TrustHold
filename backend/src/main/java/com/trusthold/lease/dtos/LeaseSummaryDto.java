@@ -14,10 +14,11 @@ public record LeaseSummaryDto(
     String tenantName,
     BigDecimal depositAmount,
     LeaseStatus status,
-    Instant startDate
+    Instant startDate,
+    Instant endDate
 ) {
 
   public LeaseSummaryDto(Lease lease, PropertySummaryDto propertyInfo, String tenantName) {
-    this(lease.getId(), propertyInfo, tenantName, lease.getDepositAmount(), lease.getStatus(), lease.getStartDate());
+    this(lease.getId(), propertyInfo, tenantName, lease.getDepositAmount(), lease.getStatus(), lease.getStartDate(), lease.getEndDate());
   }
 }

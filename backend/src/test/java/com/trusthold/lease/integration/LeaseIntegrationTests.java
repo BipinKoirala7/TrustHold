@@ -210,7 +210,7 @@ public class LeaseIntegrationTests extends IntegrationTestSupport {
           "A nice place to live");
       assertThat(post(PROPERTY_URL, headers, dto).getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
-      return propertyRepository.findByLandlordId(landlordId).stream()
+      return propertyRepository.findByLandlordIdAndIsArchivedFalse(landlordId).stream()
           .filter(property -> name.equals(property.getName()))
           .map(Property::getId)
           .findFirst()

@@ -1,4 +1,3 @@
-// components/properties/properties-table.tsx
 "use client";
 
 import { Building2, SearchX, TriangleAlert } from "lucide-react";

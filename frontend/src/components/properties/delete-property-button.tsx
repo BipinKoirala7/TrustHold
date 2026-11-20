@@ -28,6 +28,7 @@ function DeletePropertyButton({ id, name }: DeletePropertyButtonProps) {
     <>
       <Button
         variant="ghost"
+        className={"hover:bg-destructive/20 hover:text-destructive"}
         size="icon"
         aria-label={`Delete ${name}`}
         onClick={() => setOpen(true)}

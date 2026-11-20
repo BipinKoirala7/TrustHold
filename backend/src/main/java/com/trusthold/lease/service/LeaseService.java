@@ -53,11 +53,16 @@ public class LeaseService {
     Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
     log.info("Creating lease with data: {} for user: {}", createLeaseDto, authUser);
 
-    Property property = propertyService.getPropertyById(authUser, createLeaseDto.propertyId());
+    Property property = propertyService.getPropertyInfo(authUser, createLeaseDto.propertyId());
 
     if(!userService.isUserTenant(createLeaseDto.tenantId())){
       log.warn("User with id {} is not a tenant", createLeaseDto.tenantId());
       throw new AppException(LeaseError.PROVIDED_TENANT_IS_NOT_A_TENANT);
+    }
+
+    if(property.getIsArchived()){
+      log.warn("Property with id {} is archived and cannot be used for lease", property.getId());
+      throw new AppException(LeaseError.PROPERTY_IS_ARCHIVED);
     }
 
     Lease lease = leaseMapper.toLeaseEntity(createLeaseDto);

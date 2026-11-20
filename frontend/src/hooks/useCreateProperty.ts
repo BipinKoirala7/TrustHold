@@ -8,8 +8,8 @@ export function useCreateProperty(afterSuccess: () => void) {
   const queryClient = useQueryClient();
   return useMutation<void, ApiError, CreatePropertyDto>({
     mutationFn: createProperty,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.properties });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.properties });
       toast.success("Property created");
       afterSuccess();
     },
