@@ -1,28 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { leases } from "@/lib/lease-data";
+import { useState } from "react";
 import { LeasesTable } from "@/components/lease/lease-table";
+import { LeasesTableSkeleton } from "@/components/lease/lease-table-skeleton";
+import { LeasesTableError } from "@/components/lease/lease-table-error";
+import { LeasesTableEmpty } from "@/components/lease/lease-table-empty";
 import { LeasesToolbar } from "@/components/lease/lease-toolbar";
+import { getLeases, LeaseSummaryDto } from "@/lib/api/lease";
+import { useQuery } from "@tanstack/react-query";
 
 export function LeasesView() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
 
-  const filtered = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    return leases.filter((lease) => {
-      const matchesStatus = status === "all" || lease.status === status;
-      const matchesSearch =
-        query === "" ||
-        lease.propertyName.toLowerCase().includes(query) ||
-        lease.propertyDetail.toLowerCase().includes(query) ||
-        lease.tenantName.toLowerCase().includes(query);
-
-      return matchesStatus && matchesSearch;
-    });
-  }, [search, status]);
+  const { isPending, isError, data, refetch, isFetching } = useQuery<
+    LeaseSummaryDto[]
+  >({
+    queryKey: ["leases"],
+    queryFn: getLeases,
+  });
 
   return (
     <div className="space-y-4">
@@ -32,7 +28,15 @@ export function LeasesView() {
         status={status}
         onStatusChange={setStatus}
       />
-      <LeasesTable leases={filtered} />
+      {isPending ? (
+        <LeasesTableSkeleton />
+      ) : isError ? (
+        <LeasesTableError onRetry={() => refetch()} isRetrying={isFetching} />
+      ) : data.length === 0 ? (
+        <LeasesTableEmpty />
+      ) : (
+        <LeasesTable leases={data} />
+      )}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
@@ -42,6 +43,7 @@ public class PropertyService {
    * @param createPropertyDto the property details
    */
   @PreAuthorize("hasRole('LANDLORD')")
+  @Transactional
   public void createProperty(AuthUser authUser, CreatePropertyDto createPropertyDto) {
     Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
     log.debug("Creating property for user with id {}", authUser.id());
@@ -64,7 +66,7 @@ public class PropertyService {
     Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
     log.debug("Fetching properties for user with id {}", authUser.id());
 
-    return propertyRepository.findByLandlordId(authUser.id());
+    return propertyRepository.findByLandlordIdAndIsArchivedFalse(authUser.id());
   }
 
   /**
@@ -76,12 +78,49 @@ public class PropertyService {
    * @throws AppException if the user is not a landlord or the property is not found
    */
   @PreAuthorize("hasRole('LANDLORD')")
-  public Property getPropertyById(AuthUser authUser, UUID id){
+  public Property getPropertyInfo(AuthUser authUser, UUID id){
     Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
     log.debug("Fetching property with id {}", id);
 
     return propertyRepository
         .findByIdAndLandlordId(id, authUser.id())
+        .orElseThrow(() -> new AppException(PropertyError.PROPERTY_NOT_FOUND));
+  }
+
+  @PreAuthorize("hasRole('LANDLORD')")
+  @Transactional
+  public void archiveProperty(AuthUser authUser, UUID id) {
+    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
+    log.debug("Archiving property with id {}", id);
+
+    Property property = propertyRepository
+        .findByIdAndLandlordId(id, authUser.id())
+        .orElseThrow(() -> new AppException(PropertyError.PROPERTY_NOT_FOUND));
+
+    if (property.getIsArchived()) {
+      log.warn("Property with id {} is already archived", id);
+      throw new AppException(PropertyError.PROPERTY_CANNOT_BE_ARCHIVED);
+    }
+
+    property.setIsArchived(true);
+    propertyRepository.save(property);
+    log.info("Property with id {} archived successfully", id);
+  }
+
+  /**
+   * Retrieves a property by its ID for the authenticated landlord. This is only for
+   * lease Service to use.
+   *
+   * @param id       property ID
+   * @return property
+   * @throws AppException if the user is not a landlord or the property is not found
+   */
+  @PreAuthorize("isAuthenticated()")
+  public Property getPropertyById(UUID id){
+    log.debug("Getting property with id {}", id);
+
+    return propertyRepository
+        .findById(id)
         .orElseThrow(() -> new AppException(PropertyError.PROPERTY_NOT_FOUND));
   }
 

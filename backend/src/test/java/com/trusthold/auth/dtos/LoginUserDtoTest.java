@@ -12,10 +12,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class LoginUserDtoTest extends DtoValidationTestSupport {
 
-  private static final String PASSWORD_PATTERN_MESSAGE =
-      "Password must be at least 8 characters long and contain at least one uppercase letter, "
-          + "one lowercase letter, one number, and one special character.";
-
   @Test
   @DisplayName("valid email and password pass")
   void validDto() {

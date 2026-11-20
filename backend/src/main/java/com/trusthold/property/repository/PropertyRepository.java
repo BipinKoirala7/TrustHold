@@ -10,5 +10,5 @@ import java.util.UUID;
 public interface PropertyRepository extends JpaRepository<Property, UUID> {
 
   Optional<Property> findByIdAndLandlordId(UUID id, UUID landlordId);
-  List<Property> findByLandlordId(UUID landlordId);
+  List<Property> findByLandlordIdAndIsArchivedFalse(UUID landlordId);
 }

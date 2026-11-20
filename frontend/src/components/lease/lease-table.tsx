@@ -6,13 +6,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Lease } from "@/lib/lease-data";
 import { LeaseRow } from "./lease-row";
+import { LeaseSummaryDto } from "@/lib/api/lease";
 
 const headClass =
   "text-xs font-semibold tracking-wide text-muted-foreground uppercase";
 
-export function LeasesTable({ leases }: { leases: Lease[] }) {
+export function LeasesTable({ leases }: { leases: LeaseSummaryDto[] }) {
   return (
     <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
       <Table>
@@ -31,18 +31,9 @@ export function LeasesTable({ leases }: { leases: Lease[] }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {leases.length === 0 ? (
-            <TableRow className="hover:bg-transparent">
-              <TableCell
-                colSpan={6}
-                className="h-32 text-center text-muted-foreground"
-              >
-                No leases match your search.
-              </TableCell>
-            </TableRow>
-          ) : (
-            leases.map((lease) => <LeaseRow key={lease.id} lease={lease} />)
-          )}
+          {leases.map((lease) => (
+            <LeaseRow key={lease.id} lease={lease} />
+          ))}
         </TableBody>
       </Table>
     </div>

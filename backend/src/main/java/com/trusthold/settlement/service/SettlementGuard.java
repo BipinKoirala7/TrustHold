@@ -49,7 +49,7 @@ public class SettlementGuard {
   }
 
   public void validateClose(Lease lease, Settlement settlement) {
-    if (lease.getStatus() != LeaseStatus.AGREED) throw new AppException(LeaseError.LEASE_NOT_AGREED);
+    if (lease.getStatus() != LeaseStatus.SETTLEMENT_AGREED) throw new AppException(LeaseError.LEASE_NOT_AGREED);
     if (settlement.getClosedAt() != null) throw new AppException(SettlementError.SETTLEMENT_ALREADY_CLOSED);
   }
 }

@@ -62,7 +62,7 @@ public class LeaseActivityService {
     Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
     log.debug("Getting recent activity for user={}", authUser.id());
 
-    List<Lease> leases = leaseService.getUsersLeases(authUser);
+    List<Lease> leases = leaseService.getLeasesByUserType(authUser);
 
     return leaseActivityRepository.findTop5ByLeaseIdInOrderByCreatedAtDesc(leases.stream().map(Lease::getId).collect(Collectors.toList()));
   }

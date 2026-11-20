@@ -1,16 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-  FieldDescription,
-} from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { GoogleButton } from "@/components/auth/google-button";
@@ -21,16 +14,10 @@ import {
   registerSchema,
   RegisterUerDto,
   type RegisterValues,
-  type RegistrationRole,
 } from "@/lib/schema/authSchema";
 import { useRegister } from "@/hooks/useRegister";
 
 const inputClass = "h-12 bg-card px-4 text-base md:text-base border-border";
-
-function googleSignupUrl(role: RegistrationRole) {
-  const base = process.env.NEXT_PUBLIC_API_URL ?? "";
-  return `${base}/oauth2/authorization/google?role=${role}`;
-}
 
 export function RegisterForm() {
   const { mutate, isPending } = useRegister();

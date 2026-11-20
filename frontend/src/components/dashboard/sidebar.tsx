@@ -6,6 +6,7 @@ import {
   ChevronUp,
   FileText,
   Home,
+  Houses,
   LogOut,
   PanelLeftOpen,
   ShieldCheck,
@@ -124,6 +125,19 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              {user.role === "LANDLORD" && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip="Admin"
+                    isActive={isActive("/landlord/properties")}
+                    className={activeStyles}
+                    render={<Link href="/landlord/properties" />}
+                  >
+                    <Houses />
+                    <span>Properties</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

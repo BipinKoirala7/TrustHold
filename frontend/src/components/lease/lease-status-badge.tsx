@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { leaseStatusMeta, type LeaseStatus } from "@/lib/lease-data";
+import { LeaseStatus, leaseStatusMeta } from "@/lib/api/lease";
 import { cn } from "@/lib/utils";
 
 export function LeaseStatusBadge({ status }: { status: LeaseStatus }) {

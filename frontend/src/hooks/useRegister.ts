@@ -3,7 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { registerUser } from "@/lib/api/auth";
 import { RegisterUerDto } from "@/lib/schema/authSchema";
-import { ApiError } from "@/lib/api/error";
+import { ApiError, handleError } from "@/lib/api/error";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -18,18 +18,6 @@ export function useRegister() {
       });
       router.push("/login");
     },
-    onError: (error) => {
-      if (error instanceof ApiError && error.status === 409) {
-        toast.error("Registration failed", {
-          description: "An account with this email or username already exists.",
-        });
-      } else if (error instanceof ApiError && error.status === 422) {
-        toast.error("Registration failed", {
-          description: "Invalid input. Please check your data and try again.",
-        });
-      } else {
-        toast.error("Registration failed", { description: error.message });
-      }
-    },
+    onError: (error: ApiError) => handleError(error, "Registration failed"),
   });
 }

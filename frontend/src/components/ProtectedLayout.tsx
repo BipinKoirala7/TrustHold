@@ -9,7 +9,6 @@ import { homePathFor } from "@/lib/api/auth";
 const ROLE_PREFIXES: Record<string, Role> = {
   "/tenant": "TENANT",
   "/landlord": "LANDLORD",
-  "/admin": "ADMIN",
 };
 
 export default function ProtectedLayout({

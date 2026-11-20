@@ -108,7 +108,7 @@ class PropertyServiceTests {
     @Test
     void shouldReturnPropertiesOwnedByLandlord() {
       List<Property> properties = List.of(property);
-      when(propertyRepository.findByLandlordId(landlordId)).thenReturn(properties);
+      when(propertyRepository.findByLandlordIdAndIsArchivedFalse(landlordId)).thenReturn(properties);
 
       List<Property> result = propertyService.getAllProperties(landlordUser);
 
@@ -117,7 +117,7 @@ class PropertyServiceTests {
 
     @Test
     void shouldReturnEmptyList_whenLandlordHasNoProperties() {
-      when(propertyRepository.findByLandlordId(landlordId)).thenReturn(List.of());
+      when(propertyRepository.findByLandlordIdAndIsArchivedFalse(landlordId)).thenReturn(List.of());
 
       assertThat(propertyService.getAllProperties(landlordUser)).isEmpty();
     }
@@ -128,7 +128,7 @@ class PropertyServiceTests {
 
     @Test
     void shouldThrowUnauthorized_whenAuthUserIsNull() {
-      assertThatThrownBy(() -> propertyService.getPropertyById(null, propertyId))
+      assertThatThrownBy(() -> propertyService.getPropertyInfo(null, propertyId))
           .isInstanceOf(AppException.class)
           .hasFieldOrPropertyWithValue("errorCode", AuthError.UNAUTHORIZED);
 
@@ -140,7 +140,7 @@ class PropertyServiceTests {
       when(propertyRepository.findByIdAndLandlordId(propertyId, landlordId))
           .thenReturn(Optional.of(property));
 
-      Property result = propertyService.getPropertyById(landlordUser, propertyId);
+      Property result = propertyService.getPropertyInfo(landlordUser, propertyId);
 
       assertThat(result).isSameAs(property);
     }
@@ -150,7 +150,7 @@ class PropertyServiceTests {
       when(propertyRepository.findByIdAndLandlordId(propertyId, landlordId))
           .thenReturn(Optional.empty());
 
-      assertThatThrownBy(() -> propertyService.getPropertyById(landlordUser, propertyId))
+      assertThatThrownBy(() -> propertyService.getPropertyInfo(landlordUser, propertyId))
           .isInstanceOf(AppException.class)
           .hasFieldOrPropertyWithValue("errorCode", PropertyError.PROPERTY_NOT_FOUND);
     }

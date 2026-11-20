@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { leaseStatusOptions } from "@/lib/lease-data";
+import { leaseStatusOptions } from "@/lib/api/lease";
 
 interface LeasesToolbarProps {
   search: string;

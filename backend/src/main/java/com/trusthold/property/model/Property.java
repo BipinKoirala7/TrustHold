@@ -56,6 +56,10 @@ public class Property {
   @Column(length = 1000, nullable = false)
   private String description;
 
+  @NotNull(message = "Archived status is required")
+  @Column(name = "is_archived", nullable = false)
+  private Boolean isArchived = false;
+
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;

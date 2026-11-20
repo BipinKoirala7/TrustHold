@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 public enum PropertyError implements ErrorCode {
 
   PROPERTY_NOT_FOUND("PROPERTY_NOT_FOUND", HttpStatus.NOT_FOUND, "Property chosen for lease doesn't exists"),
+  PROPERTY_CANNOT_BE_ARCHIVED("PROPERTY_CANNOT_BE_ARCHIVED", HttpStatus.FORBIDDEN, "Property cannot be archived"),
   TENANT_CANNOT_CREATE_PROPERTY("TENANT_CANNOT_CREATE_PROPERTY", HttpStatus.UNAUTHORIZED, "Tenants are not allowed to create properties");
 
   private final String errCode;

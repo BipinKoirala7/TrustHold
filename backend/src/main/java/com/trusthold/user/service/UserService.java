@@ -116,6 +116,10 @@ public class UserService {
     return userRepository.findById(userId).orElseThrow(() -> new AppException(UserError.USER_NOT_FOUND));
   }
 
+  public Optional<User> getUserByIdOrNull(@NotNull UUID userId) {
+    return userRepository.findById(userId);
+  }
+
   /** @throws AppException if no user has this email */
   public User getUserByEmail(@NotNull String email) {
     return userRepository.findByEmail(email).orElseThrow(() -> new AppException(AuthError.INVALID_CREDENTIALS));
