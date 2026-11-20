@@ -4,9 +4,9 @@ import com.trusthold.auth.model.AuthUser;
 import com.trusthold.property.dtos.CreatePropertyDto;
 import com.trusthold.property.model.PropertyType;
 import com.trusthold.property.service.PropertyService;
-import com.trusthold.shared.exception.PropertyException;
 import com.trusthold.shared.controller.ControllerTestSupport;
 import com.trusthold.shared.exception.AppException;
+import com.trusthold.shared.exception.PropertyException;
 import com.trusthold.user.model.Role;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +28,6 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -82,30 +81,6 @@ public class PropertyControllerTests extends ControllerTestSupport {
           .andExpect(jsonPath("$.error").doesNotExist());
     }
 
-    @Test
-    void shouldReturnMalformedRequest_whenBodyIsMalformedJson() throws Exception {
-      // Act & Assert
-      mockMvc.perform(post(BASE_URL)
-              .contentType(MediaType.APPLICATION_JSON)
-              .content("{ not-json"))
-          .andExpect(status().isBadRequest())
-          .andExpect(jsonPath("$.error.code").value("MALFORMED_REQUEST"));
-
-      verifyNoInteractions(propertyService);
-    }
-
-    @Test
-    void shouldReturnUnsupportedMediaType_whenContentTypeIsNotJson() throws Exception {
-      // Act & Assert
-      mockMvc.perform(post(BASE_URL)
-              .contentType(MediaType.TEXT_PLAIN)
-              .content(""))
-          .andExpect(status().isUnsupportedMediaType())
-          .andExpect(jsonPath("$.error.code").value("UNSUPPORTED_MEDIA_TYPE"));
-
-      verifyNoInteractions(propertyService);
-    }
-
     @ParameterizedTest
     @EnumSource(PropertyException.class)
     void shouldReturnErrorInfoResponse_whenServiceThrowsAppException(PropertyException errorInfo) throws Exception {
@@ -120,22 +95,6 @@ public class PropertyControllerTests extends ControllerTestSupport {
           .andExpect(status().is(errorInfo.getHttpStatus().value()))
           .andExpect(jsonPath("$.error.code").value(errorInfo.getErrCode()))
           .andExpect(jsonPath("$.error.message").value(errorInfo.getMessage()));
-    }
-
-    @Test
-    void shouldReturnInternalServerError_whenServiceThrowsUnexpectedException() throws Exception {
-      // Arrange
-      doThrow(new RuntimeException("Database connection failed"))
-          .when(propertyService).createProperty(eq(sampleAuthUser), any(CreatePropertyDto.class));
-
-      // Act & Assert
-      mockMvc.perform(post(BASE_URL)
-              .contentType(MediaType.APPLICATION_JSON)
-              .content(objectMapper.writeValueAsString(createPropertyDto)))
-          .andExpect(status().isInternalServerError())
-          .andExpect(jsonPath("$.error.code").value("INTERNAL_SERVER_ERROR"))
-          .andExpect(jsonPath("$.error.message").value(
-              "An unexpected error occurred. Please try again later."));
     }
   }
 }

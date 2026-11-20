@@ -31,11 +31,4 @@ public class UserController {
     userService.updateUser(authUser, updateUserDto);
     return ApiResponse.success();
   }
-
-  @DeleteMapping
-  @ResponseStatus(HttpStatus.OK)
-  public ApiResponse<Void> deleteUser(@AuthenticationPrincipal AuthUser authUser){
-    userService.deleteUser(authUser);
-    return ApiResponse.success();
-  }
 }

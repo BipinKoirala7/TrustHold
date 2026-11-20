@@ -36,12 +36,4 @@ public class EventListener {
     log.info("Lease activity event received for {}", event.leaseId());
     leaseActivityService.createLeaseActivity(event);
   }
-
-//  @Async
-//  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-//  public void onDeletionRequested(AccountDeletionEvent event) {
-//    String link = frontendUrl + "/confirm-delete?token=" + event.rawToken();
-//    emailService.sendAccountDeletionEmail(
-//        event.email(), event.fullName(), link, event.expiresAt());
-//  }
 }
