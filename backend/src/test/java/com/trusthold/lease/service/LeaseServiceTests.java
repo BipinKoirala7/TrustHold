@@ -12,9 +12,9 @@ import com.trusthold.property.dtos.PropertySummaryDto;
 import com.trusthold.property.model.Property;
 import com.trusthold.property.service.PropertyMapper;
 import com.trusthold.property.service.PropertyService;
-import com.trusthold.shared.AuthError;
-import com.trusthold.shared.LeaseError;
-import com.trusthold.shared.PropertyError;
+import com.trusthold.shared.exception.AuthException;
+import com.trusthold.shared.exception.LeaseException;
+import com.trusthold.shared.exception.PropertyException;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.Role;
 import com.trusthold.user.model.User;
@@ -102,7 +102,7 @@ class LeaseServiceTests {
     void shouldThrowUnauthorized_whenAuthUserIsNull() {
       assertThatThrownBy(() -> leaseService.createLease(null, createLeaseDto))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", AuthError.UNAUTHORIZED);
+          .hasFieldOrPropertyWithValue("errorCode", AuthException.UNAUTHORIZED);
 
       verifyNoInteractions(propertyService, userService, leaseMapper, leaseRepository,
           applicationEventPublisher);
@@ -112,11 +112,11 @@ class LeaseServiceTests {
     void shouldPropagateException_whenPropertyLookupFails() {
       when(createLeaseDto.propertyId()).thenReturn(propertyId);
       when(propertyService.getPropertyInfo(landlordUser, propertyId))
-          .thenThrow(new AppException(PropertyError.PROPERTY_NOT_FOUND));
+          .thenThrow(new AppException(PropertyException.PROPERTY_NOT_FOUND));
 
       assertThatThrownBy(() -> leaseService.createLease(landlordUser, createLeaseDto))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", PropertyError.PROPERTY_NOT_FOUND);
+          .hasFieldOrPropertyWithValue("errorCode", PropertyException.PROPERTY_NOT_FOUND);
 
       verifyNoInteractions(userService, leaseMapper, leaseRepository, applicationEventPublisher);
     }
@@ -130,7 +130,7 @@ class LeaseServiceTests {
 
       assertThatThrownBy(() -> leaseService.createLease(landlordUser, createLeaseDto))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", LeaseError.PROVIDED_TENANT_IS_NOT_A_TENANT);
+          .hasFieldOrPropertyWithValue("errorCode", LeaseException.PROVIDED_TENANT_IS_NOT_A_TENANT);
 
       verifyNoInteractions(leaseMapper, leaseRepository, applicationEventPublisher);
     }
@@ -214,7 +214,7 @@ class LeaseServiceTests {
     void shouldThrowUnauthorized_whenAuthUserIsNull() {
       assertThatThrownBy(() -> leaseService.getUsersLeases(null))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", AuthError.UNAUTHORIZED);
+          .hasFieldOrPropertyWithValue("errorCode", AuthException.UNAUTHORIZED);
 
       verifyNoInteractions(leaseRepository, propertyService, propertyMapper, userService);
     }
@@ -233,7 +233,7 @@ class LeaseServiceTests {
       Instant startDate = Instant.now();
       stubLease(lease, leaseId, propertyId, tenantId, startDate);
       when(leaseRepository.findAllByLandlordId(landlordId)).thenReturn(List.of(lease));
-      when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
+      when(propertyService.getPropertyById(propertyId)).thenReturn(property);
       when(propertyMapper.toPropertyInfo(property)).thenReturn(propertyInfo);
       when(userService.getUserByIdOrNull(tenantId)).thenReturn(Optional.of(tenant));
       when(tenant.getFirstName()).thenReturn("John");
@@ -257,7 +257,7 @@ class LeaseServiceTests {
     void shouldReturnLeasesByTenantId_whenUserIsTenant() {
       stubLease(lease, leaseId, propertyId, tenantId, Instant.now());
       when(leaseRepository.findAllByTenantId(tenantId)).thenReturn(List.of(lease));
-      when(propertyService.getPropertyInfo(tenantUser, propertyId)).thenReturn(property);
+      when(propertyService.getPropertyById(propertyId)).thenReturn(property);
       when(propertyMapper.toPropertyInfo(property)).thenReturn(propertyInfo);
       when(userService.getUserByIdOrNull(tenantId)).thenReturn(Optional.of(tenant));
       when(tenant.getFirstName()).thenReturn("John");
@@ -273,7 +273,7 @@ class LeaseServiceTests {
     void shouldSetTenantNameToNull_whenTenantIsNotFound() {
       stubLease(lease, leaseId, propertyId, tenantId, Instant.now());
       when(leaseRepository.findAllByLandlordId(landlordId)).thenReturn(List.of(lease));
-      when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
+      when(propertyService.getPropertyById(propertyId)).thenReturn(property);
       when(propertyMapper.toPropertyInfo(property)).thenReturn(propertyInfo);
       when(userService.getUserByIdOrNull(tenantId)).thenReturn(Optional.empty());
 
@@ -297,8 +297,8 @@ class LeaseServiceTests {
       stubLease(secondLease, secondLeaseId, secondPropertyId, secondTenantId, Instant.now());
       when(leaseRepository.findAllByLandlordId(landlordId)).thenReturn(List.of(lease, secondLease));
 
-      when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
-      when(propertyService.getPropertyInfo(landlordUser, secondPropertyId)).thenReturn(secondProperty);
+      when(propertyService.getPropertyById(propertyId)).thenReturn(property);
+      when(propertyService.getPropertyById(secondPropertyId)).thenReturn(secondProperty);
       when(propertyMapper.toPropertyInfo(property)).thenReturn(propertyInfo);
       when(propertyMapper.toPropertyInfo(secondProperty)).thenReturn(secondInfo);
 
@@ -323,12 +323,12 @@ class LeaseServiceTests {
     void shouldPropagateException_whenPropertyLookupFails() {
       when(lease.getPropertyId()).thenReturn(propertyId);
       when(leaseRepository.findAllByLandlordId(landlordId)).thenReturn(List.of(lease));
-      when(propertyService.getPropertyInfo(landlordUser, propertyId))
-          .thenThrow(new AppException(PropertyError.PROPERTY_NOT_FOUND));
+      when(propertyService.getPropertyById(propertyId))
+          .thenThrow(new AppException(PropertyException.PROPERTY_NOT_FOUND));
 
       assertThatThrownBy(() -> leaseService.getUsersLeases(landlordUser))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", PropertyError.PROPERTY_NOT_FOUND);
+          .hasFieldOrPropertyWithValue("errorCode", PropertyException.PROPERTY_NOT_FOUND);
 
       verifyNoInteractions(propertyMapper, userService);
     }

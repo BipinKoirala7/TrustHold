@@ -5,8 +5,8 @@ import com.trusthold.auth.dtos.ResetPasswordDto;
 import com.trusthold.auth.model.PasswordResetToken;
 import com.trusthold.auth.repository.PasswordResetTokenRepository;
 import com.trusthold.mail.dtos.PasswordResetEvent;
-import com.trusthold.shared.AuthError;
-import com.trusthold.shared.UserError;
+import com.trusthold.shared.exception.AuthException;
+import com.trusthold.shared.exception.UserException;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.shared.service.TokenService;
 import com.trusthold.user.model.User;
@@ -51,7 +51,7 @@ public class PasswordResetTokenService {
           applicationEventPublisher.publishEvent(new PasswordResetEvent(user.getEmail(), user.getFirstName(), rawToken));
     }, () -> {
          log.warn("Password reset requested for non-existent email={}", forgotPasswordDto.email());
-         throw new AppException(UserError.USER_NOT_FOUND);
+         throw new AppException(UserException.USER_NOT_FOUND);
         });
   }
 
@@ -79,13 +79,13 @@ public class PasswordResetTokenService {
         .findByTokenHash(hash)
         .orElseThrow(() -> {
           log.warn("Invalid password reset token");
-          return new AppException(AuthError.INVALID_PASSWORD_RESET_TOKEN);
+          return new AppException(AuthException.INVALID_PASSWORD_RESET_TOKEN);
         });
 
     int consumed = passwordResetTokenRepository.consume(hash, Instant.now());
     if (consumed != 1) {
       log.warn("Password reset token expired for userId={}", passwordResetToken.getUserId());
-      throw new AppException(AuthError.EXPIRED_PASSWORD_RESET_TOKEN);
+      throw new AppException(AuthException.EXPIRED_PASSWORD_RESET_TOKEN);
     }
 
     User user = userService.getUserById(passwordResetToken.getUserId());

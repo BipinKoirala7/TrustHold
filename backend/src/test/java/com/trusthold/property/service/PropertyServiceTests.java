@@ -4,8 +4,8 @@ import com.trusthold.auth.model.AuthUser;
 import com.trusthold.property.dtos.CreatePropertyDto;
 import com.trusthold.property.model.Property;
 import com.trusthold.property.repository.PropertyRepository;
-import com.trusthold.shared.AuthError;
-import com.trusthold.shared.PropertyError;
+import com.trusthold.shared.exception.AuthException;
+import com.trusthold.shared.exception.PropertyException;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.Role;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +62,7 @@ class PropertyServiceTests {
     void shouldThrowUnauthorized_whenAuthUserIsNull() {
       assertThatThrownBy(() -> propertyService.createProperty(null, createPropertyDto))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", AuthError.UNAUTHORIZED);
+          .hasFieldOrPropertyWithValue("errorCode", AuthException.UNAUTHORIZED);
 
       verifyNoInteractions(propertyMapper, propertyRepository);
     }
@@ -100,7 +100,7 @@ class PropertyServiceTests {
     void shouldThrowUnauthorized_whenAuthUserIsNull() {
       assertThatThrownBy(() -> propertyService.getAllProperties(null))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", AuthError.UNAUTHORIZED);
+          .hasFieldOrPropertyWithValue("errorCode", AuthException.UNAUTHORIZED);
 
       verifyNoInteractions(propertyRepository);
     }
@@ -130,7 +130,7 @@ class PropertyServiceTests {
     void shouldThrowUnauthorized_whenAuthUserIsNull() {
       assertThatThrownBy(() -> propertyService.getPropertyInfo(null, propertyId))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", AuthError.UNAUTHORIZED);
+          .hasFieldOrPropertyWithValue("errorCode", AuthException.UNAUTHORIZED);
 
       verifyNoInteractions(propertyRepository);
     }
@@ -152,7 +152,7 @@ class PropertyServiceTests {
 
       assertThatThrownBy(() -> propertyService.getPropertyInfo(landlordUser, propertyId))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", PropertyError.PROPERTY_NOT_FOUND);
+          .hasFieldOrPropertyWithValue("errorCode", PropertyException.PROPERTY_NOT_FOUND);
     }
   }
 

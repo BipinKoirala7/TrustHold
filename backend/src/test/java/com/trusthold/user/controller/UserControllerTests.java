@@ -1,6 +1,6 @@
 package com.trusthold.user.controller;
 
-import com.trusthold.shared.UserError;
+import com.trusthold.shared.exception.UserException;
 import com.trusthold.shared.controller.ControllerTestSupport;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.dtos.UpdateUserDto;
@@ -48,7 +48,7 @@ public class UserControllerTests extends ControllerTestSupport {
 
     @Test
     void shouldReturnNotFound_whenAppExceptionIsUserNotFound() throws Exception {
-      doThrow(new AppException(UserError.USER_NOT_FOUND))
+      doThrow(new AppException(UserException.USER_NOT_FOUND))
           .when(userService)
           .getAuthenticatedUser(any());
 
@@ -88,7 +88,7 @@ public class UserControllerTests extends ControllerTestSupport {
 
     @Test
     void shouldReturnNotFound_whenAppExceptionIsUserNotFound() throws Exception {
-      doThrow(new AppException(UserError.USER_NOT_FOUND))
+      doThrow(new AppException(UserException.USER_NOT_FOUND))
           .when(userService)
           .updateUser(any(), any(UpdateUserDto.class));
 

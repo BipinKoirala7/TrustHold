@@ -11,9 +11,9 @@ import com.trusthold.property.dtos.PropertySummaryDto;
 import com.trusthold.property.model.Property;
 import com.trusthold.property.service.PropertyMapper;
 import com.trusthold.property.service.PropertyService;
-import com.trusthold.shared.AuthError;
+import com.trusthold.shared.exception.AuthException;
 import com.trusthold.shared.Guard;
-import com.trusthold.shared.LeaseError;
+import com.trusthold.shared.exception.LeaseException;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.User;
 import com.trusthold.user.service.UserService;
@@ -50,19 +50,19 @@ public class LeaseService {
   @PreAuthorize("hasRole('LANDLORD')")
   @Transactional
   public void createLease(AuthUser authUser, CreateLeaseDto createLeaseDto) {
-    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
+    Guard.requireNotNull(authUser, new AppException(AuthException.UNAUTHORIZED));
     log.info("Creating lease with data: {} for user: {}", createLeaseDto, authUser);
 
     Property property = propertyService.getPropertyInfo(authUser, createLeaseDto.propertyId());
 
     if(!userService.isUserTenant(createLeaseDto.tenantId())){
       log.warn("User with id {} is not a tenant", createLeaseDto.tenantId());
-      throw new AppException(LeaseError.PROVIDED_TENANT_IS_NOT_A_TENANT);
+      throw new AppException(LeaseException.PROVIDED_TENANT_IS_NOT_A_TENANT);
     }
 
     if(property.getIsArchived()){
       log.warn("Property with id {} is archived and cannot be used for lease", property.getId());
-      throw new AppException(LeaseError.PROPERTY_IS_ARCHIVED);
+      throw new AppException(LeaseException.PROPERTY_IS_ARCHIVED);
     }
 
     Lease lease = leaseMapper.toLeaseEntity(createLeaseDto);
@@ -77,7 +77,7 @@ public class LeaseService {
 
   @PreAuthorize("isAuthenticated()")
   public List<LeaseSummaryDto> getUsersLeases(AuthUser authUser){
-    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
+    Guard.requireNotNull(authUser, new AppException(AuthException.UNAUTHORIZED));
     log.info("Getting leases for user={}", authUser.id());
 
     List<Lease> leases = getLeasesByUserType(authUser);

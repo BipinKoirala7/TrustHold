@@ -7,8 +7,8 @@ import com.trusthold.lease.model.LeaseStatus;
 import com.trusthold.lease.service.LeaseActivityService;
 import com.trusthold.lease.service.LeaseService;
 import com.trusthold.property.dtos.PropertySummaryDto;
-import com.trusthold.shared.AuthError;
-import com.trusthold.shared.PropertyError;
+import com.trusthold.shared.exception.AuthException;
+import com.trusthold.shared.exception.PropertyException;
 import com.trusthold.shared.controller.ControllerTestSupport;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.Role;
@@ -102,7 +102,7 @@ public class LeaseControllerTests extends ControllerTestSupport {
       // Arrange
       UUID leaseId = UUID.randomUUID();
       Instant startDate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
-      Instant endDate = startDate.plus(1, ChronoUnit.YEARS);
+      Instant endDate = startDate.plus(1, ChronoUnit.MILLIS);
       LeaseSummaryDto summary = new LeaseSummaryDto(
           leaseId,
           new PropertySummaryDto("Sunrise Apartment", null, "Pokhara"),
@@ -154,7 +154,7 @@ public class LeaseControllerTests extends ControllerTestSupport {
           new BigDecimal("50000.00"),
           LeaseStatus.ACTIVE,
           Instant.now(),
-          Instant.now().plus(1, ChronoUnit.YEARS));
+          Instant.now().plus(1, ChronoUnit.MILLIS));
       when(leaseService.getUsersLeases(sampleAuthUser)).thenReturn(List.of(summary));
 
       // Act & Assert
@@ -167,12 +167,12 @@ public class LeaseControllerTests extends ControllerTestSupport {
     void shouldReturnUnauthorizedError_whenServiceThrowsUnauthorized() throws Exception {
       // Arrange
       when(leaseService.getUsersLeases(sampleAuthUser))
-          .thenThrow(new AppException(AuthError.UNAUTHORIZED));
+          .thenThrow(new AppException(AuthException.UNAUTHORIZED));
 
       // Act & Assert
       mockMvc.perform(get(BASE_URL))
-          .andExpect(status().is(AuthError.UNAUTHORIZED.getHttpStatus().value()))
-          .andExpect(jsonPath("$.error.code").value(AuthError.UNAUTHORIZED.getErrCode()))
+          .andExpect(status().is(AuthException.UNAUTHORIZED.getHttpStatus().value()))
+          .andExpect(jsonPath("$.error.code").value(AuthException.UNAUTHORIZED.getErrCode()))
           .andExpect(jsonPath("$.data").doesNotExist());
     }
 
@@ -180,12 +180,12 @@ public class LeaseControllerTests extends ControllerTestSupport {
     void shouldReturnPropertyNotFoundError_whenServiceThrowsPropertyNotFound() throws Exception {
       // Arrange
       when(leaseService.getUsersLeases(sampleAuthUser))
-          .thenThrow(new AppException(PropertyError.PROPERTY_NOT_FOUND));
+          .thenThrow(new AppException(PropertyException.PROPERTY_NOT_FOUND));
 
       // Act & Assert
       mockMvc.perform(get(BASE_URL))
-          .andExpect(status().is(PropertyError.PROPERTY_NOT_FOUND.getHttpStatus().value()))
-          .andExpect(jsonPath("$.error.code").value(PropertyError.PROPERTY_NOT_FOUND.getErrCode()));
+          .andExpect(status().is(PropertyException.PROPERTY_NOT_FOUND.getHttpStatus().value()))
+          .andExpect(jsonPath("$.error.code").value(PropertyException.PROPERTY_NOT_FOUND.getErrCode()));
     }
   }
 }

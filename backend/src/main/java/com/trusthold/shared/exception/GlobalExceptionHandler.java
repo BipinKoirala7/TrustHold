@@ -40,8 +40,8 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ApiResponse<Void>> handleAppException(AppException ex) {
     log.debug("App exception", ex);
     return ResponseEntity
-        .status(ex.getErrorCode().getHttpStatus())
-        .body(ApiResponse.error(ex.getErrorCode().getErrCode(), ex.getMessage()));
+        .status(ex.getExceptionCode().getHttpStatus())
+        .body(ApiResponse.error(ex.getExceptionCode().getErrCode(), ex.getMessage()));
   }
 
   // Validation Exceptions

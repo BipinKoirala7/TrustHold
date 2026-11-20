@@ -1,7 +1,7 @@
 package com.trusthold.user.service;
 
 import com.trusthold.mail.dtos.AccountDeletionEvent;
-import com.trusthold.shared.UserError;
+import com.trusthold.shared.exception.UserException;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.shared.service.TokenService;
 import com.trusthold.user.model.AccountDeletionToken;
@@ -53,13 +53,13 @@ public class AccountDeletionService {
   public void confirmDeletion(String rawToken) {
     AccountDeletionToken token = tokenRepository
         .findByTokenHash(TokenService.sha256Hex(rawToken))
-        .orElseThrow(() -> new AppException(UserError.DELETION_TOKEN_INVALID));
+        .orElseThrow(() -> new AppException(UserException.DELETION_TOKEN_INVALID));
 
 //    if (token.isUsed()) {
 //      throw new AppException(UserError.DELETION_TOKEN_INVALID);
 //    }
     if (token.getExpiresAt().isAfter(Instant.now())) {
-      throw new AppException(UserError.DELETION_TOKEN_EXPIRED);
+      throw new AppException(UserException.DELETION_TOKEN_EXPIRED);
     }
 
     // Re-check: a lease may have been created between request and confirm.

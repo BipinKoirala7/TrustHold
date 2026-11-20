@@ -1,6 +1,6 @@
 package com.trusthold.auth.handlers;
 
-import com.trusthold.shared.AuthError;
+import com.trusthold.shared.exception.AuthException;
 import com.trusthold.shared.dtos.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,6 +28,6 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
     response.setContentType("application/json");
 
-    response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.error(AuthError.FORBIDDEN)));
+    response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.error(AuthException.FORBIDDEN)));
   }
 }

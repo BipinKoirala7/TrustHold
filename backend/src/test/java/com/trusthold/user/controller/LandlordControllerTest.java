@@ -2,7 +2,7 @@ package com.trusthold.user.controller;
 
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.lease.service.LeaseActivityService;
-import com.trusthold.shared.UserError;
+import com.trusthold.shared.exception.UserException;
 import com.trusthold.shared.controller.ControllerTestSupport;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.dtos.LandlordDashboardSummaryDto;
@@ -95,7 +95,7 @@ public class LandlordControllerTest extends ControllerTestSupport {
     @Test
     void shouldMapAppExceptionFromService_toItsHttpStatus() throws Exception {
       when(landlordService.getLandlordDashboardStatsSummary(authUser))
-          .thenThrow(new AppException(UserError.USER_NOT_FOUND));
+          .thenThrow(new AppException(UserException.USER_NOT_FOUND));
 
       mockMvc.perform(get(STATS_ENDPOINT))
           .andExpect(status().isNotFound())

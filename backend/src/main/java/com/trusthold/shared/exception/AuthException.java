@@ -1,4 +1,4 @@
-package com.trusthold.shared;
+package com.trusthold.shared.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 
 @AllArgsConstructor
 @Getter
-public enum AuthError implements ErrorCode {
+public enum AuthException implements ExceptionCode {
 
   UNAUTHORIZED("AUTH_UNAUTHORIZED", HttpStatus.UNAUTHORIZED, "Please Log in"),
   FORBIDDEN("AUTH_FORBIDDEN", HttpStatus.FORBIDDEN, "You are not allowed to access this resource"),

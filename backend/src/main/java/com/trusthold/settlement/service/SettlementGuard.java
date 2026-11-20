@@ -6,8 +6,8 @@ import com.trusthold.settlement.dto.CreateSettlementProposalRequest;
 import com.trusthold.settlement.model.Settlement;
 import com.trusthold.settlement.model.SettlementProposal;
 import com.trusthold.settlement.model.SettlementProposalStatus;
-import com.trusthold.shared.LeaseError;
-import com.trusthold.shared.SettlementError;
+import com.trusthold.shared.exception.LeaseException;
+import com.trusthold.shared.exception.SettlementException;
 import com.trusthold.shared.exception.AppException;
 import org.springframework.stereotype.Component;
 
@@ -18,38 +18,38 @@ public class SettlementGuard {
 
   public void requireParty(Lease lease, UUID userId) {
     if (!userId.equals(lease.getTenantId()) && !userId.equals(lease.getLandlordId())) {
-      throw new AppException(SettlementError.SETTLEMENT_NOT_PARTY);
+      throw new AppException(SettlementException.SETTLEMENT_NOT_PARTY);
     }
   }
 
   public void validateCreate(Lease lease, UUID userId, CreateSettlementProposalRequest req) {
     requireParty(lease, userId);
-    if (lease.isSettled()) throw new AppException(LeaseError.LEASE_ALREADY_SETTLED);
-    if (lease.getStatus() != LeaseStatus.MOVED_OUT) throw new AppException(LeaseError.LEASE_NOT_MOVED_OUT);
+    if (lease.isSettled()) throw new AppException(LeaseException.LEASE_ALREADY_SETTLED);
+    if (lease.getStatus() != LeaseStatus.MOVED_OUT) throw new AppException(LeaseException.LEASE_NOT_MOVED_OUT);
     if (lease.getDepositAmount() == null || lease.getDepositAmount().signum() <= 0) {
-      throw new AppException(SettlementError.SETTLEMENT_DEPOSIT_NOT_HELD);
+      throw new AppException(SettlementException.SETTLEMENT_DEPOSIT_NOT_HELD);
     }
     if (req.refundToTenant().add(req.deductionAmount()).compareTo(lease.getDepositAmount()) != 0) {
-      throw new AppException(SettlementError.SETTLEMENT_AMOUNTS_MISMATCH);
+      throw new AppException(SettlementException.SETTLEMENT_AMOUNTS_MISMATCH);
     }
   }
 
   public void validateAgree(Lease lease, SettlementProposal proposal, UUID userId) {
     requireParty(lease, userId);
     if (!proposal.getLeaseId().equals(lease.getId())) {
-      throw new AppException(SettlementError.SETTLEMENT_NOT_PARTY);
+      throw new AppException(SettlementException.SETTLEMENT_NOT_PARTY);
     }
     if (proposal.getStatus() != SettlementProposalStatus.PENDING) {
-      throw new AppException(SettlementError.SETTLEMENT_PROPOSAL_NOT_PENDING);
+      throw new AppException(SettlementException.SETTLEMENT_PROPOSAL_NOT_PENDING);
     }
     boolean isTenant = userId.equals(lease.getTenantId());
     boolean alreadyAgreed = isTenant ? proposal.getTenantAgreedAt() != null
         : proposal.getLandlordAgreedAt() != null;
-    if (alreadyAgreed) throw new AppException(SettlementError.SETTLEMENT_ALREADY_AGREED_BY_PARTY);
+    if (alreadyAgreed) throw new AppException(SettlementException.SETTLEMENT_ALREADY_AGREED_BY_PARTY);
   }
 
   public void validateClose(Lease lease, Settlement settlement) {
-    if (lease.getStatus() != LeaseStatus.SETTLEMENT_AGREED) throw new AppException(LeaseError.LEASE_NOT_AGREED);
-    if (settlement.getClosedAt() != null) throw new AppException(SettlementError.SETTLEMENT_ALREADY_CLOSED);
+    if (lease.getStatus() != LeaseStatus.SETTLEMENT_AGREED) throw new AppException(LeaseException.LEASE_NOT_AGREED);
+    if (settlement.getClosedAt() != null) throw new AppException(SettlementException.SETTLEMENT_ALREADY_CLOSED);
   }
 }
