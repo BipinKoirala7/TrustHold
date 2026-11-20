@@ -67,11 +67,9 @@ function CreatePropertyDialog() {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
-          <>
-            <Button>
-              <Plus /> <span>New Property</span>
-            </Button>
-          </>
+          <Button>
+            <Plus /> <span>New Property</span>
+          </Button>
         }
       ></DialogTrigger>
 

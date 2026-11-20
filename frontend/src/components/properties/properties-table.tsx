@@ -1,3 +1,4 @@
+// components/properties/properties-table.tsx
 "use client";
 
 import { Building2, SearchX, TriangleAlert } from "lucide-react";
@@ -18,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import DeletePropertyButton from "@/components/properties/delete-property-button";
 
 const headClass =
   "text-xs font-semibold uppercase tracking-wide text-muted-foreground";
@@ -55,7 +57,10 @@ function PropertiesTable({ search, type }: PropertiesTableProps) {
             <TableHead className={`${headClass} pl-6`}>Name</TableHead>
             <TableHead className={headClass}>Type</TableHead>
             <TableHead className={headClass}>Location</TableHead>
-            <TableHead className={`${headClass} pr-6`}>Updated</TableHead>
+            <TableHead className={headClass}>Updated</TableHead>
+            <TableHead className={`${headClass} pr-6 text-right`}>
+              Actions
+            </TableHead>
           </TableRow>
         </TableHeader>
 
@@ -73,15 +78,18 @@ function PropertiesTable({ search, type }: PropertiesTableProps) {
                 <TableCell>
                   <Skeleton className="h-4 w-44" />
                 </TableCell>
-                <TableCell className="pr-6">
+                <TableCell>
                   <Skeleton className="h-4 w-24" />
+                </TableCell>
+                <TableCell className="pr-6">
+                  <Skeleton className="ml-auto size-8 rounded-md" />
                 </TableCell>
               </TableRow>
             ))}
 
           {isError && (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={4} className="py-16">
+              <TableCell colSpan={5} className="py-16">
                 <div className="flex flex-col items-center justify-center gap-2 text-center">
                   <div className="flex size-12 items-center justify-center rounded-full bg-destructive/10">
                     <TriangleAlert className="size-6 text-destructive" />
@@ -97,7 +105,7 @@ function PropertiesTable({ search, type }: PropertiesTableProps) {
 
           {hasNoProperties && (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={4} className="py-16">
+              <TableCell colSpan={5} className="py-16">
                 <div className="flex flex-col items-center justify-center gap-2 text-center">
                   <div className="flex size-12 items-center justify-center rounded-full bg-muted">
                     <Building2 className="size-6 text-muted-foreground" />
@@ -113,7 +121,7 @@ function PropertiesTable({ search, type }: PropertiesTableProps) {
 
           {hasNoMatches && (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={4} className="py-16">
+              <TableCell colSpan={5} className="py-16">
                 <div className="flex flex-col items-center justify-center gap-2 text-center">
                   <div className="flex size-12 items-center justify-center rounded-full bg-muted">
                     <SearchX className="size-6 text-muted-foreground" />
@@ -144,12 +152,15 @@ function PropertiesTable({ search, type }: PropertiesTableProps) {
               <TableCell className="text-muted-foreground">
                 {property.addressLine}, {property.city}
               </TableCell>
-              <TableCell className="pr-6 text-muted-foreground">
+              <TableCell className="text-muted-foreground">
                 {new Date(property.updatedAt).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
                   year: "numeric",
                 })}
+              </TableCell>
+              <TableCell className="pr-6 text-right">
+                <DeletePropertyButton id={property.id} name={property.name} />
               </TableCell>
             </TableRow>
           ))}

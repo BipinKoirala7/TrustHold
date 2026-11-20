@@ -72,3 +72,8 @@ export async function getLandlordProperties(): Promise<Property[]> {
     .get<ApiResponse<Property[]>>(GET_LANDLORD_PROPERTIES_PATH)
     .then((res) => res.data.data);
 }
+
+const DELETE_PROPERTY_PATH = "/property";
+export async function deleteProperty(id: string): Promise<void> {
+  api.delete<ApiResponse<void>>(`${DELETE_PROPERTY_PATH}/${id}`);
+}
