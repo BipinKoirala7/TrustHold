@@ -186,8 +186,8 @@ public class DashboardRepositoryTests {
 
     LandlordDashboardSummaryDto result = summaryFor(landlordId);
 
-    assertThat(result.totalAmountHeldInEscrow()).isEqualByComparingTo("8500.00");
-    assertThat(result.escrowDepositCount()).isEqualTo(4);
+    assertThat(result.totalAmountHeldInEscrow()).isEqualByComparingTo("5500.00");
+    assertThat(result.escrowDepositCount()).isEqualTo(3);
   }
 
   @Test

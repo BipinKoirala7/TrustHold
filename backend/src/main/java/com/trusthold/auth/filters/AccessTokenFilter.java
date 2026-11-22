@@ -96,7 +96,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 
       AuthUser authUser = new AuthUser(userId, accessToken, role);
       // "ROLE_" prefix is required by Spring Security's hasRole() check
-      var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + authUser.role().toString()));
+      var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + authUser.role()));
       var auth = new UsernamePasswordAuthenticationToken(authUser, null, authorities);
 
       SecurityContextHolder.getContext().setAuthentication(auth);

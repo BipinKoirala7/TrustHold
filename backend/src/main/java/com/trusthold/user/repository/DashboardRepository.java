@@ -17,9 +17,9 @@ public interface DashboardRepository extends Repository<Lease, UUID> {
       COUNT(*) FILTER (WHERE l.status IN ('ACTIVE','MOVE_OUT_IN_PROGRESS')
                          AND l.end_date >= :monthStart AND l.end_date < :monthEnd)      AS moveOutsThisMonth,
       COALESCE(SUM(l.deposit_amount) FILTER (
-          WHERE l.status IN ('ACTIVE','MOVE_OUT_IN_PROGRESS','MOVED_OUT','AGREED')
+          WHERE l.status IN ('ACTIVE','MOVE_OUT_IN_PROGRESS', 'PENDING_SETTLEMENT', 'SETTLEMENT_AGREED')
             AND (s.id IS NULL OR s.closed_at IS NULL)), 0)                              AS heldInEscrow,
-      COUNT(*) FILTER (WHERE l.status IN ('ACTIVE','MOVE_OUT_IN_PROGRESS','MOVED_OUT','AGREED')
+      COUNT(*) FILTER (WHERE l.status IN ('ACTIVE','MOVE_OUT_IN_PROGRESS', 'PENDING_SETTLEMENT', 'SETTLEMENT_AGREED')
                          AND (s.id IS NULL OR s.closed_at IS NULL))                     AS escrowDepositCount,
       COUNT(*) FILTER (WHERE l.status = 'PENDING_MOVE_IN')                              AS awaitingPayment,
       COALESCE(SUM(l.deposit_amount) FILTER (WHERE l.status = 'PENDING_MOVE_IN'), 0)    AS pendingAmount,

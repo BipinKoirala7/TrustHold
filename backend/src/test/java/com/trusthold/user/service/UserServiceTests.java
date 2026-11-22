@@ -66,7 +66,7 @@ public class UserServiceTests {
       // Act & Assert
       assertThatThrownBy(() -> userService.getAuthenticatedUser(null))
           .isInstanceOf(AppException.class)
-          .extracting("errorCode")
+          .extracting("code")
           .isEqualTo(AuthException.INVALID_TOKEN);
     }
 
@@ -78,7 +78,7 @@ public class UserServiceTests {
       // Act & Assert
       assertThatThrownBy(() -> userService.getAuthenticatedUser(sampleAuthUser))
           .isInstanceOf(AppException.class)
-          .extracting("errorCode")
+          .extracting("code")
           .isEqualTo(UserException.USER_NOT_FOUND);
     }
 
@@ -114,7 +114,7 @@ public class UserServiceTests {
       // Act & Assert
       assertThatThrownBy(() -> userService.updateUser(null, updateUserDto))
           .isInstanceOf(AppException.class)
-          .extracting("errorCode")
+          .extracting("code")
           .isEqualTo(AuthException.INVALID_TOKEN);
     }
 
@@ -174,7 +174,7 @@ public class UserServiceTests {
       // Act & Assert
       assertThatThrownBy(() -> userService.deleteUser(null))
           .isInstanceOf(AppException.class)
-          .extracting("errorCode")
+          .extracting("code")
           .isEqualTo(AuthException.UNAUTHORIZED);
     }
 

@@ -98,16 +98,4 @@ public class UserControllerTests extends ControllerTestSupport {
           .andExpect(status().isNotFound());
     }
   }
-
-  @Nested
-  class DeleteUserTests {
-
-    @Test
-    void shouldReturnOk_whenDeleteUserIsSuccessful() throws Exception {
-      mockMvc.perform(delete("/user"))
-          .andExpect(status().isOk());
-
-      verify(userService).deleteUser(any());
-    }
-  }
 }

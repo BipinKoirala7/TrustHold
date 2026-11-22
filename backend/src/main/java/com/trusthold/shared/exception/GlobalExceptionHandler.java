@@ -188,6 +188,13 @@ public class GlobalExceptionHandler {
     return ApiResponse.error("OPTIMISTIC_LOCK_FAILURE", "This record was changed by someone else. Please refresh and try again");
   }
 
+  @ExceptionHandler(IllegalArgumentException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ApiResponse<Void> handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest req) {
+    log.warn("{} {} -> {}", req.getMethod(), req.getRequestURI(), "Invalid argument", ex);
+    return ApiResponse.error("INVALID_ARGUMENT", "The provided argument is invalid");
+  }
+
   // Generic Exception Handler (Catch-all)
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

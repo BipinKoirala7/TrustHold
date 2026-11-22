@@ -10,6 +10,7 @@ import com.trusthold.property.repository.PropertyRepository;
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.shared.exception.PropertyException;
 import com.trusthold.shared.integration.IntegrationTestSupport;
+import com.trusthold.user.model.Role;
 import com.trusthold.user.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,11 +18,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -102,6 +99,7 @@ public class PropertyIntegrationTests extends IntegrationTestSupport {
     void shouldReturnForbiddenAndNotPersist_whenUserIsTenant() {
       ResponseEntity<ApiResponse<Void>> response = post(PROPERTY_PATH, tenantHeaders, newPropertyDto("Tenant Attempt"));
 
+      assertThat(userRepository.findByEmail(TENANT_EMAIL).orElseThrow().getRole()).isEqualTo(Role.TENANT);
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
       assertThat(propertyRepository.count()).isZero();
     }

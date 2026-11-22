@@ -102,7 +102,7 @@ class LeaseServiceTests {
     void shouldThrowUnauthorized_whenAuthUserIsNull() {
       assertThatThrownBy(() -> leaseService.createLease(null, createLeaseDto))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", AuthException.UNAUTHORIZED);
+          .hasFieldOrPropertyWithValue("code", AuthException.UNAUTHORIZED);
 
       verifyNoInteractions(propertyService, userService, leaseMapper, leaseRepository,
           applicationEventPublisher);
@@ -116,7 +116,7 @@ class LeaseServiceTests {
 
       assertThatThrownBy(() -> leaseService.createLease(landlordUser, createLeaseDto))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", PropertyException.PROPERTY_NOT_FOUND);
+          .hasFieldOrPropertyWithValue("code", PropertyException.PROPERTY_NOT_FOUND);
 
       verifyNoInteractions(userService, leaseMapper, leaseRepository, applicationEventPublisher);
     }
@@ -130,7 +130,7 @@ class LeaseServiceTests {
 
       assertThatThrownBy(() -> leaseService.createLease(landlordUser, createLeaseDto))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", LeaseException.PROVIDED_TENANT_IS_NOT_A_TENANT);
+          .hasFieldOrPropertyWithValue("code", LeaseException.PROVIDED_TENANT_IS_NOT_A_TENANT);
 
       verifyNoInteractions(leaseMapper, leaseRepository, applicationEventPublisher);
     }
@@ -214,7 +214,7 @@ class LeaseServiceTests {
     void shouldThrowUnauthorized_whenAuthUserIsNull() {
       assertThatThrownBy(() -> leaseService.getUsersLeases(null))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", AuthException.UNAUTHORIZED);
+          .hasFieldOrPropertyWithValue("code", AuthException.UNAUTHORIZED);
 
       verifyNoInteractions(leaseRepository, propertyService, propertyMapper, userService);
     }
@@ -328,7 +328,7 @@ class LeaseServiceTests {
 
       assertThatThrownBy(() -> leaseService.getUsersLeases(landlordUser))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", PropertyException.PROPERTY_NOT_FOUND);
+          .hasFieldOrPropertyWithValue("code", PropertyException.PROPERTY_NOT_FOUND);
 
       verifyNoInteractions(propertyMapper, userService);
     }

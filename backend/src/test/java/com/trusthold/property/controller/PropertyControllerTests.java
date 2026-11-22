@@ -136,7 +136,7 @@ public class PropertyControllerTests extends ControllerTestSupport {
     void shouldReturnClientError_whenIdIsNotAValidUuid() throws Exception {
       // Act & Assert
       mockMvc.perform(get(BASE_URL + "/{id}", "not-a-uuid"))
-          .andExpect(status().is5xxServerError());
+          .andExpect(status().isBadRequest());
 
       verifyNoInteractions(propertyService);
     }
@@ -162,7 +162,7 @@ public class PropertyControllerTests extends ControllerTestSupport {
     void shouldReturnClientError_whenIdIsNotAValidUuid() throws Exception {
       // Act & Assert
       mockMvc.perform(delete(BASE_URL + "/{id}", "not-a-uuid"))
-          .andExpect(status().is5xxServerError());
+          .andExpect(status().isBadRequest());
 
       verifyNoInteractions(propertyService);
     }
