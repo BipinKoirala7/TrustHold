@@ -8,7 +8,7 @@ import {
   CreatePropertyDto,
   createPropertySchema,
   propertyTypeLabels,
-} from "@/lib/api/property";
+} from "@/lib/schema/propertySchema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

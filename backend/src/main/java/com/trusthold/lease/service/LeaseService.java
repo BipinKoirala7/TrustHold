@@ -36,6 +36,7 @@ import java.util.UUID;
 @Slf4j
 public class LeaseService {
 
+  private final LeaseInvitationTokenService leaseInvitationTokenService;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final PropertyService propertyService;
   private final LeaseRepository leaseRepository;
@@ -71,11 +72,13 @@ public class LeaseService {
       throw new AppException(LeaseException.PROVIDED_TENANT_IS_NOT_A_TENANT);
     }
 
-    leaseHelper.inviteTenantToLease(createLeaseDto.tenantEmail(), createLeaseDto.propertyId().toString());
-
     Lease lease = leaseMapper.toLeaseEntity(createLeaseDto);
     lease.setLandlordId(authUser.id());
-    leaseRepository.save(lease);
+    Lease savedLease = leaseRepository.save(lease);
+
+    User landlord = userService.getUserById(authUser.id());
+    String landlordFullName = landlord.getFirstName() + " " + landlord.getLastName();
+    leaseInvitationTokenService.inviteTenant(landlordFullName, property, savedLease, createLeaseDto.tenantEmail());
 
     String description = "Lease created for " + property.getName();
     applicationEventPublisher.publishEvent(new LeaseActivityEvent(lease.getId(), Activity.LEASE_CREATED.getLabel(), description));

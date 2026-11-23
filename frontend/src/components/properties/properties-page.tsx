@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Filter, Search } from "lucide-react";
-import { PropertyType, propertyTypeLabels } from "@/lib/api/property";
+import { PropertyType, propertyTypeLabels } from "@/lib/schema/propertySchema";
 import { Input } from "@/components/ui/input";
 import {
   Select,
