@@ -45,14 +45,6 @@ export type LeaseSummaryDto = Omit<
   property: PropertySummaryDto;
 };
 
-export interface LeaseCreateDto {
-  propertyId: string;
-  tenantEmail: string;
-  monthlyRent: number;
-  depositAmount: number;
-  startDate: string;
-}
-
 export const leaseStatusMeta: Record<
   LeaseStatus,
   { label: string; className: string }

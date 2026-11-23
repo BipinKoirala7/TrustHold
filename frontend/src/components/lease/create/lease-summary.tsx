@@ -8,7 +8,7 @@ type LeaseSummaryProps = {
   tenantEmail: string;
   deposit?: number;
   startDate: string;
-  isSubmitting: boolean;
+  isPending: boolean;
 };
 
 function SummaryRow({
@@ -37,7 +37,7 @@ export function LeaseSummary({
   tenantEmail,
   deposit,
   startDate,
-  isSubmitting,
+  isPending,
 }: LeaseSummaryProps) {
   // an empty number input gives NaN, which is falsy, so it shows "Not entered"
   const depositText = deposit
@@ -86,7 +86,7 @@ export function LeaseSummary({
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
+        <Button type="submit" className="w-full" disabled={isPending}>
           Create &amp; invite tenant
         </Button>
         <p className="text-center text-xs text-muted-foreground">

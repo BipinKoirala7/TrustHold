@@ -6,29 +6,25 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FormSection } from "@/components/lease/create/form-section";
 import { LeaseSummary } from "@/components/lease/create/lease-summary";
 import { LeaseTermsFields } from "@/components/lease/create/lease-terms-fields";
-import {
-  PropertySelect,
-  type Property,
-} from "@/components/lease/create/property-select";
+import { PropertySelect } from "@/components/lease/create/property-select";
 import { TenantFields } from "@/components/lease/create/tenant-fields";
 import {
   createLeaseSchema,
   type CreateLeaseDto,
   type CreateLeaseValues,
 } from "@/lib/schema/leaseSchema";
+import { useCreateLease } from "@/hooks/useCreateLease";
+import { queryKeys } from "@/lib/query-cache-key";
+import { getLandlordProperties } from "@/lib/api/property";
+import { useQuery } from "@tanstack/react-query";
 
-type LeaseFormProps = {
-  properties: Property[];
-  action: (data: CreateLeaseDto) => void | Promise<void>;
-};
-
-export function LeaseForm({ properties, action }: LeaseFormProps) {
+export function LeaseForm() {
   const {
     register,
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<CreateLeaseValues, undefined, CreateLeaseDto>({
     resolver: zodResolver(createLeaseSchema),
     defaultValues: {
@@ -43,12 +39,19 @@ export function LeaseForm({ properties, action }: LeaseFormProps) {
   const depositAmount = watch("depositAmount");
   const startDate = watch("startDate");
 
-  const selected = properties.find((p) => p.id === propertyId);
+  const { data: properties = [] } = useQuery({
+    queryKey: queryKeys.properties,
+    queryFn: getLandlordProperties,
+  });
+
+  const selected = properties?.find((p) => p.id === propertyId);
+
+  const { mutate, isPending } = useCreateLease();
 
   return (
     <form
       noValidate
-      onSubmit={handleSubmit(action)}
+      onSubmit={handleSubmit((data) => mutate(data))}
       className="grid items-start gap-6 lg:grid-cols-[1fr_320px]"
     >
       <div className="space-y-6">
@@ -59,7 +62,6 @@ export function LeaseForm({ properties, action }: LeaseFormProps) {
           icon={Building2}
         >
           <PropertySelect
-            properties={properties}
             value={propertyId}
             onValueChange={(id) =>
               setValue("propertyId", id, { shouldValidate: true })
@@ -88,12 +90,12 @@ export function LeaseForm({ properties, action }: LeaseFormProps) {
       </div>
 
       <LeaseSummary
-        address={selected?.address}
+        address={selected?.addressLine}
         city={selected?.city}
         tenantEmail={tenantEmail}
         deposit={depositAmount}
         startDate={typeof startDate === "string" ? startDate : ""}
-        isSubmitting={isSubmitting}
+        isPending={isPending}
       />
     </form>
   );

@@ -1,7 +1,7 @@
 import { ApiResponse } from "@/lib/api/api";
 import api from "./axios";
 import {
-  LeaseCreateDto,
+  CreateLeaseDto,
   LeaseStatus,
   leaseStatusMeta,
   LeaseSummaryDto,
@@ -30,7 +30,7 @@ export const formatLeaseDate = (iso: string) =>
 // API functions
 
 const CREATE_LEASE_PATH = "/lease";
-export async function createLease(lease: LeaseCreateDto): Promise<void> {
+export async function createLease(lease: CreateLeaseDto): Promise<void> {
   await api.post<ApiResponse<void>>(CREATE_LEASE_PATH, lease);
 }
 

@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { AlertCircle, Plus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -9,34 +13,68 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-export type Property = {
-  id: string;
-  address: string;
-  city: string;
-  propertyType: string;
-  unitDescription?: string;
-};
+import { queryKeys } from "@/lib/query-cache-key";
+import { getLandlordProperties } from "@/lib/api/property";
+import { Property } from "@/lib/schema/propertySchema";
+import CreatePropertyDialog from "@/components/properties/create-property-dialog";
 
 type PropertySelectProps = {
-  properties: Property[];
   value: string;
   onValueChange: (id: string) => void;
   error?: string;
 };
 
 function propertyLabel(property: Property) {
-  return `${property.address}, ${property.city}${
-    property.unitDescription ? ` · ${property.unitDescription}` : ""
+  return `${property.addressLine}, ${property.city}${
+    property.description ? ` · ${property.type}` : ""
   }`;
 }
 
 export function PropertySelect({
-  properties,
   value,
   onValueChange,
   error,
 }: PropertySelectProps) {
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+    queryKey: queryKeys.properties,
+    queryFn: getLandlordProperties,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-4 w-48" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+        <div className="flex items-start gap-2">
+          <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
+          <p className="text-sm text-muted-foreground">
+            We couldn&apos;t load your properties. Check your connection and try
+            again.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => refetch()}
+          disabled={isFetching}
+        >
+          {isFetching ? "Retrying..." : "Try again"}
+        </Button>
+      </div>
+    );
+  }
+
+  const properties = data ?? [];
+
   if (properties.length === 0) {
     return (
       <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed p-4">
@@ -44,10 +82,7 @@ export function PropertySelect({
           You haven&apos;t added any properties yet. Create one first, then come
           back to make a lease.
         </p>
-        <Button variant="outline" size="sm" render={<Link href="/property" />}>
-          <Plus className="size-4" />
-          Create new property
-        </Button>
+        <CreatePropertyDialog />
       </div>
     );
   }
@@ -80,10 +115,7 @@ export function PropertySelect({
       </Select>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <p className="text-sm text-muted-foreground">
-        Need a different one?{" "}
-        <Link href="/property" className="font-medium text-primary underline">
-          Create new property
-        </Link>
+        Need a different one? <CreatePropertyDialog />
       </p>
     </div>
   );

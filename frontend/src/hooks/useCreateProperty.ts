@@ -1,6 +1,7 @@
 import { ApiError, handleError } from "@/lib/api/error";
-import { createProperty, CreatePropertyDto } from "@/lib/api/property";
+import { createProperty } from "@/lib/api/property";
 import { queryKeys } from "@/lib/query-cache-key";
+import { CreatePropertyDto } from "@/lib/schema/propertySchema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
