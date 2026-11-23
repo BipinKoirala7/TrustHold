@@ -111,3 +111,6 @@ export const createLeaseSchema = z.object({
     .date("Start date must be a valid date")
     .min(new Date(), "Start date must be in the future"),
 });
+
+export type CreateLeaseValues = z.input<typeof createLeaseSchema>;
+export type CreateLeaseDto = z.infer<typeof createLeaseSchema>;

@@ -22,6 +22,7 @@ type PropertySelectProps = {
   properties: Property[];
   value: string;
   onValueChange: (id: string) => void;
+  error?: string;
 };
 
 function propertyLabel(property: Property) {
@@ -34,6 +35,7 @@ export function PropertySelect({
   properties,
   value,
   onValueChange,
+  error,
 }: PropertySelectProps) {
   if (properties.length === 0) {
     return (
@@ -42,11 +44,7 @@ export function PropertySelect({
           You haven&apos;t added any properties yet. Create one first, then come
           back to make a lease.
         </p>
-        <Button
-          variant="outline"
-          size="sm"
-          render={<Link href="/landlord/properties" />}
-        >
+        <Button variant="outline" size="sm" render={<Link href="/property" />}>
           <Plus className="size-4" />
           Create new property
         </Button>
@@ -58,16 +56,18 @@ export function PropertySelect({
     <div className="space-y-2">
       <Label htmlFor="propertyId">Property</Label>
       <Select
-        name="propertyId"
         value={value}
         onValueChange={(v) => onValueChange(v ?? "")}
         items={properties.map((p) => ({
           value: p.id,
           label: propertyLabel(p),
         }))}
-        required
       >
-        <SelectTrigger id="propertyId" className="w-full">
+        <SelectTrigger
+          id="propertyId"
+          className="w-full"
+          aria-invalid={!!error}
+        >
           <SelectValue placeholder="Choose a property" />
         </SelectTrigger>
         <SelectContent>
@@ -78,12 +78,10 @@ export function PropertySelect({
           ))}
         </SelectContent>
       </Select>
+      {error && <p className="text-sm text-destructive">{error}</p>}
       <p className="text-sm text-muted-foreground">
         Need a different one?{" "}
-        <Link
-          href="/landlord/properties"
-          className="font-medium text-primary underline"
-        >
+        <Link href="/property" className="font-medium text-primary underline">
           Create new property
         </Link>
       </p>

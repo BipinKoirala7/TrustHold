@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Building2, FileText, User } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { FormSection } from "@/components/lease/create/form-section";
 import { LeaseSummary } from "@/components/lease/create/lease-summary";
 import { LeaseTermsFields } from "@/components/lease/create/lease-terms-fields";
@@ -10,23 +11,44 @@ import {
   type Property,
 } from "@/components/lease/create/property-select";
 import { TenantFields } from "@/components/lease/create/tenant-fields";
+import {
+  createLeaseSchema,
+  type CreateLeaseDto,
+  type CreateLeaseValues,
+} from "@/lib/schema/leaseSchema";
 
 type LeaseFormProps = {
   properties: Property[];
-  action: (formData: FormData) => void | Promise<void>;
+  action: (data: CreateLeaseDto) => void | Promise<void>;
 };
 
 export function LeaseForm({ properties, action }: LeaseFormProps) {
-  const [propertyId, setPropertyId] = useState("");
-  const [tenantEmail, setTenantEmail] = useState("");
-  const [deposit, setDeposit] = useState("");
-  const [startDate, setStartDate] = useState("");
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateLeaseValues, undefined, CreateLeaseDto>({
+    resolver: zodResolver(createLeaseSchema),
+    defaultValues: {
+      propertyId: "",
+      tenantEmail: "",
+      startDate: "",
+    },
+  });
+
+  const propertyId = watch("propertyId");
+  const tenantEmail = watch("tenantEmail");
+  const depositAmount = watch("depositAmount");
+  const startDate = watch("startDate");
 
   const selected = properties.find((p) => p.id === propertyId);
 
   return (
     <form
-      action={action}
+      noValidate
+      onSubmit={handleSubmit(action)}
       className="grid items-start gap-6 lg:grid-cols-[1fr_320px]"
     >
       <div className="space-y-6">
@@ -39,7 +61,10 @@ export function LeaseForm({ properties, action }: LeaseFormProps) {
           <PropertySelect
             properties={properties}
             value={propertyId}
-            onValueChange={setPropertyId}
+            onValueChange={(id) =>
+              setValue("propertyId", id, { shouldValidate: true })
+            }
+            error={errors.propertyId?.message}
           />
         </FormSection>
 
@@ -49,10 +74,7 @@ export function LeaseForm({ properties, action }: LeaseFormProps) {
           description="We'll email this tenant a private invitation."
           icon={User}
         >
-          <TenantFields
-            tenantEmail={tenantEmail}
-            onTenantEmailChange={setTenantEmail}
-          />
+          <TenantFields register={register} errors={errors} />
         </FormSection>
 
         <FormSection
@@ -61,12 +83,7 @@ export function LeaseForm({ properties, action }: LeaseFormProps) {
           description="Record the agreed rent, deposit, and start date."
           icon={FileText}
         >
-          <LeaseTermsFields
-            deposit={deposit}
-            onDepositChange={setDeposit}
-            startDate={startDate}
-            onStartDateChange={setStartDate}
-          />
+          <LeaseTermsFields register={register} errors={errors} />
         </FormSection>
       </div>
 
@@ -74,8 +91,9 @@ export function LeaseForm({ properties, action }: LeaseFormProps) {
         address={selected?.address}
         city={selected?.city}
         tenantEmail={tenantEmail}
-        deposit={deposit}
-        startDate={startDate}
+        deposit={depositAmount}
+        startDate={typeof startDate === "string" ? startDate : ""}
+        isSubmitting={isSubmitting}
       />
     </form>
   );
