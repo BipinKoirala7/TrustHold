@@ -33,13 +33,26 @@ export interface Lease {
   updatedAt: string;
 }
 
-export interface LeaseSummaryDto {
-  id: string;
-  propertyInfo: PropertySummaryDto;
-  tenantName: string;
+export type LeaseSummaryDto = Omit<
+  Lease,
+  | "landlordId"
+  | "tenantId"
+  | "movedInAt"
+  | "moveOutInitiatedAt"
+  | "moveOutInitiatedBy"
+  | "movedOutAt"
+  | "settled"
+> & {
+  property: PropertySummaryDto;
+};
+
+export interface LeaseCreateDto {
+  propertyId: string;
+  tenantId: string;
+  monthlyRent: number;
   depositAmount: number;
-  status: LeaseStatus;
   startDate: string;
+  endDate: string;
 }
 
 export const leaseStatusMeta: Record<
