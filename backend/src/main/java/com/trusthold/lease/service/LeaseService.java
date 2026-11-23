@@ -16,6 +16,7 @@ import com.trusthold.shared.exception.AppException;
 import com.trusthold.shared.exception.AuthException;
 import com.trusthold.shared.exception.LeaseException;
 import com.trusthold.shared.exception.PropertyException;
+import com.trusthold.user.model.Role;
 import com.trusthold.user.model.User;
 import com.trusthold.user.service.UserService;
 import jakarta.validation.constraints.NotNull;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -40,6 +42,7 @@ public class LeaseService {
   private final UserService userService;
   private final LeaseMapper leaseMapper;
   private final PropertyMapper propertyMapper;
+  private final LeaseHelper leaseHelper;
 
   /**
    * Creates a new lease for the authenticated user.
@@ -54,17 +57,21 @@ public class LeaseService {
     Guard.requireNotNull(authUser, new AppException(AuthException.UNAUTHORIZED));
     log.info("Creating lease with data: {} for user: {}", createLeaseDto, authUser);
 
-    Property property = propertyService.getPropertyInfo(authUser, createLeaseDto.propertyId());
-
-    if(!userService.isUserTenant(createLeaseDto.tenantId())){
-      log.warn("User with id {} is not a tenant", createLeaseDto.tenantId());
-      throw new AppException(LeaseException.PROVIDED_TENANT_IS_NOT_A_TENANT);
-    }
+    Property property = propertyService.getPropertyById(createLeaseDto.propertyId());
 
     if(property.getIsArchived()){
       log.warn("Property with id {} is archived and cannot be used for lease", property.getId());
       throw new AppException(PropertyException.PROPERTY_IS_ARCHIVED);
     }
+
+    Optional<User> tenant = userService.getUserByEmailOrNull(createLeaseDto.tenantEmail());
+
+    if(tenant.isPresent() && !tenant.get().getRole().equals(Role.TENANT)){
+      log.warn("User with given email is registered but is not a tenant");
+      throw new AppException(LeaseException.PROVIDED_TENANT_IS_NOT_A_TENANT);
+    }
+
+    leaseHelper.inviteTenantToLease(createLeaseDto.tenantEmail(), createLeaseDto.propertyId().toString());
 
     Lease lease = leaseMapper.toLeaseEntity(createLeaseDto);
     lease.setLandlordId(authUser.id());

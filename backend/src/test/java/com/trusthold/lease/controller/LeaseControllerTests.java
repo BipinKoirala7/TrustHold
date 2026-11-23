@@ -65,11 +65,10 @@ public class LeaseControllerTests extends ControllerTestSupport {
     Instant startDate = Instant.now().plus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.MILLIS);
     createLeaseDto = new CreateLeaseDto(
         UUID.randomUUID(),
-        UUID.randomUUID(),
+        "john.doe@example.com",
         new BigDecimal("25000.50"),
         new BigDecimal("50000.00"),
-        startDate,
-        startDate.plus(365, ChronoUnit.DAYS)
+        startDate
     );
   }
 

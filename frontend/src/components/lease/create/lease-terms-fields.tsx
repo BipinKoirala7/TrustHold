@@ -23,7 +23,7 @@ export function LeaseTermsFields({
           name="monthlyRent"
           type="number"
           min={0}
-          defaultValue={35000}
+          placeholder="e.g. 35000"
           required
         />
       </div>
@@ -34,6 +34,7 @@ export function LeaseTermsFields({
           name="depositAmount"
           type="number"
           min={0}
+          placeholder="e.g. 70000"
           value={deposit}
           onChange={(e) => onDepositChange(e.target.value)}
           required
@@ -49,14 +50,6 @@ export function LeaseTermsFields({
           onChange={(e) => onStartDateChange(e.target.value)}
           required
         />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="leaseEndDate">Lease end date</Label>
-        <Input id="leaseEndDate" name="leaseEndDate" type="date" required />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="moveInDate">Move-in date</Label>
-        <Input id="moveInDate" name="moveInDate" type="date" required />
       </div>
     </div>
   );

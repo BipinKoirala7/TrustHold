@@ -121,7 +121,10 @@ public class PropertyService {
 
     return propertyRepository
         .findById(id)
-        .orElseThrow(() -> new AppException(PropertyException.PROPERTY_NOT_FOUND));
+        .orElseThrow(() -> {
+          log.warn("Property with id {} not found", id);
+          return new AppException(PropertyException.PROPERTY_NOT_FOUND);
+        });
   }
 
   // Helper Methods

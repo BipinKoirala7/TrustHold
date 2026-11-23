@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
@@ -41,9 +42,9 @@ class CreateLeaseDtoTest {
   void validDto_hasNoViolations() {
     Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
     CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), UUID.randomUUID(),
+        UUID.randomUUID(), "tenant@example.com",
         new BigDecimal("15000.00"), new BigDecimal("30000.00"),
-        start, start.plus(365, ChronoUnit.DAYS));
+        start);
 
     Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
 
@@ -54,9 +55,9 @@ class CreateLeaseDtoTest {
   void rentAndDepositAtMaximumPrecision_isValid() {
     Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
     CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), UUID.randomUUID(),
+        UUID.randomUUID(), "tenant@example.com",
         new BigDecimal("9999999999.99"), new BigDecimal("9999999999.99"),
-        start, start.plus(365, ChronoUnit.DAYS));
+        start);
 
     Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
 
@@ -69,9 +70,9 @@ class CreateLeaseDtoTest {
   void nullPropertyId_isRejected() {
     Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
     CreateLeaseDto dto = new CreateLeaseDto(
-        null, UUID.randomUUID(),
+        null, "tenant@example.com",
         new BigDecimal("15000.00"), new BigDecimal("30000.00"),
-        start, start.plus(365, ChronoUnit.DAYS));
+        start);
 
     Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
 
@@ -81,27 +82,12 @@ class CreateLeaseDtoTest {
   }
 
   @Test
-  void nullTenantId_isRejected() {
-    Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
-    CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), null,
-        new BigDecimal("15000.00"), new BigDecimal("30000.00"),
-        start, start.plus(365, ChronoUnit.DAYS));
-
-    Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
-
-    assertThat(violations)
-        .extracting(v -> v.getPropertyPath().toString(), ConstraintViolation::getMessage)
-        .containsExactly(tuple("tenantId", "Tenant is required"));
-  }
-
-  @Test
   void nullMonthlyRent_isRejected() {
     Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
     CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), UUID.randomUUID(),
+        UUID.randomUUID(), "tenant@example.com",
         null, new BigDecimal("30000.00"),
-        start, start.plus(365, ChronoUnit.DAYS));
+        start);
 
     Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
 
@@ -114,9 +100,9 @@ class CreateLeaseDtoTest {
   void nullDepositAmount_isRejected() {
     Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
     CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), UUID.randomUUID(),
+        UUID.randomUUID(), "tenant@example.com",
         new BigDecimal("15000.00"), null,
-        start, start.plus(365, ChronoUnit.DAYS));
+        start);
 
     Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
 
@@ -127,11 +113,10 @@ class CreateLeaseDtoTest {
 
   @Test
   void nullStartDate_isRejected() {
-    Instant end = Instant.now().plus(375, ChronoUnit.DAYS);
     CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), UUID.randomUUID(),
+        UUID.randomUUID(), "tenant@example.com",
         new BigDecimal("15000.00"), new BigDecimal("30000.00"),
-        null, end);
+        null);
 
     Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
 
@@ -140,19 +125,38 @@ class CreateLeaseDtoTest {
         .containsExactly(tuple("startDate", "Start date is required"));
   }
 
-  @Test
-  void nullEndDate_isRejected() {
+  // ---------- tenant email ----------
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  void nullOrEmptyTenantEmail_isRejected(String email) {
     Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
     CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), UUID.randomUUID(),
+        UUID.randomUUID(), email,
         new BigDecimal("15000.00"), new BigDecimal("30000.00"),
-        start, null);
+        start);
 
     Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
 
     assertThat(violations)
         .extracting(v -> v.getPropertyPath().toString(), ConstraintViolation::getMessage)
-        .containsExactly(tuple("endDate", "End date is required"));
+        .containsExactly(tuple("tenantEmail", "Tenant is required"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"not-an-email", "missing-domain@", "@missing-local.com", "plain.com"})
+  void invalidTenantEmailFormat_isRejected(String email) {
+    Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
+    CreateLeaseDto dto = new CreateLeaseDto(
+        UUID.randomUUID(), email,
+        new BigDecimal("15000.00"), new BigDecimal("30000.00"),
+        start);
+
+    Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
+
+    assertThat(violations)
+        .extracting(v -> v.getPropertyPath().toString(), ConstraintViolation::getMessage)
+        .containsExactly(tuple("tenantEmail", "Tenant email must be a valid email address"));
   }
 
   // ---------- monthly rent ----------
@@ -162,9 +166,9 @@ class CreateLeaseDtoTest {
   void nonPositiveMonthlyRent_isRejected(String rent) {
     Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
     CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), UUID.randomUUID(),
+        UUID.randomUUID(), "tenant@example.com",
         new BigDecimal(rent), new BigDecimal("30000.00"),
-        start, start.plus(365, ChronoUnit.DAYS));
+        start);
 
     Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
 
@@ -178,9 +182,9 @@ class CreateLeaseDtoTest {
   void monthlyRentWithTooManyDigits_isRejected(String rent) {
     Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
     CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), UUID.randomUUID(),
+        UUID.randomUUID(), "tenant@example.com",
         new BigDecimal(rent), new BigDecimal("30000.00"),
-        start, start.plus(365, ChronoUnit.DAYS));
+        start);
 
     Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
 
@@ -197,9 +201,9 @@ class CreateLeaseDtoTest {
   void nonPositiveDepositAmount_isRejected(String deposit) {
     Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
     CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), UUID.randomUUID(),
+        UUID.randomUUID(), "tenant@example.com",
         new BigDecimal("15000.00"), new BigDecimal(deposit),
-        start, start.plus(365, ChronoUnit.DAYS));
+        start);
 
     Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
 
@@ -213,9 +217,9 @@ class CreateLeaseDtoTest {
   void depositAmountWithTooManyDigits_isRejected(String deposit) {
     Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
     CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), UUID.randomUUID(),
+        UUID.randomUUID(), "tenant@example.com",
         new BigDecimal("15000.00"), new BigDecimal(deposit),
-        start, start.plus(365, ChronoUnit.DAYS));
+        start);
 
     Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
 
@@ -225,15 +229,15 @@ class CreateLeaseDtoTest {
             "Deposit amount can have at most 10 digits and 2 decimal places"));
   }
 
-  // ---------- dates ----------
+  // ---------- start date ----------
 
   @Test
   void startDateInThePast_isRejected() {
     Instant start = Instant.now().minus(2, ChronoUnit.DAYS);
     CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), UUID.randomUUID(),
+        UUID.randomUUID(), "tenant@example.com",
         new BigDecimal("15000.00"), new BigDecimal("30000.00"),
-        start, start.plus(365, ChronoUnit.DAYS));
+        start);
 
     Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
 
@@ -242,59 +246,15 @@ class CreateLeaseDtoTest {
         .containsExactly(tuple("startDate", "Start date cannot be in the past"));
   }
 
-  @Test
-  void endDateBeforeStartDate_isRejected() {
-    Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
-    CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), UUID.randomUUID(),
-        new BigDecimal("15000.00"), new BigDecimal("30000.00"),
-        start, start.minus(1, ChronoUnit.DAYS));
-
-    Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
-
-    assertThat(violations)
-        .extracting(v -> v.getPropertyPath().toString(), ConstraintViolation::getMessage)
-        .containsExactly(tuple("endDateAfterStartDate", "End date must be after the start date"));
-  }
-
-  @Test
-  void endDateEqualToStartDate_isRejected() {
-    Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
-    CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), UUID.randomUUID(),
-        new BigDecimal("15000.00"), new BigDecimal("30000.00"),
-        start, start);
-
-    Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
-
-    assertThat(violations)
-        .extracting(v -> v.getPropertyPath().toString(), ConstraintViolation::getMessage)
-        .containsExactly(tuple("endDateAfterStartDate", "End date must be after the start date"));
-  }
-
-  @Test
-  void missingDates_reportOnlyRequiredMessages_notOrderViolation() {
-    CreateLeaseDto dto = new CreateLeaseDto(
-        UUID.randomUUID(), UUID.randomUUID(),
-        new BigDecimal("15000.00"), new BigDecimal("30000.00"),
-        null, null);
-
-    Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
-
-    assertThat(violations)
-        .extracting(ConstraintViolation::getMessage)
-        .containsExactlyInAnyOrder("Start date is required", "End date is required");
-  }
-
   // ---------- several errors at once ----------
 
   @Test
   void multipleInvalidFields_reportEachViolation() {
     Instant start = Instant.now().plus(10, ChronoUnit.DAYS);
     CreateLeaseDto dto = new CreateLeaseDto(
-        null, null,
+        null, "not-an-email",
         BigDecimal.ZERO, new BigDecimal("-5"),
-        start, start.plus(365, ChronoUnit.DAYS));
+        start);
 
     Set<ConstraintViolation<CreateLeaseDto>> violations = validator.validate(dto);
 
@@ -302,7 +262,7 @@ class CreateLeaseDtoTest {
         .extracting(ConstraintViolation::getMessage)
         .containsExactlyInAnyOrder(
             "Property is required",
-            "Tenant is required",
+            "Tenant email must be a valid email address",
             "Monthly rent must be greater than zero",
             "Deposit amount must be greater than zero");
   }

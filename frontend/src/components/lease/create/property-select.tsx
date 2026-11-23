@@ -42,7 +42,11 @@ export function PropertySelect({
           You haven&apos;t added any properties yet. Create one first, then come
           back to make a lease.
         </p>
-        <Button variant="outline" size="sm" render={<Link href="/property" />}>
+        <Button
+          variant="outline"
+          size="sm"
+          render={<Link href="/landlord/properties" />}
+        >
           <Plus className="size-4" />
           Create new property
         </Button>
@@ -77,7 +81,7 @@ export function PropertySelect({
       <p className="text-sm text-muted-foreground">
         Need a different one?{" "}
         <Link
-          href="/landlord/property"
+          href="/landlord/properties"
           className="font-medium text-primary underline"
         >
           Create new property

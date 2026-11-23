@@ -10,6 +10,7 @@ import com.trusthold.user.dtos.UpdateUserDto;
 import com.trusthold.user.model.Role;
 import com.trusthold.user.model.User;
 import com.trusthold.user.repository.UserRepository;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -125,8 +126,12 @@ public class UserService {
     return userRepository.findByEmail(email).orElseThrow(() -> new AppException(AuthException.INVALID_CREDENTIALS));
   }
 
-  public boolean isUserTenant(@NotNull UUID userId) {
-    return getUserById(userId).getRole().equals(Role.TENANT);
+  public Optional<User> getUserByEmailOrNull(@NotNull String email) {
+    return userRepository.findByEmail(email);
+  }
+
+  public boolean isUserTenant(@NotBlank String email) {
+    return getUserByEmail(email).getRole().equals(Role.TENANT);
   }
 
   public boolean existsByUsername(@NotNull String username) {

@@ -81,13 +81,14 @@ class LeaseServiceTests {
   private AuthUser tenantUser;
   private UUID landlordId;
   private UUID tenantId;
+  private String tenantEmail;
   private UUID propertyId;
   private UUID leaseId;
 
   @BeforeEach
   void setUp() {
     landlordId = UUID.randomUUID();
-    tenantId = UUID.randomUUID();
+    tenantEmail = "john.doe@example.com";
     propertyId = UUID.randomUUID();
     leaseId = UUID.randomUUID();
 
@@ -124,9 +125,9 @@ class LeaseServiceTests {
     @Test
     void shouldThrowAppException_whenProvidedTenantIsNotATenant() {
       when(createLeaseDto.propertyId()).thenReturn(propertyId);
-      when(createLeaseDto.tenantId()).thenReturn(tenantId);
+      when(createLeaseDto.tenantEmail()).thenReturn(tenantEmail);
       when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
-      when(userService.isUserTenant(tenantId)).thenReturn(false);
+      when(userService.isUserTenant(tenantEmail)).thenReturn(false);
 
       assertThatThrownBy(() -> leaseService.createLease(landlordUser, createLeaseDto))
           .isInstanceOf(AppException.class)
@@ -138,9 +139,9 @@ class LeaseServiceTests {
     @Test
     void shouldPropagateException_andNotPublishEvent_whenSaveFails() {
       when(createLeaseDto.propertyId()).thenReturn(propertyId);
-      when(createLeaseDto.tenantId()).thenReturn(tenantId);
+      when(createLeaseDto.tenantEmail()).thenReturn(tenantEmail);
       when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
-      when(userService.isUserTenant(tenantId)).thenReturn(true);
+      when(userService.isUserTenant(tenantEmail)).thenReturn(true);
       when(leaseMapper.toLeaseEntity(createLeaseDto)).thenReturn(lease);
       when(leaseRepository.save(lease)).thenThrow(new RuntimeException("Database connection failed"));
 
@@ -161,7 +162,7 @@ class LeaseServiceTests {
       InOrder inOrder = inOrder(propertyService, userService, leaseMapper, lease,
           leaseRepository, applicationEventPublisher);
       inOrder.verify(propertyService).getPropertyInfo(landlordUser, propertyId);
-      inOrder.verify(userService).isUserTenant(tenantId);
+      inOrder.verify(userService).isUserTenant(tenantEmail);
       inOrder.verify(leaseMapper).toLeaseEntity(createLeaseDto);
       inOrder.verify(lease).setLandlordId(landlordId);
       inOrder.verify(leaseRepository).save(lease);
@@ -196,9 +197,9 @@ class LeaseServiceTests {
 
     private void stubHappyPath() {
       when(createLeaseDto.propertyId()).thenReturn(propertyId);
-      when(createLeaseDto.tenantId()).thenReturn(tenantId);
+      when(createLeaseDto.tenantEmail()).thenReturn(tenantEmail);
       when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
-      when(userService.isUserTenant(tenantId)).thenReturn(true);
+      when(userService.isUserTenant(tenantEmail)).thenReturn(true);
       when(leaseMapper.toLeaseEntity(createLeaseDto)).thenReturn(lease);
       when(lease.getId()).thenReturn(leaseId);
     }

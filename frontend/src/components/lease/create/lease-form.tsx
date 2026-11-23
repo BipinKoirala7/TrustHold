@@ -19,7 +19,7 @@ type LeaseFormProps = {
 export function LeaseForm({ properties, action }: LeaseFormProps) {
   const [propertyId, setPropertyId] = useState("");
   const [tenantEmail, setTenantEmail] = useState("");
-  const [deposit, setDeposit] = useState("70000");
+  const [deposit, setDeposit] = useState("");
   const [startDate, setStartDate] = useState("");
 
   const selected = properties.find((p) => p.id === propertyId);
@@ -58,7 +58,7 @@ export function LeaseForm({ properties, action }: LeaseFormProps) {
         <FormSection
           step="03"
           title="Lease terms"
-          description="Record the agreed rent, deposit, and dates."
+          description="Record the agreed rent, deposit, and start date."
           icon={FileText}
         >
           <LeaseTermsFields
