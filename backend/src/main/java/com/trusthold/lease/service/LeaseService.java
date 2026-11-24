@@ -36,7 +36,7 @@ import java.util.UUID;
 @Slf4j
 public class LeaseService {
 
-  private final LeaseInvitationTokenService leaseInvitationTokenService;
+  private final LeaseInvitationService leaseInvitationService;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final PropertyService propertyService;
   private final LeaseRepository leaseRepository;
@@ -78,7 +78,7 @@ public class LeaseService {
 
     User landlord = userService.getUserById(authUser.id());
     String landlordFullName = landlord.getFirstName() + " " + landlord.getLastName();
-    leaseInvitationTokenService.inviteTenant(landlordFullName, property, savedLease, createLeaseDto.tenantEmail());
+    leaseInvitationService.inviteTenant(landlordFullName, property, savedLease, createLeaseDto.tenantEmail());
 
     String description = "Lease created for " + property.getName();
     applicationEventPublisher.publishEvent(new LeaseActivityEvent(lease.getId(), Activity.LEASE_CREATED.getLabel(), description));

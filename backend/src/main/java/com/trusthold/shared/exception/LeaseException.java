@@ -11,6 +11,8 @@ public enum LeaseException implements ExceptionCode {
   TENANT_CANNOT_CREATE_LEASE("TENANT_CANNOT_CREATE_LEASE", HttpStatus.UNAUTHORIZED, "Tenants are not allowed to create leases"),
   PROVIDED_TENANT_IS_NOT_A_TENANT("PROVIDED_TENANT_IS_NOT_A_TENANT", HttpStatus.UNAUTHORIZED, "Provided tenant is not a tenant"),
   LEASE_INVITATION_FAILED("LEASE_INVITATION_FAILED", HttpStatus.BAD_REQUEST, "We could not reach the tenant with the provided email. Please check the email address and try again."),
+  LEASE_INVITATION_NOT_FOUND("LEASE_INVITATION_NOT_FOUND", HttpStatus.NOT_FOUND, "Lease invitation is not found or has expired. Please request a new invitation from the landlord."),
+  LEASE_INVITATION_EMAIL_MISMATCH("LEASE_INVITATION_EMAIL_MISMATCH", HttpStatus.CONFLICT, "The email address provided does not match the one associated with the lease invitation."),
   LEASE_NOT_FOUND("LEASE_NOT_FOUND", HttpStatus.NOT_FOUND, "Lease does not exist"),
   LEASE_NOT_MOVED_OUT("LEASE_NOT_MOVED_OUT", HttpStatus.CONFLICT, "Settlement can only be proposed after move-out is complete"),
   LEASE_NOT_AGREED("LEASE_NOT_AGREED", HttpStatus.CONFLICT, "The lease has no agreed settlement to close"),

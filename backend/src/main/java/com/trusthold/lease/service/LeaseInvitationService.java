@@ -1,15 +1,21 @@
 package com.trusthold.lease.service;
 
 import com.resend.core.exception.ResendException;
+import com.trusthold.auth.model.AuthUser;
+import com.trusthold.lease.dtos.AcceptLeaseInvitationDto;
 import com.trusthold.lease.model.Lease;
 import com.trusthold.lease.model.LeaseInvitationToken;
 import com.trusthold.lease.model.LeaseInvitationTokenRepository;
 import com.trusthold.mail.EmailService;
 import com.trusthold.mail.dtos.LeaseInvitationDto;
 import com.trusthold.property.model.Property;
+import com.trusthold.shared.Guard;
 import com.trusthold.shared.exception.AppException;
+import com.trusthold.shared.exception.AuthException;
 import com.trusthold.shared.exception.LeaseException;
 import com.trusthold.shared.service.TokenService;
+import com.trusthold.user.model.User;
+import com.trusthold.user.service.UserService;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -27,11 +33,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Validated
 @Slf4j
-public class LeaseInvitationTokenService {
+public class LeaseInvitationService {
 
   private final long LEASE_INVITATION_EXPIRY = 48; // Hr
   private final LeaseInvitationTokenRepository leaseInvitationTokenRepository;
   private final EmailService emailService;
+  private final UserService userService;
+  private final LeaseHelper leaseHelper;
 
   @Transactional
   public void inviteTenant(@NotBlank String landlordName, @NotNull Property property, @NotNull Lease lease, @NotBlank @Email String tenantEmail){
@@ -70,5 +78,27 @@ public class LeaseInvitationTokenService {
   private void deleteStaleInvitationTokens(UUID leaseId){
     log.info("Deleting stale invitation tokens for lease {}", leaseId);
     leaseInvitationTokenRepository.deleteByLeaseId(leaseId);
+  }
+
+  @Transactional
+  public void acceptInvitation(AuthUser authUser, AcceptLeaseInvitationDto acceptLeaseInvitationDto) {
+    Guard.requireNotNull(authUser, new AppException(AuthException.UNAUTHORIZED));
+
+    LeaseInvitationToken token = leaseInvitationTokenRepository
+        .findNonExpiredInvitation(TokenService.sha256Hex(acceptLeaseInvitationDto.invitationToken()))
+        .orElseThrow(() -> new AppException(LeaseException.LEASE_INVITATION_NOT_FOUND));
+
+    log.info("Accepting lease invitation for lease={} for tenant={}", token.getLeaseId(), token.getTenantEmail());
+
+    User tenant = userService.getUserByIdOrNull(authUser.id())
+        .orElseThrow(() -> new AppException(AuthException.UNAUTHORIZED));
+
+    if(!tenant.getEmail().equalsIgnoreCase(token.getTenantEmail())){
+      log.error("Tenant email mismatch: expected={}, actual={}", token.getTenantEmail(), tenant.getEmail());
+      throw new AppException(LeaseException.LEASE_INVITATION_EMAIL_MISMATCH);
+    }
+
+    leaseHelper.addTenantToLease(token.getLeaseId(), tenant.getId());
+    leaseInvitationTokenRepository.delete(token);
   }
 }
