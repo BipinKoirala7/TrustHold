@@ -45,6 +45,8 @@ public class LeaseInvitationService {
   public void inviteTenant(@NotBlank String landlordName, @NotNull Property property, @NotNull Lease lease, @NotBlank @Email String tenantEmail){
     log.info("Lease Invitation Request for lease={}", lease.getId());
     String rawToken = createLeaseInvitationToken(lease.getId(), tenantEmail);
+    log.info("RAW TOKEN=[{}]", rawToken);
+
     LeaseInvitationDto dto = new LeaseInvitationDto(
         landlordName,
         property.getName(),
@@ -99,6 +101,5 @@ public class LeaseInvitationService {
     }
 
     leaseHelper.addTenantToLease(token.getLeaseId(), tenant.getId());
-    leaseInvitationTokenRepository.delete(token);
   }
 }

@@ -39,3 +39,12 @@ export async function getLeases(): Promise<LeaseSummaryDto[]> {
   const res = await api.get<ApiResponse<LeaseSummaryDto[]>>(GET_LEASES_PATH);
   return res.data.data;
 }
+
+const ACCEPT_LEASE_INVITATION = "/lease/invitation/accept";
+export async function acceptLeaseInvitation(
+  invitationToken: string,
+): Promise<void> {
+  await api.post<ApiResponse<void>>(ACCEPT_LEASE_INVITATION, {
+    invitationToken,
+  });
+}

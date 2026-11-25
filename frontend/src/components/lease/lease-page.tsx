@@ -33,7 +33,7 @@ function LeasePage() {
           </p>
         </div>
         {user.role === "LANDLORD" && (
-          <Link href="/leases/new" className={buttonVariants({ size: "sm" })}>
+          <Link href="/lease/new" className={buttonVariants({ size: "sm" })}>
             <Plus className="mr-2 h-4 w-4" />
             New Lease
           </Link>
