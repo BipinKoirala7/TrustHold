@@ -4,7 +4,7 @@ import com.trusthold.auth.dtos.ForgotPasswordDto;
 import com.trusthold.auth.dtos.ResetPasswordDto;
 import com.trusthold.auth.model.PasswordResetToken;
 import com.trusthold.auth.repository.PasswordResetTokenRepository;
-import com.trusthold.mail.dtos.PasswordResetEvent;
+import com.trusthold.mail.events.PasswordResetEvent;
 import com.trusthold.shared.exception.AuthException;
 import com.trusthold.shared.exception.UserException;
 import com.trusthold.shared.exception.AppException;

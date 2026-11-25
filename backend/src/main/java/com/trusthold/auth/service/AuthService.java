@@ -4,7 +4,7 @@ import com.trusthold.auth.dtos.LoginUserDto;
 import com.trusthold.auth.dtos.RegisterOAuthUserDto;
 import com.trusthold.auth.dtos.RegisterUserDto;
 import com.trusthold.auth.model.AuthUser;
-import com.trusthold.mail.dtos.UserRegisteredEvent;
+import com.trusthold.mail.events.UserRegisteredEvent;
 import com.trusthold.shared.exception.AuthException;
 import com.trusthold.shared.Guard;
 import com.trusthold.shared.exception.AppException;

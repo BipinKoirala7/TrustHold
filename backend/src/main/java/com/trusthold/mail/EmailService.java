@@ -6,7 +6,9 @@ import com.resend.services.emails.model.CreateEmailOptions;
 import com.resend.services.emails.model.CreateEmailResponse;
 import com.trusthold.auth.service.PasswordResetTokenService;
 import com.trusthold.mail.dtos.LeaseInvitationDto;
+import com.trusthold.mail.events.LeaseJoinedEvent;
 import com.trusthold.mail.templates.LeaseInvitationEmailTemplate;
+import com.trusthold.mail.templates.LeaseJoinedEmailTemplate;
 import com.trusthold.mail.templates.PasswordResetEmailTemplate;
 import com.trusthold.mail.templates.WelcomeEmailTemplate;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ public class EmailService {
 
   private final LeaseInvitationEmailTemplate leaseInvitationEmailTemplate;
   private final PasswordResetEmailTemplate passwordResetEmailTemplate;
+  private final LeaseJoinedEmailTemplate leaseJoinedEmailTemplate;
   private final WelcomeEmailTemplate welcomeEmailTemplate;
 
   @Value("${resend.api.key}")
@@ -85,6 +88,17 @@ public class EmailService {
     String inviteLink = frontendUrl + "/lease/invitation?token=" + rawToken;
     String html = leaseInvitationEmailTemplate.render(dto, inviteLink);
     sendMail(to, LeaseInvitationEmailTemplate.SUBJECT, html);
+  }
+
+  @Async
+  public void sendLeaseJoinedEmail(String to, LeaseJoinedEvent event) {
+    log.info("Sending Lease Joined email to {}", to);
+    String html = leaseJoinedEmailTemplate.render(event, frontendUrl + "/dashboard");
+    try{
+      sendMail(to, LeaseJoinedEmailTemplate.SUBJECT, html);
+    } catch (ResendException e) {
+      log.warn("Failed to send lease joined email to {}", to, e);
+    }
   }
 
   /**

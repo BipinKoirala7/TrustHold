@@ -8,6 +8,7 @@ import com.trusthold.lease.model.LeaseInvitationToken;
 import com.trusthold.lease.model.LeaseInvitationTokenRepository;
 import com.trusthold.mail.EmailService;
 import com.trusthold.mail.dtos.LeaseInvitationDto;
+import com.trusthold.mail.events.LeaseJoinedEvent;
 import com.trusthold.property.model.Property;
 import com.trusthold.shared.Guard;
 import com.trusthold.shared.exception.AppException;
@@ -21,6 +22,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -37,6 +39,7 @@ public class LeaseInvitationService {
 
   private final long LEASE_INVITATION_EXPIRY = 48; // Hr
   private final LeaseInvitationTokenRepository leaseInvitationTokenRepository;
+  private final ApplicationEventPublisher eventPublisher;
   private final EmailService emailService;
   private final UserService userService;
   private final LeaseHelper leaseHelper;
@@ -95,11 +98,23 @@ public class LeaseInvitationService {
     User tenant = userService.getUserByIdOrNull(authUser.id())
         .orElseThrow(() -> new AppException(AuthException.UNAUTHORIZED));
 
+    Lease lease = leaseHelper.getLeaseById(token.getLeaseId());
+
     if(!tenant.getEmail().equalsIgnoreCase(token.getTenantEmail())){
       log.error("Tenant email mismatch: expected={}, actual={}", token.getTenantEmail(), tenant.getEmail());
       throw new AppException(LeaseException.LEASE_INVITATION_EMAIL_MISMATCH);
     }
 
     leaseHelper.addTenantToLease(token.getLeaseId(), tenant.getId());
+    deleteStaleInvitationTokens(token.getLeaseId());
+    eventPublisher.publishEvent(  eventPublisher.publishEvent(new LeaseJoinedEvent(
+        landlord.getEmail(),
+        landlord.getName(),
+        tenant.getName(),
+        tenant.getEmail(),
+        property.getName(),
+        property.getAddress(),
+        lease.getDepositAmount().toPlainString()
+    )));
   }
 }
