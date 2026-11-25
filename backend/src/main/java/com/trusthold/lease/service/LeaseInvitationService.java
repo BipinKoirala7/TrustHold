@@ -10,6 +10,7 @@ import com.trusthold.mail.EmailService;
 import com.trusthold.mail.dtos.LeaseInvitationDto;
 import com.trusthold.mail.events.LeaseJoinedEvent;
 import com.trusthold.property.model.Property;
+import com.trusthold.property.service.PropertyService;
 import com.trusthold.shared.Guard;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.shared.exception.AuthException;
@@ -40,6 +41,7 @@ public class LeaseInvitationService {
   private final long LEASE_INVITATION_EXPIRY = 48; // Hr
   private final LeaseInvitationTokenRepository leaseInvitationTokenRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final PropertyService propertyService;
   private final EmailService emailService;
   private final UserService userService;
   private final LeaseHelper leaseHelper;
@@ -99,6 +101,8 @@ public class LeaseInvitationService {
         .orElseThrow(() -> new AppException(AuthException.UNAUTHORIZED));
 
     Lease lease = leaseHelper.getLeaseById(token.getLeaseId());
+    User landlord = userService.getUserById(lease.getLandlordId());
+    Property property = propertyService.getPropertyById(lease.getPropertyId());
 
     if(!tenant.getEmail().equalsIgnoreCase(token.getTenantEmail())){
       log.error("Tenant email mismatch: expected={}, actual={}", token.getTenantEmail(), tenant.getEmail());
@@ -107,14 +111,14 @@ public class LeaseInvitationService {
 
     leaseHelper.addTenantToLease(token.getLeaseId(), tenant.getId());
     deleteStaleInvitationTokens(token.getLeaseId());
-    eventPublisher.publishEvent(  eventPublisher.publishEvent(new LeaseJoinedEvent(
+    eventPublisher.publishEvent(new LeaseJoinedEvent(
         landlord.getEmail(),
-        landlord.getName(),
-        tenant.getName(),
+        landlord.getFirstName() + " " + landlord.getLastName(),
+        tenant.getFirstName() + " " + tenant.getLastName(),
         tenant.getEmail(),
         property.getName(),
-        property.getAddress(),
+        property.getAddressLine(),
         lease.getDepositAmount().toPlainString()
-    )));
+    ));
   }
 }

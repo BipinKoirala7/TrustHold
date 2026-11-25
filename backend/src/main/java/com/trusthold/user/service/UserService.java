@@ -117,7 +117,7 @@ public class UserService {
     return userRepository.findById(userId).orElseThrow(() -> new AppException(UserException.USER_NOT_FOUND));
   }
 
-  public Optional<User> getUserByIdOrNull(@NotNull UUID userId) {
+  public Optional<User> getUserByIdOrNull(UUID userId) {
     return userRepository.findById(userId);
   }
 

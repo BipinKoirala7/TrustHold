@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -97,7 +98,7 @@ public class LeaseService {
         .map(lease -> {
           Property property = propertyService.getPropertyById(lease.getPropertyId());
           PropertySummaryDto propertyInfo = propertyMapper.toPropertyInfo(property);
-          User tenant = userService.getUserByIdOrNull(lease.getTenantId()).orElse(null);
+          User tenant = Objects.isNull(lease.getTenantId()) ? null : userService.getUserById(lease.getTenantId());
           String tenantName = tenant == null ? null : tenant.getFirstName() + " " + tenant.getLastName();
 
           return new LeaseSummaryDto(lease, propertyInfo, tenantName);
