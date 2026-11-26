@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { LeaseRow } from "./lease-row";
-import { LeaseSummaryDto } from "@/lib/api/lease";
+import { LeaseSummaryDto } from "@/lib/schema/leaseSchema";
 
 const headClass =
   "text-xs font-semibold tracking-wide text-muted-foreground uppercase";

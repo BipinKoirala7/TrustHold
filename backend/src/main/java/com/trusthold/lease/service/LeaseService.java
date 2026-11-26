@@ -66,6 +66,11 @@ public class LeaseService {
       throw new AppException(PropertyException.PROPERTY_IS_ARCHIVED);
     }
 
+    if(leaseHelper.doesLeaseExistForProperty(createLeaseDto.propertyId())){
+      log.warn("Lease already exists for property with id {}", createLeaseDto.propertyId());
+      throw new AppException(LeaseException.LEASE_ALREADY_EXISTS_FOR_PROPERTY);
+    }
+
     Optional<User> tenant = userService.getUserByEmailOrNull(createLeaseDto.tenantEmail());
 
     if(tenant.isPresent() && !tenant.get().getRole().equals(Role.TENANT)){

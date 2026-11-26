@@ -84,7 +84,10 @@ function CreatePropertyDialog() {
         </DialogHeader>
 
         <form
-          onSubmit={handleSubmit((values) => mutate(values))}
+          onSubmit={(e) => {
+            e.stopPropagation();
+            handleSubmit((values) => mutate(values))(e);
+          }}
           className="space-y-4"
         >
           <div className="space-y-2">

@@ -14,6 +14,8 @@ public interface LeaseRepository extends JpaRepository<Lease, UUID> {
   List<Lease> findAllByLandlordId(UUID landlordId);
   List<Lease> findAllByTenantId(UUID tenantId);
 
+  boolean existsByPropertyId(UUID propertyId);
+
   @Modifying(clearAutomatically = true)
   @Query("UPDATE Lease l SET l.tenantId = :tenantId WHERE l.id = :leaseId")
   void updateTenantId(@Param("leaseId") UUID leaseId, @Param("tenantId") UUID tenantId);

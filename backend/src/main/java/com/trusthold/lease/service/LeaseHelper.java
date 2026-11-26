@@ -32,4 +32,9 @@ public class LeaseHelper {
     return leaseRepository.findById(leaseId)
         .orElseThrow(() -> new AppException(LeaseException.LEASE_NOT_FOUND));
   }
+
+  public boolean doesLeaseExistForProperty(@NotNull UUID propertyId) {
+    log.info("Checking if lease exists for property={}", propertyId);
+    return leaseRepository.existsByPropertyId(propertyId);
+  }
 }

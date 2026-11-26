@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { AlertCircle, Plus } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { AlertCircle, MapPin, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,33 +11,70 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { queryKeys } from "@/lib/query-cache-key";
-import { getLandlordProperties } from "@/lib/api/property";
-import { Property } from "@/lib/schema/propertySchema";
+import { Property, propertyTypeLabels } from "@/lib/schema/propertySchema";
 import CreatePropertyDialog from "@/components/properties/create-property-dialog";
 
 type PropertySelectProps = {
   value: string;
   onValueChange: (id: string) => void;
   error?: string;
+  properties: Property[];
+  isLoading: boolean;
+  isError: boolean;
+  isFetching: boolean;
+  refetch: () => void;
 };
 
-function propertyLabel(property: Property) {
-  return `${property.addressLine}, ${property.city}${
-    property.description ? ` · ${property.type}` : ""
-  }`;
+function propertyOption(property: Property) {
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5 py-1">
+      <p className="truncate text-sm font-medium">{property.name}</p>
+      <p className="truncate text-xs text-muted-foreground">
+        {propertyTypeLabels[property.type]} · {property.addressLine},{" "}
+        {property.city}
+      </p>
+    </div>
+  );
+}
+
+function propertyCard(property: Property) {
+  return (
+    <div className="space-y-3 rounded-lg border bg-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <p className="min-w-0 truncate text-sm font-semibold">
+          {property.name}
+        </p>
+        <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+          {propertyTypeLabels[property.type]}
+        </span>
+      </div>
+
+      <div className="flex items-start gap-1.5 text-sm text-muted-foreground">
+        <MapPin className="mt-0.5 size-4 shrink-0" />
+        <p>
+          {property.addressLine}, {property.city}
+        </p>
+      </div>
+
+      {property.description && (
+        <p className="line-clamp-2 border-t pt-3 text-sm text-muted-foreground">
+          {property.description}
+        </p>
+      )}
+    </div>
+  );
 }
 
 export function PropertySelect({
   value,
   onValueChange,
   error,
+  properties,
+  isLoading,
+  isError,
+  isFetching,
+  refetch,
 }: PropertySelectProps) {
-  const { data, isLoading, isError, refetch, isFetching } = useQuery({
-    queryKey: queryKeys.properties,
-    queryFn: getLandlordProperties,
-  });
-
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -73,8 +108,6 @@ export function PropertySelect({
     );
   }
 
-  const properties = data ?? [];
-
   if (properties.length === 0) {
     return (
       <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed p-4">
@@ -87,36 +120,42 @@ export function PropertySelect({
     );
   }
 
+  const selected = properties.find((p) => p.id === value);
+
   return (
     <div className="space-y-2">
       <Label htmlFor="propertyId">Property</Label>
-      <Select
-        value={value}
-        onValueChange={(v) => onValueChange(v ?? "")}
-        items={properties.map((p) => ({
-          value: p.id,
-          label: propertyLabel(p),
-        }))}
-      >
-        <SelectTrigger
-          id="propertyId"
-          className="w-full"
-          aria-invalid={!!error}
-        >
-          <SelectValue placeholder="Choose a property" />
-        </SelectTrigger>
-        <SelectContent>
-          {properties.map((property) => (
-            <SelectItem key={property.id} value={property.id}>
-              {propertyLabel(property)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="min-w-0 flex-1">
+          <Select
+            value={value}
+            onValueChange={(v) => onValueChange(v ?? "")}
+            items={properties.map((p) => ({ value: p.id, label: p.name }))}
+          >
+            <SelectTrigger
+              id="propertyId"
+              className="w-full"
+              aria-invalid={!!error}
+            >
+              <SelectValue placeholder="Choose a property" />
+            </SelectTrigger>
+            <SelectContent alignItemWithTrigger={false}>
+              {properties.map((property) => (
+                <SelectItem key={property.id} value={property.id}>
+                  {propertyOption(property)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <CreatePropertyDialog />
+      </div>
+
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <p className="text-sm text-muted-foreground">
-        Need a different one? <CreatePropertyDialog />
-      </p>
+
+      {selected && propertyCard(selected)}
     </div>
   );
 }

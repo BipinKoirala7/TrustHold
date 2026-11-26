@@ -1,8 +1,10 @@
-import { CalendarDays, User, Wallet } from "lucide-react";
+import { CalendarDays, MapPin, User, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 
 type LeaseSummaryProps = {
+  name?: string;
   address?: string;
   city?: string;
   tenantEmail: string;
@@ -22,7 +24,7 @@ function SummaryRow({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <Icon className="mt-0.5 size-4 text-primary" />
+      <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="truncate text-sm font-medium">{value}</p>
@@ -32,6 +34,7 @@ function SummaryRow({
 }
 
 export function LeaseSummary({
+  name,
   address,
   city,
   tenantEmail,
@@ -39,7 +42,6 @@ export function LeaseSummary({
   startDate,
   isPending,
 }: LeaseSummaryProps) {
-  // an empty number input gives NaN, which is falsy, so it shows "Not entered"
   const depositText = deposit
     ? `Rs. ${deposit.toLocaleString("en-IN")}`
     : "Not entered";
@@ -54,21 +56,26 @@ export function LeaseSummary({
 
   return (
     <Card className="lg:sticky lg:top-6">
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col gap-2">
         <p className="text-xs font-semibold uppercase tracking-wider text-primary">
           Lease summary
         </p>
 
         <div className="space-y-1 border-b pb-4">
-          <h3 className="text-lg font-semibold">
-            {address || "Property address"}
+          <h3 className="truncate text-lg font-semibold">
+            {name || "No property selected"}
           </h3>
-          <p className="text-sm text-muted-foreground">
-            {city || "No property selected"}
-          </p>
+          {name && (
+            <div className="flex items-start gap-1.5 text-sm text-muted-foreground">
+              <MapPin className="mt-0.5 size-4 shrink-0" />
+              <p className="min-w-0 wrap-break-word">
+                {address}, {city}
+              </p>
+            </div>
+          )}
         </div>
 
-        <div className="space-y-4 border-b pb-4">
+        <div className="flex flex-col gap-4 border-b py-4">
           <SummaryRow
             icon={User}
             label="Tenant"
@@ -86,8 +93,9 @@ export function LeaseSummary({
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={isPending}>
-          Create &amp; invite tenant
+        <Button type="submit" className="mt-2 w-full" disabled={isPending}>
+          {isPending && <Spinner />}
+          {isPending ? "Creating lease..." : "Create & invite tenant"}
         </Button>
         <p className="text-center text-xs text-muted-foreground">
           The tenant will receive an invitation by email.

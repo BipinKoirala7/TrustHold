@@ -39,12 +39,18 @@ export function LeaseForm() {
   const depositAmount = watch("depositAmount");
   const startDate = watch("startDate");
 
-  const { data: properties = [] } = useQuery({
+  const {
+    data: properties = [],
+    isLoading,
+    isError,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: queryKeys.properties,
     queryFn: getLandlordProperties,
   });
 
-  const selected = properties?.find((p) => p.id === propertyId);
+  const selected = properties.find((p) => p.id === propertyId);
 
   const { mutate, isPending } = useCreateLease();
 
@@ -62,6 +68,11 @@ export function LeaseForm() {
           icon={Building2}
         >
           <PropertySelect
+            properties={properties}
+            isLoading={isLoading}
+            isError={isError}
+            isFetching={isFetching}
+            refetch={refetch}
             value={propertyId}
             onValueChange={(id) =>
               setValue("propertyId", id, { shouldValidate: true })
@@ -90,6 +101,7 @@ export function LeaseForm() {
       </div>
 
       <LeaseSummary
+        name={selected?.name}
         address={selected?.addressLine}
         city={selected?.city}
         tenantEmail={tenantEmail}
