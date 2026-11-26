@@ -1,4 +1,8 @@
-import { CreatePropertyDto, Property } from "../schema/propertySchema";
+import {
+  CreatePropertyDto,
+  Property,
+  PropertyDetailsDto,
+} from "../schema/propertySchema";
 import { ApiResponse } from "./api";
 import api from "./axios";
 
@@ -10,9 +14,9 @@ export async function createProperty(
 }
 
 const GET_LANDLORD_PROPERTIES_PATH = "/property";
-export async function getLandlordProperties(): Promise<Property[]> {
+export async function getLandlordProperties(): Promise<PropertyDetailsDto[]> {
   return await api
-    .get<ApiResponse<Property[]>>(GET_LANDLORD_PROPERTIES_PATH)
+    .get<ApiResponse<PropertyDetailsDto[]>>(GET_LANDLORD_PROPERTIES_PATH)
     .then((res) => res.data.data);
 }
 

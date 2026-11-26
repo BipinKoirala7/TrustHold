@@ -112,7 +112,7 @@ class LeaseServiceTests {
     @Test
     void shouldPropagateException_whenPropertyLookupFails() {
       when(createLeaseDto.propertyId()).thenReturn(propertyId);
-      when(propertyService.getPropertyInfo(landlordUser, propertyId))
+      when(propertyService.getProperty(landlordUser, propertyId))
           .thenThrow(new AppException(PropertyException.PROPERTY_NOT_FOUND));
 
       assertThatThrownBy(() -> leaseService.createLease(landlordUser, createLeaseDto))
@@ -126,7 +126,7 @@ class LeaseServiceTests {
     void shouldThrowAppException_whenProvidedTenantIsNotATenant() {
       when(createLeaseDto.propertyId()).thenReturn(propertyId);
       when(createLeaseDto.tenantEmail()).thenReturn(tenantEmail);
-      when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
+      when(propertyService.getProperty(landlordUser, propertyId)).thenReturn(property);
       when(userService.isUserTenant(tenantEmail)).thenReturn(false);
 
       assertThatThrownBy(() -> leaseService.createLease(landlordUser, createLeaseDto))
@@ -140,7 +140,7 @@ class LeaseServiceTests {
     void shouldPropagateException_andNotPublishEvent_whenSaveFails() {
       when(createLeaseDto.propertyId()).thenReturn(propertyId);
       when(createLeaseDto.tenantEmail()).thenReturn(tenantEmail);
-      when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
+      when(propertyService.getProperty(landlordUser, propertyId)).thenReturn(property);
       when(userService.isUserTenant(tenantEmail)).thenReturn(true);
       when(leaseMapper.toLeaseEntity(createLeaseDto)).thenReturn(lease);
       when(leaseRepository.save(lease)).thenThrow(new RuntimeException("Database connection failed"));
@@ -161,7 +161,7 @@ class LeaseServiceTests {
 
       InOrder inOrder = inOrder(propertyService, userService, leaseMapper, lease,
           leaseRepository, applicationEventPublisher);
-      inOrder.verify(propertyService).getPropertyInfo(landlordUser, propertyId);
+      inOrder.verify(propertyService).getProperty(landlordUser, propertyId);
       inOrder.verify(userService).isUserTenant(tenantEmail);
       inOrder.verify(leaseMapper).toLeaseEntity(createLeaseDto);
       inOrder.verify(lease).setLandlordId(landlordId);
@@ -198,7 +198,7 @@ class LeaseServiceTests {
     private void stubHappyPath() {
       when(createLeaseDto.propertyId()).thenReturn(propertyId);
       when(createLeaseDto.tenantEmail()).thenReturn(tenantEmail);
-      when(propertyService.getPropertyInfo(landlordUser, propertyId)).thenReturn(property);
+      when(propertyService.getProperty(landlordUser, propertyId)).thenReturn(property);
       when(userService.isUserTenant(tenantEmail)).thenReturn(true);
       when(leaseMapper.toLeaseEntity(createLeaseDto)).thenReturn(lease);
       when(lease.getId()).thenReturn(leaseId);

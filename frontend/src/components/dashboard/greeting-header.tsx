@@ -36,7 +36,7 @@ export function GreetingHeader({
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
       </div>
-      <Link href={`/leases`} className={buttonVariants()}>
+      <Link href={`/lease`} className={buttonVariants()}>
         <FileText data-icon="inline-start" />
         View all leases
       </Link>

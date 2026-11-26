@@ -5,19 +5,19 @@ import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { LeaseStatusBadge } from "./lease-status-badge";
-import { formatDeposit, formatLeaseDate } from "@/lib/api/lease";
 import { LeaseSummaryDto } from "@/lib/schema/leaseSchema";
+import { formatDeposit, formatDate } from "@/lib/utils";
 
 function getTimeline(startDate: string, endDate: string | null) {
   if (!endDate) {
-    return formatLeaseDate(startDate) + " - " + "Present";
+    return formatDate(startDate) + " - " + "Present";
   }
-  return `${formatLeaseDate(startDate)} - ${formatLeaseDate(endDate)}`;
+  return `${formatDate(startDate)} - ${formatDate(endDate)}`;
 }
 
 export function LeaseRow({ lease }: { lease: LeaseSummaryDto }) {
   const router = useRouter();
-  const href = `/landlord/leases/${lease.id}`;
+  const href = `/leases/${lease.id}`;
 
   return (
     <TableRow onClick={() => router.push(href)} className="cursor-pointer">

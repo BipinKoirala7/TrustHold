@@ -1,13 +1,20 @@
 "use client";
 
-import { Building2, SearchX, TriangleAlert } from "lucide-react";
+import {
+  Building2,
+  CircleCheck,
+  CircleMinus,
+  SearchX,
+  TriangleAlert,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-cache-key";
+import { getLandlordProperties } from "@/lib/api/property";
 import {
-  getLandlordProperties,
   Property,
+  PropertyDetailsDto,
   PropertyType,
-} from "@/lib/api/property";
+} from "@/lib/schema/propertySchema";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -29,7 +36,7 @@ interface PropertiesTableProps {
 }
 
 function PropertiesTable({ search, type }: PropertiesTableProps) {
-  const { isPending, data, isError } = useQuery<Property[]>({
+  const { isPending, data, isError } = useQuery<PropertyDetailsDto[]>({
     queryKey: queryKeys.properties,
     queryFn: getLandlordProperties,
   });
@@ -54,10 +61,13 @@ function PropertiesTable({ search, type }: PropertiesTableProps) {
         <TableHeader>
           <TableRow>
             <TableHead className={`${headClass} pl-6`}>Name</TableHead>
-            <TableHead className={headClass}>Type</TableHead>
+            <TableHead className={`${headClass} text-center`}>Type</TableHead>
             <TableHead className={headClass}>Location</TableHead>
-            <TableHead className={headClass}>Updated</TableHead>
-            <TableHead className={`${headClass} pr-6 text-right`}>
+            <TableHead className={`${headClass} text-center`}>
+              Last Updated
+            </TableHead>
+            <TableHead className={`${headClass} text-center`}>Leased</TableHead>
+            <TableHead className={`${headClass} text-center`}>
               Actions
             </TableHead>
           </TableRow>
@@ -80,7 +90,7 @@ function PropertiesTable({ search, type }: PropertiesTableProps) {
                 <TableCell>
                   <Skeleton className="h-4 w-24" />
                 </TableCell>
-                <TableCell className="pr-6">
+                <TableCell className="text-center">
                   <Skeleton className="ml-auto size-8 rounded-md" />
                 </TableCell>
               </TableRow>
@@ -142,7 +152,7 @@ function PropertiesTable({ search, type }: PropertiesTableProps) {
                   {property.description}
                 </div>
               </TableCell>
-              <TableCell>
+              <TableCell className="text-center">
                 <Badge variant="secondary">
                   {property.type.charAt(0) +
                     property.type.slice(1).toLowerCase()}
@@ -151,15 +161,39 @@ function PropertiesTable({ search, type }: PropertiesTableProps) {
               <TableCell className="text-muted-foreground">
                 {property.addressLine}, {property.city}
               </TableCell>
-              <TableCell className="text-muted-foreground">
+              <TableCell className="text-muted-foreground text-center">
                 {new Date(property.updatedAt).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
                   year: "numeric",
                 })}
               </TableCell>
-              <TableCell className="pr-6 text-right">
-                <DeletePropertyButton id={property.id} name={property.name} />
+              <TableCell className="text-muted-foreground">
+                <div
+                  className="flex justify-center"
+                  title={property.isPropertyLeased ? "Leased" : "Not leased"}
+                >
+                  {property.isPropertyLeased ? (
+                    <CircleCheck aria-hidden className="size-5 text-primary" />
+                  ) : (
+                    <CircleMinus
+                      aria-hidden
+                      className="size-5 text-muted-foreground"
+                    />
+                  )}
+                  <span className="sr-only">
+                    {property.isPropertyLeased ? "Leased" : "Not leased"}
+                  </span>
+                </div>
+              </TableCell>
+              <TableCell className="text-center">
+                {property.isArchived ? (
+                  <span className="text-sm text-muted-foreground">
+                    Archived
+                  </span>
+                ) : (
+                  <DeletePropertyButton id={property.id} name={property.name} />
+                )}
               </TableCell>
             </TableRow>
           ))}

@@ -2,6 +2,7 @@ package com.trusthold.property.service;
 
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.property.dtos.CreatePropertyDto;
+import com.trusthold.property.dtos.PropertyDetailsDto;
 import com.trusthold.property.model.Property;
 import com.trusthold.property.repository.PropertyRepository;
 import com.trusthold.shared.exception.AuthException;
@@ -107,10 +108,10 @@ class PropertyServiceTests {
 
     @Test
     void shouldReturnPropertiesOwnedByLandlord() {
-      List<Property> properties = List.of(property);
-      when(propertyRepository.findByLandlordIdAndIsArchivedFalse(landlordId)).thenReturn(properties);
+      List<PropertyDetailsDto> properties = List.of(new PropertyDetailsDto(property, false));
+      when(propertyRepository.findByLandlordIdAndIsArchivedFalse(landlordId)).thenReturn(List.of(property));
 
-      List<Property> result = propertyService.getAllProperties(landlordUser);
+      List<PropertyDetailsDto> result = propertyService.getAllProperties(landlordUser);
 
       assertThat(result).isSameAs(properties);
     }
@@ -128,7 +129,7 @@ class PropertyServiceTests {
 
     @Test
     void shouldThrowUnauthorized_whenAuthUserIsNull() {
-      assertThatThrownBy(() -> propertyService.getPropertyInfo(null, propertyId))
+      assertThatThrownBy(() -> propertyService.getProperty(null, propertyId))
           .isInstanceOf(AppException.class)
           .hasFieldOrPropertyWithValue("code", AuthException.UNAUTHORIZED);
 
@@ -140,7 +141,7 @@ class PropertyServiceTests {
       when(propertyRepository.findByIdAndLandlordId(propertyId, landlordId))
           .thenReturn(Optional.of(property));
 
-      Property result = propertyService.getPropertyInfo(landlordUser, propertyId);
+      Property result = propertyService.getProperty(landlordUser, propertyId);
 
       assertThat(result).isSameAs(property);
     }
@@ -150,7 +151,7 @@ class PropertyServiceTests {
       when(propertyRepository.findByIdAndLandlordId(propertyId, landlordId))
           .thenReturn(Optional.empty());
 
-      assertThatThrownBy(() -> propertyService.getPropertyInfo(landlordUser, propertyId))
+      assertThatThrownBy(() -> propertyService.getProperty(landlordUser, propertyId))
           .isInstanceOf(AppException.class)
           .hasFieldOrPropertyWithValue("code", PropertyException.PROPERTY_NOT_FOUND);
     }

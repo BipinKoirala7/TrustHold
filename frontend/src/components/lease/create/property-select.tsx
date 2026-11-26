@@ -11,33 +11,50 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Property, propertyTypeLabels } from "@/lib/schema/propertySchema";
+import {
+  PropertyDetailsDto,
+  propertyTypeLabels,
+} from "@/lib/schema/propertySchema";
 import CreatePropertyDialog from "@/components/properties/create-property-dialog";
 
 type PropertySelectProps = {
   value: string;
   onValueChange: (id: string) => void;
   error?: string;
-  properties: Property[];
+  properties: PropertyDetailsDto[];
   isLoading: boolean;
   isError: boolean;
   isFetching: boolean;
   refetch: () => void;
 };
 
-function propertyOption(property: Property) {
+function propertyOption(property: PropertyDetailsDto) {
+  const badge = property.isArchived
+    ? "Archived"
+    : property.isPropertyLeased
+      ? "In another lease"
+      : null;
+
   return (
-    <div className="flex min-w-0 flex-col gap-0.5 py-1">
-      <p className="truncate text-sm font-medium">{property.name}</p>
-      <p className="truncate text-xs text-muted-foreground">
-        {propertyTypeLabels[property.type]} · {property.addressLine},{" "}
-        {property.city}
-      </p>
+    <div className="flex w-full min-w-0 items-center justify-between gap-3 py-1">
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <p className="truncate text-sm font-medium">{property.name}</p>
+        <p className="truncate text-xs text-muted-foreground">
+          {propertyTypeLabels[property.type]} · {property.addressLine},{" "}
+          {property.city}
+        </p>
+      </div>
+
+      {badge && (
+        <span className="shrink-0 rounded-full border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+          {badge}
+        </span>
+      )}
     </div>
   );
 }
 
-function propertyCard(property: Property) {
+function propertyCard(property: PropertyDetailsDto) {
   return (
     <div className="space-y-3 rounded-lg border bg-card p-4">
       <div className="flex items-start justify-between gap-3">
@@ -142,7 +159,11 @@ export function PropertySelect({
             </SelectTrigger>
             <SelectContent alignItemWithTrigger={false}>
               {properties.map((property) => (
-                <SelectItem key={property.id} value={property.id}>
+                <SelectItem
+                  key={property.id}
+                  value={property.id}
+                  disabled={property.isArchived || property.isPropertyLeased}
+                >
                   {propertyOption(property)}
                 </SelectItem>
               ))}

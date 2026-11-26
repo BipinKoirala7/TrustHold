@@ -1,4 +1,5 @@
 import { LeaseActivity } from "@/lib/api/landlord";
+import { formatDateTime } from "@/lib/utils";
 
 export function ActivityItem({ entry }: { entry: LeaseActivity }) {
   return (
@@ -8,7 +9,7 @@ export function ActivityItem({ entry }: { entry: LeaseActivity }) {
         <p className="font-semibold">{entry.activity}</p>
         <p className="text-sm text-muted-foreground">{entry.description}</p>
         <p className="mt-1 text-xs text-muted-foreground/80">
-          {entry.createdAt}
+          {formatDateTime(entry.createdAt)}
         </p>
       </div>
     </li>

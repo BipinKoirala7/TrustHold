@@ -17,6 +17,7 @@ export interface Property {
   addressLine: string;
   city: string;
   description: string;
+  isArchived: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -56,3 +57,7 @@ export type PropertySummaryDto = Omit<
   | "createdAt"
   | "updatedAt"
 >;
+
+export type PropertyDetailsDto = Property & {
+  isPropertyLeased: boolean;
+};

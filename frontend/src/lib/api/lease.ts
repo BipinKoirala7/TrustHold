@@ -15,18 +15,6 @@ export const leaseStatusOptions = [
   })),
 ];
 
-export const formatDeposit = (amount: number) =>
-  `Rs. ${amount.toLocaleString("en-IN")}`;
-
-// Fixed locale + UTC so the server and browser always render the same text
-export const formatLeaseDate = (iso: string) =>
-  new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(iso));
-
 // API functions
 
 const CREATE_LEASE_PATH = "/lease";

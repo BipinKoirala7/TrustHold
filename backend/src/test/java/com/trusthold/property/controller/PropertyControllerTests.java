@@ -122,7 +122,7 @@ public class PropertyControllerTests extends ControllerTestSupport {
     @Test
     void shouldReturnUnauthorized_whenServiceThrowsUnauthorized() throws Exception {
       // Arrange
-      when(propertyService.getPropertyInfo(eq(sampleAuthUser), eq(propertyId)))
+      when(propertyService.getProperty(eq(sampleAuthUser), eq(propertyId)))
           .thenThrow(new AppException(AuthException.UNAUTHORIZED));
 
       // Act & Assert
