@@ -102,11 +102,11 @@ public class LeaseService {
         .stream()
         .map(lease -> {
           Property property = propertyService.getPropertyById(lease.getPropertyId());
-          PropertySummaryDto propertyInfo = propertyMapper.toPropertyInfo(property);
+          PropertySummaryDto propertySummary = propertyMapper.toPropertySummary(property);
           User tenant = Objects.isNull(lease.getTenantId()) ? null : userService.getUserById(lease.getTenantId());
           String tenantName = tenant == null ? null : tenant.getFirstName() + " " + tenant.getLastName();
 
-          return new LeaseSummaryDto(lease, propertyInfo, tenantName);
+          return new LeaseSummaryDto(lease, propertySummary, tenantName);
         })
         .toList();
   }

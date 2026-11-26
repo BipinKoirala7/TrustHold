@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public record LeaseSummaryDto(
     UUID id,
-    PropertySummaryDto propertyInfo,
+    PropertySummaryDto propertySummary,
     String tenantName,
     BigDecimal depositAmount,
     LeaseStatus status,

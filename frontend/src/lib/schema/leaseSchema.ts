@@ -42,7 +42,8 @@ export type LeaseSummaryDto = Omit<
   | "movedOutAt"
   | "settled"
 > & {
-  property: PropertySummaryDto;
+  propertySummary: PropertySummaryDto;
+  tenantName: string | null;
 };
 
 export const leaseStatusMeta: Record<

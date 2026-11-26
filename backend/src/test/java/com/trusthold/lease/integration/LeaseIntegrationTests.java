@@ -112,8 +112,8 @@ public class LeaseIntegrationTests extends IntegrationTestSupport {
 
       LeaseSummaryDto lease = leases[0];
       assertThat(lease.id()).isNotNull();
-      assertThat(lease.propertyInfo().name()).isEqualTo("Sunrise Apartment");
-      assertThat(lease.propertyInfo().city()).isEqualTo("Pokhara");
+      assertThat(lease.propertySummary().name()).isEqualTo("Sunrise Apartment");
+      assertThat(lease.propertySummary().city()).isEqualTo("Pokhara");
       assertThat(lease.tenantName()).isEqualTo("Tenant Person");
       assertThat(lease.depositAmount()).isNotNull();
       assertThat(lease.status()).isNotNull();
@@ -130,7 +130,7 @@ public class LeaseIntegrationTests extends IntegrationTestSupport {
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
       assertThat(response.getBody()).isNotNull();
       assertThat(response.getBody().data()).hasSize(1);
-      assertThat(response.getBody().data()[0].propertyInfo().name()).isEqualTo("Sunrise Apartment");
+      assertThat(response.getBody().data()[0].propertySummary().name()).isEqualTo("Sunrise Apartment");
       assertThat(response.getBody().data()[0].tenantName()).isEqualTo("Tenant Person");
     }
 
@@ -177,7 +177,7 @@ public class LeaseIntegrationTests extends IntegrationTestSupport {
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
       assertThat(response.getBody()).isNotNull();
       assertThat(response.getBody().data())
-          .extracting(lease -> lease.propertyInfo().name())
+          .extracting(lease -> lease.propertySummary().name())
           .containsExactlyInAnyOrder("Sunrise Apartment", "Lakeside House");
     }
 

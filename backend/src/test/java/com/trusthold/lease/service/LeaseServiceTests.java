@@ -208,7 +208,7 @@ class LeaseServiceTests {
   @Nested
   class GetUsersLeasesTests {
 
-    private final PropertySummaryDto propertyInfo =
+    private final PropertySummaryDto propertySummary =
         new PropertySummaryDto("Sunrise Apartment", null, "Pokhara");
 
     @Test
@@ -235,7 +235,7 @@ class LeaseServiceTests {
       stubLease(lease, leaseId, propertyId, tenantId, startDate);
       when(leaseRepository.findAllByLandlordId(landlordId)).thenReturn(List.of(lease));
       when(propertyService.getPropertyById(propertyId)).thenReturn(property);
-      when(propertyMapper.toPropertyInfo(property)).thenReturn(propertyInfo);
+      when(propertyMapper.toPropertySummary(property)).thenReturn(propertySummary);
       when(userService.getUserByIdOrNull(tenantId)).thenReturn(Optional.of(tenant));
       when(tenant.getFirstName()).thenReturn("John");
       when(tenant.getLastName()).thenReturn("Doe");
@@ -245,7 +245,7 @@ class LeaseServiceTests {
       assertThat(result).hasSize(1);
       LeaseSummaryDto dto = result.getFirst();
       assertThat(dto.id()).isEqualTo(leaseId);
-      assertThat(dto.propertyInfo()).isSameAs(propertyInfo);
+      assertThat(dto.propertySummary()).isSameAs(propertySummary);
       assertThat(dto.tenantName()).isEqualTo("John Doe");
       assertThat(dto.depositAmount()).isEqualByComparingTo("1000");
       assertThat(dto.status()).isEqualTo(LeaseStatus.ACTIVE);
@@ -259,7 +259,7 @@ class LeaseServiceTests {
       stubLease(lease, leaseId, propertyId, tenantId, Instant.now());
       when(leaseRepository.findAllByTenantId(tenantId)).thenReturn(List.of(lease));
       when(propertyService.getPropertyById(propertyId)).thenReturn(property);
-      when(propertyMapper.toPropertyInfo(property)).thenReturn(propertyInfo);
+      when(propertyMapper.toPropertySummary(property)).thenReturn(propertySummary);
       when(userService.getUserByIdOrNull(tenantId)).thenReturn(Optional.of(tenant));
       when(tenant.getFirstName()).thenReturn("John");
       when(tenant.getLastName()).thenReturn("Doe");
@@ -275,7 +275,7 @@ class LeaseServiceTests {
       stubLease(lease, leaseId, propertyId, tenantId, Instant.now());
       when(leaseRepository.findAllByLandlordId(landlordId)).thenReturn(List.of(lease));
       when(propertyService.getPropertyById(propertyId)).thenReturn(property);
-      when(propertyMapper.toPropertyInfo(property)).thenReturn(propertyInfo);
+      when(propertyMapper.toPropertySummary(property)).thenReturn(propertySummary);
       when(userService.getUserByIdOrNull(tenantId)).thenReturn(Optional.empty());
 
       List<LeaseSummaryDto> result = leaseService.getUsersLeases(landlordUser);
@@ -300,8 +300,8 @@ class LeaseServiceTests {
 
       when(propertyService.getPropertyById(propertyId)).thenReturn(property);
       when(propertyService.getPropertyById(secondPropertyId)).thenReturn(secondProperty);
-      when(propertyMapper.toPropertyInfo(property)).thenReturn(propertyInfo);
-      when(propertyMapper.toPropertyInfo(secondProperty)).thenReturn(secondInfo);
+      when(propertyMapper.toPropertySummary(property)).thenReturn(propertySummary);
+      when(propertyMapper.toPropertySummary(secondProperty)).thenReturn(secondInfo);
 
       when(userService.getUserByIdOrNull(tenantId)).thenReturn(Optional.of(tenant));
       when(userService.getUserByIdOrNull(secondTenantId)).thenReturn(Optional.of(secondTenant));
@@ -316,8 +316,8 @@ class LeaseServiceTests {
           .containsExactly(leaseId, secondLeaseId);
       assertThat(result).extracting(LeaseSummaryDto::tenantName)
           .containsExactly("John Doe", "Jane Smith");
-      assertThat(result).extracting(LeaseSummaryDto::propertyInfo)
-          .containsExactly(propertyInfo, secondInfo);
+      assertThat(result).extracting(LeaseSummaryDto::propertySummary)
+          .containsExactly(propertySummary, secondInfo);
     }
 
     @Test
