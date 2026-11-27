@@ -4,11 +4,10 @@ import com.trusthold.auth.dtos.*;
 import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.auth.service.AuthService;
 import com.trusthold.auth.service.PasswordResetTokenService;
-import com.trusthold.shared.AuthError;
-import com.trusthold.shared.UserError;
 import com.trusthold.shared.controller.ControllerTestSupport;
 import com.trusthold.shared.exception.AppException;
-import io.jsonwebtoken.JwtException;
+import com.trusthold.shared.exception.AuthException;
+import com.trusthold.shared.exception.UserException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,9 +42,6 @@ public class AuthControllerTests extends ControllerTestSupport {
 
   @MockitoBean
   private PasswordResetTokenService passwordResetTokenService;
-
-//  @MockitoBean
-//  private AccessTokenFilter accessTokenFilter;
 
 
   @Nested
@@ -88,7 +84,7 @@ public class AuthControllerTests extends ControllerTestSupport {
     @Test
     void shouldReturnConflict_whenAppExceptionIsAConflict() throws Exception {
       // One representative case: proves AppException(conflict) -> 409 in the handler.
-      doThrow(new AppException(AuthError.USERNAME_ALREADY_EXISTS))
+      doThrow(new AppException(AuthException.USERNAME_ALREADY_EXISTS))
           .when(authService)
           .registerLocalUser(any(RegisterUserDto.class));
 
@@ -157,7 +153,7 @@ public class AuthControllerTests extends ControllerTestSupport {
     @Test
     void shouldReturnUnauthorized_whenAppExceptionIsInvalidCredentials() throws Exception {
       // One representative case: proves AppException(INVALID_CREDENTIALS) -> 401 in the handler.
-      doThrow(new AppException(AuthError.INVALID_CREDENTIALS))
+      doThrow(new AppException(AuthException.INVALID_CREDENTIALS))
           .when(authService)
           .loginUser(any(LoginUserDto.class), any());
 
@@ -216,7 +212,7 @@ public class AuthControllerTests extends ControllerTestSupport {
     void shouldReturnNotFound_whenAppExceptionIsUserNotFound() throws Exception {
       // Pins current behavior (404 lets callers list accounts). Revisit and change
       // this test together with the handler/service if you switch to a uniform 200.
-      doThrow(new AppException(UserError.USER_NOT_FOUND))
+      doThrow(new AppException(UserException.USER_NOT_FOUND))
           .when(passwordResetTokenService)
           .forgotPassword(any(ForgotPasswordDto.class));
 
@@ -259,7 +255,7 @@ public class AuthControllerTests extends ControllerTestSupport {
     @Test
     void shouldReturnBadRequest_whenAppExceptionIsInvalidResetToken() throws Exception {
       // Covers both "not found" and "expired": the controller can't tell them apart.
-      doThrow(new AppException(AuthError.INVALID_PASSWORD_RESET_TOKEN))
+      doThrow(new AppException(AuthException.INVALID_PASSWORD_RESET_TOKEN))
           .when(passwordResetTokenService)
           .resetPassword(any(), any(ResetPasswordDto.class));
 
@@ -288,50 +284,13 @@ public class AuthControllerTests extends ControllerTestSupport {
     void shouldReturnUnauthorized_whenAppExceptionIsInvalidToken() throws Exception {
       // Proves AppException(INVALID_TOKEN) -> 401 in the handler. The real
       // "no/expired cookie" path is covered by the integration journey, not here.
-      doThrow(new AppException(AuthError.INVALID_TOKEN))
+      doThrow(new AppException(AuthException.INVALID_TOKEN))
           .when(authService)
           .logoutUser(any(), any());
 
       mockMvc.perform(post(LOGOUT_ENDPOINT)
               .contentType("application/json"))
           .andExpect(status().isUnauthorized());
-    }
-  }
-
-  /**
-   * Every endpoint shares the exception handler, so its generic fallbacks
-   * are tested here once instead of once per endpoint.
-   */
-  @Nested
-  class ExceptionHandlingTests {
-
-    @Test
-    void shouldReturnInternalServerError_whenUnexpectedExceptionIsThrown() throws Exception {
-      doThrow(new RuntimeException("Database error"))
-          .when(authService)
-          .registerLocalUser(any(RegisterUserDto.class));
-
-      RegisterUserDto dto = new RegisterUserDto(
-          "Test", "User", "testuser123", "testuser@example.com",
-          "Test@Password1", "+1234567890", RegistrationRole.TENANT);
-
-      mockMvc.perform(post("/auth/register")
-              .contentType("application/json")
-              .content(objectMapper.writeValueAsString(dto)))
-          .andExpect(status().isInternalServerError());
-    }
-
-    @Test
-    void shouldReturnInternalServerError_whenJwtExceptionIsThrown() throws Exception {
-      // Pins CURRENT behavior. An invalid/expired refresh token should probably be 401;
-      // when you fix the handler, this is the single test to update.
-      doThrow(new JwtException("Invalid signature"))
-          .when(authService)
-          .refreshToken(any(), any());
-
-      mockMvc.perform(post("/auth/token/refresh")
-              .contentType("application/json"))
-          .andExpect(status().isInternalServerError());
     }
   }
 }

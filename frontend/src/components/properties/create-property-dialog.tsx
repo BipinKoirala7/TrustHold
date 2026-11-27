@@ -8,7 +8,7 @@ import {
   CreatePropertyDto,
   createPropertySchema,
   propertyTypeLabels,
-} from "@/lib/api/property";
+} from "@/lib/schema/propertySchema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,7 +84,10 @@ function CreatePropertyDialog() {
         </DialogHeader>
 
         <form
-          onSubmit={handleSubmit((values) => mutate(values))}
+          onSubmit={(e) => {
+            e.stopPropagation();
+            handleSubmit((values) => mutate(values))(e);
+          }}
           className="space-y-4"
         >
           <div className="space-y-2">

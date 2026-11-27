@@ -67,7 +67,7 @@ export function AppSidebar() {
   const basePath = `/${user.role.toLowerCase()}`;
   const nav = [
     { label: "Dashboard", href: basePath, icon: Home },
-    { label: "Leases", href: `/leases`, icon: FileText },
+    { label: "Leases", href: `/lease`, icon: FileText },
     { label: "Profile", href: `/profile`, icon: User },
   ];
 

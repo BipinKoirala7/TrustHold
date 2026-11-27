@@ -8,7 +8,7 @@ import com.trusthold.auth.model.RegistrationRole;
 import com.trusthold.auth.repository.ActiveRefreshTokenRepository;
 import com.trusthold.auth.repository.PasswordResetTokenRepository;
 import com.trusthold.mail.EmailService;
-import com.trusthold.shared.AuthError;
+import com.trusthold.shared.exception.AuthException;
 import com.trusthold.shared.dtos.ApiResponse;
 import com.trusthold.shared.integration.IntegrationTestSupport;
 import com.trusthold.user.model.AuthProvider;
@@ -196,10 +196,10 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
     void shouldFailTokenRefresh_whenUserIsNotAuthenticated() {
       ResponseEntity<ApiResponse<Void>> response = post(TOKEN_REFRESH_PATH, getHeaders(), null);
 
-      assertThat(response.getStatusCode()).isEqualTo(AuthError.INVALID_TOKEN.getHttpStatus());
+      assertThat(response.getStatusCode()).isEqualTo(AuthException.INVALID_TOKEN.getHttpStatus());
       assertThat(response.getBody()).isNotNull();
       assertThat(response.getBody().error()).isNotNull();
-      assertThat(response.getBody().error().message()).isEqualTo(AuthError.INVALID_TOKEN.getMessage());
+      assertThat(response.getBody().error().message()).isEqualTo(AuthException.INVALID_TOKEN.getMessage());
     }
   }
 
@@ -245,9 +245,9 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
 
       ResponseEntity<ApiResponse<Void>> response = post(RESET_PASSWORD_PATH, getHeaders(), validResetPasswordDto);
 
-      assertThat(response.getStatusCode()).isEqualTo(AuthError.EXPIRED_PASSWORD_RESET_TOKEN.getHttpStatus());
+      assertThat(response.getStatusCode()).isEqualTo(AuthException.EXPIRED_PASSWORD_RESET_TOKEN.getHttpStatus());
       assertThat(response.getBody()).isNotNull();
-      assertThat(response.getBody().error().message()).isEqualTo(AuthError.EXPIRED_PASSWORD_RESET_TOKEN.getMessage());
+      assertThat(response.getBody().error().message()).isEqualTo(AuthException.EXPIRED_PASSWORD_RESET_TOKEN.getMessage());
     }
   }
 
@@ -274,9 +274,9 @@ public class AuthIntegrationTests extends IntegrationTestSupport {
     void shouldFail_whenUserIsNotLoggedIn(){
       ResponseEntity<ApiResponse<Void>> response = post(LOG_OUT_PATH, getHeaders(), null);
 
-      assertThat(response.getStatusCode()).isEqualTo(AuthError.UNAUTHORIZED.getHttpStatus());
+      assertThat(response.getStatusCode()).isEqualTo(AuthException.UNAUTHORIZED.getHttpStatus());
       assertThat(response.getBody()).isNotNull();
-      assertThat(response.getBody().error().message()).isEqualTo(AuthError.UNAUTHORIZED.getMessage());
+      assertThat(response.getBody().error().message()).isEqualTo(AuthException.UNAUTHORIZED.getMessage());
     }
   }
 }

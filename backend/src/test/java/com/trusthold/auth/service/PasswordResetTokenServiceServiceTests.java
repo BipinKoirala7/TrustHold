@@ -4,9 +4,9 @@ import com.trusthold.auth.dtos.ForgotPasswordDto;
 import com.trusthold.auth.dtos.ResetPasswordDto;
 import com.trusthold.auth.model.PasswordResetToken;
 import com.trusthold.auth.repository.PasswordResetTokenRepository;
-import com.trusthold.mail.dtos.PasswordResetEvent;
-import com.trusthold.shared.AuthError;
-import com.trusthold.shared.UserError;
+import com.trusthold.mail.events.PasswordResetEvent;
+import com.trusthold.shared.exception.AuthException;
+import com.trusthold.shared.exception.UserException;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.shared.service.TokenService;
 import com.trusthold.user.model.User;
@@ -89,7 +89,7 @@ public class PasswordResetTokenServiceServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.forgotPassword(forgotPasswordDto));
-      assertThat(ex.getErrorCode()).isEqualTo(UserError.USER_NOT_FOUND);
+      assertThat(ex.getCode()).isEqualTo(UserException.USER_NOT_FOUND);
       verify(userRepository).findByEmail(forgotPasswordDto.email());
       verify(passwordResetTokenRepository, never()).save(any(PasswordResetToken.class));
       verify(applicationEventPublisher, never()).publishEvent(any(PasswordResetEvent.class));
@@ -228,7 +228,7 @@ public class PasswordResetTokenServiceServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.resetPassword(mockResponse, resetPasswordDto));
-      assertThat(ex.getErrorCode()).isEqualTo(AuthError.INVALID_PASSWORD_RESET_TOKEN);
+      assertThat(ex.getCode()).isEqualTo(AuthException.INVALID_PASSWORD_RESET_TOKEN);
       verify(passwordResetTokenRepository).findByTokenHash(hash);
       verify(passwordResetTokenRepository, never()).consume(anyString(), any());
     }
@@ -243,7 +243,7 @@ public class PasswordResetTokenServiceServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.resetPassword(mockResponse, resetPasswordDto));
-      assertThat(ex.getErrorCode()).isEqualTo(AuthError.EXPIRED_PASSWORD_RESET_TOKEN);
+      assertThat(ex.getCode()).isEqualTo(AuthException.EXPIRED_PASSWORD_RESET_TOKEN);
       verify(passwordResetTokenRepository).findByTokenHash(hash);
       verify(passwordResetTokenRepository).consume(eq(hash), any(Instant.class));
       verify(userService, never()).getUserById(any(UUID.class));
@@ -256,11 +256,11 @@ public class PasswordResetTokenServiceServiceTests {
       when(passwordResetTokenRepository.findByTokenHash(hash)).thenReturn(Optional.of(passwordResetToken));
       when(passwordResetTokenRepository.consume(eq(hash), any(Instant.class))).thenReturn(1);
       when(userService.getUserById(passwordResetToken.getUserId()))
-          .thenThrow(new AppException(UserError.USER_NOT_FOUND));
+          .thenThrow(new AppException(UserException.USER_NOT_FOUND));
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.resetPassword(mockResponse, resetPasswordDto));
-      assertThat(ex.getErrorCode()).isEqualTo(UserError.USER_NOT_FOUND);
+      assertThat(ex.getCode()).isEqualTo(UserException.USER_NOT_FOUND);
       verify(passwordResetTokenRepository).findByTokenHash(hash);
       verify(passwordResetTokenRepository).consume(eq(hash), any(Instant.class));
       verify(userService).getUserById(passwordResetToken.getUserId());
@@ -325,7 +325,7 @@ public class PasswordResetTokenServiceServiceTests {
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.resetPassword(mockResponse, resetPasswordDto));
-      assertThat(ex.getErrorCode()).isEqualTo(AuthError.EXPIRED_PASSWORD_RESET_TOKEN);
+      assertThat(ex.getCode()).isEqualTo(AuthException.EXPIRED_PASSWORD_RESET_TOKEN);
       verify(passwordResetTokenRepository).findByTokenHash(hash);
       verify(passwordResetTokenRepository).consume(eq(hash), any(Instant.class));
       verify(userService, never()).getUserById(any(UUID.class));

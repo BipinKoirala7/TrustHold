@@ -1,4 +1,4 @@
-package com.trusthold.shared;
+package com.trusthold.shared.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 
 @AllArgsConstructor
 @Getter
-public enum SettlementError implements ErrorCode {
+public enum SettlementException implements ExceptionCode {
 
   SETTLEMENT_PROPOSAL_NOT_PENDING("SETTLEMENT_PROPOSAL_NOT_PENDING", HttpStatus.CONFLICT, "This proposal is no longer open for agreement"),
   SETTLEMENT_PROPOSAL_NOT_AGREED("SETTLEMENT_PROPOSAL_NOT_AGREED", HttpStatus.CONFLICT, "Both parties must agree before a settlement is created"),

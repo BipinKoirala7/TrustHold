@@ -63,8 +63,7 @@ public class Lease {
   @Column(name = "start_date", nullable = false)
   private Instant startDate;
 
-  @NotNull(message = "End date is required")
-  @Column(name = "end_date", nullable = false)
+  @Column(name = "end_date")
   private Instant endDate;
 
   @Enumerated(EnumType.STRING)

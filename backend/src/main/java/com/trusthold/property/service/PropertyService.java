@@ -1,13 +1,15 @@
 package com.trusthold.property.service;
 
 import com.trusthold.auth.model.AuthUser;
+import com.trusthold.lease.service.LeaseHelper;
 import com.trusthold.property.dtos.CreatePropertyDto;
+import com.trusthold.property.dtos.PropertyDetailsDto;
 import com.trusthold.property.model.Property;
 import com.trusthold.property.repository.PropertyRepository;
-import com.trusthold.shared.AuthError;
 import com.trusthold.shared.Guard;
-import com.trusthold.shared.PropertyError;
 import com.trusthold.shared.exception.AppException;
+import com.trusthold.shared.exception.AuthException;
+import com.trusthold.shared.exception.PropertyException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +19,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Property lookups and management.
@@ -33,6 +36,7 @@ public class PropertyService {
 
   private final PropertyRepository propertyRepository;
   private final PropertyMapper propertyMapper;
+  private final LeaseHelper leaseHelper;
 
   /**
    * Creates a new property for the authenticated user.
@@ -45,7 +49,7 @@ public class PropertyService {
   @PreAuthorize("hasRole('LANDLORD')")
   @Transactional
   public void createProperty(AuthUser authUser, CreatePropertyDto createPropertyDto) {
-    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
+    Guard.requireNotNull(authUser, new AppException(AuthException.UNAUTHORIZED));
     log.debug("Creating property for user with id {}", authUser.id());
 
     Property property = propertyMapper.toPropertyEntity(createPropertyDto);
@@ -62,11 +66,13 @@ public class PropertyService {
    * @throws AppException if the user is not a landlord
    */
   @PreAuthorize("hasRole('LANDLORD')")
-  public List<Property> getAllProperties(AuthUser authUser) {
-    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
+  public List<PropertyDetailsDto> getAllProperties(AuthUser authUser) {
+    Guard.requireNotNull(authUser, new AppException(AuthException.UNAUTHORIZED));
     log.debug("Fetching properties for user with id {}", authUser.id());
 
-    return propertyRepository.findByLandlordIdAndIsArchivedFalse(authUser.id());
+    return propertyRepository.findByLandlordIdAndIsArchivedFalse(authUser.id()).stream()
+        .map(property -> new PropertyDetailsDto(property, leaseHelper.doesLeaseExistForProperty(property.getId())))
+        .collect(Collectors.toList());
   }
 
   /**
@@ -78,28 +84,33 @@ public class PropertyService {
    * @throws AppException if the user is not a landlord or the property is not found
    */
   @PreAuthorize("hasRole('LANDLORD')")
-  public Property getPropertyInfo(AuthUser authUser, UUID id){
-    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
+  public Property getProperty(AuthUser authUser, UUID id){
+    Guard.requireNotNull(authUser, new AppException(AuthException.UNAUTHORIZED));
     log.debug("Fetching property with id {}", id);
 
     return propertyRepository
         .findByIdAndLandlordId(id, authUser.id())
-        .orElseThrow(() -> new AppException(PropertyError.PROPERTY_NOT_FOUND));
+        .orElseThrow(() -> new AppException(PropertyException.PROPERTY_NOT_FOUND));
   }
 
   @PreAuthorize("hasRole('LANDLORD')")
   @Transactional
   public void archiveProperty(AuthUser authUser, UUID id) {
-    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
+    Guard.requireNotNull(authUser, new AppException(AuthException.UNAUTHORIZED));
     log.debug("Archiving property with id {}", id);
 
     Property property = propertyRepository
         .findByIdAndLandlordId(id, authUser.id())
-        .orElseThrow(() -> new AppException(PropertyError.PROPERTY_NOT_FOUND));
+        .orElseThrow(() -> new AppException(PropertyException.PROPERTY_NOT_FOUND));
+
+    if(leaseHelper.doesLeaseExistForProperty(id)) {
+      log.warn("Property with id {} has an active lease and cannot be archived", id);
+      throw new AppException(PropertyException.PROPERTY_HAS_ACTIVE_LEASE);
+    }
 
     if (property.getIsArchived()) {
       log.warn("Property with id {} is already archived", id);
-      throw new AppException(PropertyError.PROPERTY_CANNOT_BE_ARCHIVED);
+      throw new AppException(PropertyException.PROPERTY_CANNOT_BE_ARCHIVED);
     }
 
     property.setIsArchived(true);
@@ -121,7 +132,10 @@ public class PropertyService {
 
     return propertyRepository
         .findById(id)
-        .orElseThrow(() -> new AppException(PropertyError.PROPERTY_NOT_FOUND));
+        .orElseThrow(() -> {
+          log.warn("Property with id {} not found", id);
+          return new AppException(PropertyException.PROPERTY_NOT_FOUND);
+        });
   }
 
   // Helper Methods

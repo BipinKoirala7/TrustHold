@@ -3,8 +3,9 @@ package com.trusthold.shared;
 import com.trusthold.lease.dtos.LeaseActivityEvent;
 import com.trusthold.lease.service.LeaseActivityService;
 import com.trusthold.mail.EmailService;
-import com.trusthold.mail.dtos.PasswordResetEvent;
-import com.trusthold.mail.dtos.UserRegisteredEvent;
+import com.trusthold.mail.events.LeaseJoinedEvent;
+import com.trusthold.mail.events.PasswordResetEvent;
+import com.trusthold.mail.events.UserRegisteredEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -37,11 +38,9 @@ public class EventListener {
     leaseActivityService.createLeaseActivity(event);
   }
 
-//  @Async
-//  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-//  public void onDeletionRequested(AccountDeletionEvent event) {
-//    String link = frontendUrl + "/confirm-delete?token=" + event.rawToken();
-//    emailService.sendAccountDeletionEmail(
-//        event.email(), event.fullName(), link, event.expiresAt());
-//  }
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void onLeaseJoined(LeaseJoinedEvent event){
+    log.info("Lease joined event received for {}", event.tenantName());
+    emailService.sendLeaseJoinedEmail(event.landlordEmail(), event);
+  }
 }

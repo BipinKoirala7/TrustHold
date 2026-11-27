@@ -11,10 +11,12 @@ import com.trusthold.property.dtos.PropertySummaryDto;
 import com.trusthold.property.model.Property;
 import com.trusthold.property.service.PropertyMapper;
 import com.trusthold.property.service.PropertyService;
-import com.trusthold.shared.AuthError;
 import com.trusthold.shared.Guard;
-import com.trusthold.shared.LeaseError;
 import com.trusthold.shared.exception.AppException;
+import com.trusthold.shared.exception.AuthException;
+import com.trusthold.shared.exception.LeaseException;
+import com.trusthold.shared.exception.PropertyException;
+import com.trusthold.user.model.Role;
 import com.trusthold.user.model.User;
 import com.trusthold.user.service.UserService;
 import jakarta.validation.constraints.NotNull;
@@ -26,6 +28,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -33,12 +37,14 @@ import java.util.UUID;
 @Slf4j
 public class LeaseService {
 
+  private final LeaseInvitationService leaseInvitationService;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final PropertyService propertyService;
   private final LeaseRepository leaseRepository;
   private final UserService userService;
   private final LeaseMapper leaseMapper;
   private final PropertyMapper propertyMapper;
+  private final LeaseHelper leaseHelper;
 
   /**
    * Creates a new lease for the authenticated user.
@@ -50,24 +56,35 @@ public class LeaseService {
   @PreAuthorize("hasRole('LANDLORD')")
   @Transactional
   public void createLease(AuthUser authUser, CreateLeaseDto createLeaseDto) {
-    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
+    Guard.requireNotNull(authUser, new AppException(AuthException.UNAUTHORIZED));
     log.info("Creating lease with data: {} for user: {}", createLeaseDto, authUser);
 
-    Property property = propertyService.getPropertyInfo(authUser, createLeaseDto.propertyId());
-
-    if(!userService.isUserTenant(createLeaseDto.tenantId())){
-      log.warn("User with id {} is not a tenant", createLeaseDto.tenantId());
-      throw new AppException(LeaseError.PROVIDED_TENANT_IS_NOT_A_TENANT);
-    }
+    Property property = propertyService.getPropertyById(createLeaseDto.propertyId());
 
     if(property.getIsArchived()){
       log.warn("Property with id {} is archived and cannot be used for lease", property.getId());
-      throw new AppException(LeaseError.PROPERTY_IS_ARCHIVED);
+      throw new AppException(PropertyException.PROPERTY_IS_ARCHIVED);
+    }
+
+    if(leaseHelper.doesLeaseExistForProperty(createLeaseDto.propertyId())){
+      log.warn("Lease already exists for property with id {}", createLeaseDto.propertyId());
+      throw new AppException(LeaseException.LEASE_ALREADY_EXISTS_FOR_PROPERTY);
+    }
+
+    Optional<User> tenant = userService.getUserByEmailOrNull(createLeaseDto.tenantEmail());
+
+    if(tenant.isPresent() && !tenant.get().getRole().equals(Role.TENANT)){
+      log.warn("User with given email is registered but is not a tenant");
+      throw new AppException(LeaseException.PROVIDED_TENANT_IS_NOT_A_TENANT);
     }
 
     Lease lease = leaseMapper.toLeaseEntity(createLeaseDto);
     lease.setLandlordId(authUser.id());
-    leaseRepository.save(lease);
+    Lease savedLease = leaseRepository.save(lease);
+
+    User landlord = userService.getUserById(authUser.id());
+    String landlordFullName = landlord.getFirstName() + " " + landlord.getLastName();
+    leaseInvitationService.inviteTenant(landlordFullName, property, savedLease, createLeaseDto.tenantEmail());
 
     String description = "Lease created for " + property.getName();
     applicationEventPublisher.publishEvent(new LeaseActivityEvent(lease.getId(), Activity.LEASE_CREATED.getLabel(), description));
@@ -77,7 +94,7 @@ public class LeaseService {
 
   @PreAuthorize("isAuthenticated()")
   public List<LeaseSummaryDto> getUsersLeases(AuthUser authUser){
-    Guard.requireNotNull(authUser, new AppException(AuthError.UNAUTHORIZED));
+    Guard.requireNotNull(authUser, new AppException(AuthException.UNAUTHORIZED));
     log.info("Getting leases for user={}", authUser.id());
 
     List<Lease> leases = getLeasesByUserType(authUser);
@@ -85,11 +102,11 @@ public class LeaseService {
         .stream()
         .map(lease -> {
           Property property = propertyService.getPropertyById(lease.getPropertyId());
-          PropertySummaryDto propertyInfo = propertyMapper.toPropertyInfo(property);
-          User tenant = userService.getUserByIdOrNull(lease.getTenantId()).orElse(null);
+          PropertySummaryDto propertySummary = propertyMapper.toPropertySummary(property);
+          User tenant = Objects.isNull(lease.getTenantId()) ? null : userService.getUserById(lease.getTenantId());
           String tenantName = tenant == null ? null : tenant.getFirstName() + " " + tenant.getLastName();
 
-          return new LeaseSummaryDto(lease, propertyInfo, tenantName);
+          return new LeaseSummaryDto(lease, propertySummary, tenantName);
         })
         .toList();
   }

@@ -1,7 +1,7 @@
 package com.trusthold.auth.service;
 
 import com.trusthold.config.JwtConfig;
-import com.trusthold.shared.UserError;
+import com.trusthold.shared.exception.UserException;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.Role;
 import com.trusthold.user.model.User;
@@ -32,7 +32,6 @@ import static com.trusthold.config.JwtConfig.TOKEN_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -200,11 +199,11 @@ public class JwtServiceTests {
     @Test
     void shouldThrowAppException_whenUserNotFound() {
       // Arrange
-      when(userService.getUserById(user.getId())).thenThrow(new AppException(UserError.USER_NOT_FOUND));
+      when(userService.getUserById(user.getId())).thenThrow(new AppException(UserException.USER_NOT_FOUND));
 
       // Act & Assert
       AppException ex = assertThrows(AppException.class, () -> underTest.validateRefreshToken(validRefreshToken));
-      assertThat(ex.getErrorCode()).isEqualTo(UserError.USER_NOT_FOUND);
+      assertThat(ex.getCode()).isEqualTo(UserException.USER_NOT_FOUND);
       verify(userService).getUserById(user.getId());
     }
 

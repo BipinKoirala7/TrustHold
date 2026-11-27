@@ -1,15 +1,14 @@
 package com.trusthold.shared.exception;
 
-import com.trusthold.shared.ErrorCode;
 import lombok.Getter;
 
 @Getter
 public class AppException extends RuntimeException {
 
-  private final ErrorCode errorCode;
+  private final ExceptionCode code;
 
-  public AppException(ErrorCode errorCode) {
-    super(errorCode.getMessage());
-    this.errorCode = errorCode;
+  public AppException(ExceptionCode exceptionCode) {
+    super(exceptionCode.getMessage());
+    this.code = exceptionCode;
   }
 }

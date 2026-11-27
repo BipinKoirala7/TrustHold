@@ -1,8 +1,8 @@
 package com.trusthold.user.service;
 
 import com.trusthold.auth.model.AuthUser;
-import com.trusthold.shared.AuthError;
-import com.trusthold.shared.UserError;
+import com.trusthold.shared.exception.AuthException;
+import com.trusthold.shared.exception.UserException;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.dtos.PublicUserDto;
 import com.trusthold.user.dtos.UpdateUserDto;
@@ -66,8 +66,8 @@ public class UserServiceTests {
       // Act & Assert
       assertThatThrownBy(() -> userService.getAuthenticatedUser(null))
           .isInstanceOf(AppException.class)
-          .extracting("errorCode")
-          .isEqualTo(AuthError.INVALID_TOKEN);
+          .extracting("code")
+          .isEqualTo(AuthException.INVALID_TOKEN);
     }
 
     @Test
@@ -78,8 +78,8 @@ public class UserServiceTests {
       // Act & Assert
       assertThatThrownBy(() -> userService.getAuthenticatedUser(sampleAuthUser))
           .isInstanceOf(AppException.class)
-          .extracting("errorCode")
-          .isEqualTo(UserError.USER_NOT_FOUND);
+          .extracting("code")
+          .isEqualTo(UserException.USER_NOT_FOUND);
     }
 
     @Test
@@ -114,8 +114,8 @@ public class UserServiceTests {
       // Act & Assert
       assertThatThrownBy(() -> userService.updateUser(null, updateUserDto))
           .isInstanceOf(AppException.class)
-          .extracting("errorCode")
-          .isEqualTo(AuthError.INVALID_TOKEN);
+          .extracting("code")
+          .isEqualTo(AuthException.INVALID_TOKEN);
     }
 
     @Test
@@ -174,8 +174,8 @@ public class UserServiceTests {
       // Act & Assert
       assertThatThrownBy(() -> userService.deleteUser(null))
           .isInstanceOf(AppException.class)
-          .extracting("errorCode")
-          .isEqualTo(AuthError.UNAUTHORIZED);
+          .extracting("code")
+          .isEqualTo(AuthException.UNAUTHORIZED);
     }
 
     @Test

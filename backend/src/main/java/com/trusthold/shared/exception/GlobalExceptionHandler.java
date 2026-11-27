@@ -40,8 +40,8 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ApiResponse<Void>> handleAppException(AppException ex) {
     log.debug("App exception", ex);
     return ResponseEntity
-        .status(ex.getErrorCode().getHttpStatus())
-        .body(ApiResponse.error(ex.getErrorCode().getErrCode(), ex.getMessage()));
+        .status(ex.getCode().getHttpStatus())
+        .body(ApiResponse.error(ex.getCode().getErrCode(), ex.getMessage()));
   }
 
   // Validation Exceptions
@@ -186,6 +186,13 @@ public class GlobalExceptionHandler {
       HttpServletRequest req) {
     log.warn("{} {} -> {}", req.getMethod(), req.getRequestURI(), "Optimistic locking failure", ex);
     return ApiResponse.error("OPTIMISTIC_LOCK_FAILURE", "This record was changed by someone else. Please refresh and try again");
+  }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ApiResponse<Void> handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest req) {
+    log.warn("{} {} -> {}", req.getMethod(), req.getRequestURI(), "Invalid argument", ex);
+    return ApiResponse.error("INVALID_ARGUMENT", "The provided argument is invalid");
   }
 
   // Generic Exception Handler (Catch-all)

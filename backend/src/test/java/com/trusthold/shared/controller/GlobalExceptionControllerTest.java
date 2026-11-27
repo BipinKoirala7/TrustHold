@@ -1,12 +1,12 @@
 package com.trusthold.shared.controller;
 
 import com.trusthold.auth.model.AuthUser;
-import com.trusthold.shared.AuthError;
-import com.trusthold.shared.ErrorCode;
-import com.trusthold.shared.LeaseError;
-import com.trusthold.shared.PropertyError;
-import com.trusthold.shared.SettlementError;
-import com.trusthold.shared.UserError;
+import com.trusthold.shared.exception.AuthException;
+import com.trusthold.shared.exception.ExceptionCode;
+import com.trusthold.shared.exception.LeaseException;
+import com.trusthold.shared.exception.PropertyException;
+import com.trusthold.shared.exception.SettlementException;
+import com.trusthold.shared.exception.UserException;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.controller.UserController;
 import com.trusthold.user.dtos.UpdateUserDto;
@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
-public class ErrorInfoControllerTest extends ControllerTestSupport {
+public class GlobalExceptionControllerTest extends ControllerTestSupport {
 
   @MockitoBean
   private UserService userService;
@@ -87,27 +87,27 @@ public class ErrorInfoControllerTest extends ControllerTestSupport {
 
   @ParameterizedTest
   @MethodSource("allErrorCodes")
-  void shouldReturnErrorInfoResponse_whenServiceThrowsAppException(ErrorCode errorCode) throws Exception {
+  void shouldReturnErrorInfoResponse_whenServiceThrowsAppException(ExceptionCode exceptionCode) throws Exception {
     // Arrange
-    doThrow(new AppException(errorCode))
+    doThrow(new AppException(exceptionCode))
         .when(userService).updateUser(eq(sampleAuthUser), eq(sampleUpdateUserDto));
 
     // Act & Assert
     mockMvc.perform(put(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(sampleUpdateUserDto)))
-        .andExpect(status().is(errorCode.getHttpStatus().value()))
-        .andExpect(jsonPath("$.error.code").value(errorCode.getErrCode()))
-        .andExpect(jsonPath("$.error.message").value(errorCode.getMessage()));
+        .andExpect(status().is(exceptionCode.getHttpStatus().value()))
+        .andExpect(jsonPath("$.error.code").value(exceptionCode.getErrCode()))
+        .andExpect(jsonPath("$.error.message").value(exceptionCode.getMessage()));
   }
 
-  static Stream<ErrorCode> allErrorCodes() {
+  static Stream<ExceptionCode> allErrorCodes() {
     return Stream.of(
-        AuthError.values(),
-        UserError.values(),
-        LeaseError.values(),
-        PropertyError.values(),
-        SettlementError.values()
+        AuthException.values(),
+        UserException.values(),
+        LeaseException.values(),
+        PropertyException.values(),
+        SettlementException.values()
     ).flatMap(Arrays::stream);
   }
 

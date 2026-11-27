@@ -2,6 +2,7 @@ package com.trusthold.property.controller;
 
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.property.dtos.CreatePropertyDto;
+import com.trusthold.property.dtos.PropertyDetailsDto;
 import com.trusthold.property.model.Property;
 import com.trusthold.property.service.PropertyService;
 import com.trusthold.shared.dtos.ApiResponse;
@@ -32,13 +33,13 @@ public class PropertyController {
   }
 
   @GetMapping
-  public ApiResponse<List<Property>> getAllProperties(@AuthenticationPrincipal AuthUser authUser) {
+  public ApiResponse<List<PropertyDetailsDto>> getAllProperties(@AuthenticationPrincipal AuthUser authUser) {
     return ApiResponse.success(propertyService.getAllProperties(authUser));
   }
 
   @GetMapping("{id}")
   public ApiResponse<Property> getPropertyById(@AuthenticationPrincipal AuthUser authUser, @PathVariable @NotBlank String id) {
-    return ApiResponse.success(propertyService.getPropertyInfo(authUser, UUID.fromString(id)));
+    return ApiResponse.success(propertyService.getProperty(authUser, UUID.fromString(id)));
   }
 
   @DeleteMapping("{id}")

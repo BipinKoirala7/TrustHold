@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { LeasesView } from "./lease-view";
 import { Spinner } from "../ui/spinner";
 import { redirect } from "next/navigation";
-import { Button, buttonVariants } from "../ui/button";
+import { buttonVariants } from "../ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -33,10 +33,7 @@ function LeasePage() {
           </p>
         </div>
         {user.role === "LANDLORD" && (
-          <Link
-            href="/landlord/leases/new"
-            className={buttonVariants({ size: "sm" })}
-          >
+          <Link href="/lease/new" className={buttonVariants({ size: "sm" })}>
             <Plus className="mr-2 h-4 w-4" />
             New Lease
           </Link>

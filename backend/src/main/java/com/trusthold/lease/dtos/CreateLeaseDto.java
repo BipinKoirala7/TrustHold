@@ -10,8 +10,9 @@ public record CreateLeaseDto(
     @NotNull(message = "Property is required")
     UUID propertyId,
 
-    @NotNull(message = "Tenant is required")
-    UUID tenantId,
+    @NotBlank(message = "Tenant is required")
+    @Email(message = "Tenant email must be a valid email address")
+    String tenantEmail,
 
     @NotNull(message = "Monthly rent is required")
     @Positive(message = "Monthly rent must be greater than zero")
@@ -25,14 +26,6 @@ public record CreateLeaseDto(
 
     @NotNull(message = "Start date is required")
     @FutureOrPresent(message = "Start date cannot be in the past")
-    Instant startDate,
-
-    @NotNull(message = "End date is required")
-    Instant endDate
+    Instant startDate
 ) {
-
-  @AssertTrue(message = "End date must be after the start date")
-  public boolean isEndDateAfterStartDate() {
-    return startDate == null || endDate == null || endDate.isAfter(startDate);
-  }
 }

@@ -2,10 +2,11 @@ package com.trusthold.property.service;
 
 import com.trusthold.auth.model.AuthUser;
 import com.trusthold.property.dtos.CreatePropertyDto;
+import com.trusthold.property.dtos.PropertyDetailsDto;
 import com.trusthold.property.model.Property;
 import com.trusthold.property.repository.PropertyRepository;
-import com.trusthold.shared.AuthError;
-import com.trusthold.shared.PropertyError;
+import com.trusthold.shared.exception.AuthException;
+import com.trusthold.shared.exception.PropertyException;
 import com.trusthold.shared.exception.AppException;
 import com.trusthold.user.model.Role;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +63,7 @@ class PropertyServiceTests {
     void shouldThrowUnauthorized_whenAuthUserIsNull() {
       assertThatThrownBy(() -> propertyService.createProperty(null, createPropertyDto))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", AuthError.UNAUTHORIZED);
+          .hasFieldOrPropertyWithValue("code", AuthException.UNAUTHORIZED);
 
       verifyNoInteractions(propertyMapper, propertyRepository);
     }
@@ -100,17 +101,17 @@ class PropertyServiceTests {
     void shouldThrowUnauthorized_whenAuthUserIsNull() {
       assertThatThrownBy(() -> propertyService.getAllProperties(null))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", AuthError.UNAUTHORIZED);
+          .hasFieldOrPropertyWithValue("code", AuthException.UNAUTHORIZED);
 
       verifyNoInteractions(propertyRepository);
     }
 
     @Test
     void shouldReturnPropertiesOwnedByLandlord() {
-      List<Property> properties = List.of(property);
-      when(propertyRepository.findByLandlordIdAndIsArchivedFalse(landlordId)).thenReturn(properties);
+      List<PropertyDetailsDto> properties = List.of(new PropertyDetailsDto(property, false));
+      when(propertyRepository.findByLandlordIdAndIsArchivedFalse(landlordId)).thenReturn(List.of(property));
 
-      List<Property> result = propertyService.getAllProperties(landlordUser);
+      List<PropertyDetailsDto> result = propertyService.getAllProperties(landlordUser);
 
       assertThat(result).isSameAs(properties);
     }
@@ -124,13 +125,13 @@ class PropertyServiceTests {
   }
 
   @Nested
-  class GetPropertyByIdTests {
+  class GetPropertyInfoTests {
 
     @Test
     void shouldThrowUnauthorized_whenAuthUserIsNull() {
-      assertThatThrownBy(() -> propertyService.getPropertyInfo(null, propertyId))
+      assertThatThrownBy(() -> propertyService.getProperty(null, propertyId))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", AuthError.UNAUTHORIZED);
+          .hasFieldOrPropertyWithValue("code", AuthException.UNAUTHORIZED);
 
       verifyNoInteractions(propertyRepository);
     }
@@ -140,7 +141,7 @@ class PropertyServiceTests {
       when(propertyRepository.findByIdAndLandlordId(propertyId, landlordId))
           .thenReturn(Optional.of(property));
 
-      Property result = propertyService.getPropertyInfo(landlordUser, propertyId);
+      Property result = propertyService.getProperty(landlordUser, propertyId);
 
       assertThat(result).isSameAs(property);
     }
@@ -150,9 +151,96 @@ class PropertyServiceTests {
       when(propertyRepository.findByIdAndLandlordId(propertyId, landlordId))
           .thenReturn(Optional.empty());
 
-      assertThatThrownBy(() -> propertyService.getPropertyInfo(landlordUser, propertyId))
+      assertThatThrownBy(() -> propertyService.getProperty(landlordUser, propertyId))
           .isInstanceOf(AppException.class)
-          .hasFieldOrPropertyWithValue("errorCode", PropertyError.PROPERTY_NOT_FOUND);
+          .hasFieldOrPropertyWithValue("code", PropertyException.PROPERTY_NOT_FOUND);
+    }
+  }
+
+  @Nested
+  class ArchivePropertyTests {
+
+    @Test
+    void shouldThrowUnauthorized_whenAuthUserIsNull() {
+      assertThatThrownBy(() -> propertyService.archiveProperty(null, propertyId))
+          .isInstanceOf(AppException.class)
+          .hasFieldOrPropertyWithValue("code", AuthException.UNAUTHORIZED);
+
+      verifyNoInteractions(propertyRepository);
+    }
+
+    @Test
+    void shouldThrowPropertyNotFound_whenPropertyDoesNotExistOrBelongsToAnotherLandlord() {
+      when(propertyRepository.findByIdAndLandlordId(propertyId, landlordId))
+          .thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> propertyService.archiveProperty(landlordUser, propertyId))
+          .isInstanceOf(AppException.class)
+          .hasFieldOrPropertyWithValue("code", PropertyException.PROPERTY_NOT_FOUND);
+
+      verify(propertyRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowCannotBeArchived_whenPropertyIsAlreadyArchived() {
+      when(propertyRepository.findByIdAndLandlordId(propertyId, landlordId))
+          .thenReturn(Optional.of(property));
+      when(property.getIsArchived()).thenReturn(true);
+
+      assertThatThrownBy(() -> propertyService.archiveProperty(landlordUser, propertyId))
+          .isInstanceOf(AppException.class)
+          .hasFieldOrPropertyWithValue("code", PropertyException.PROPERTY_CANNOT_BE_ARCHIVED);
+
+      verify(property, never()).setIsArchived(anyBoolean());
+      verify(propertyRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldMarkArchivedAndSave_whenPropertyIsActive() {
+      when(propertyRepository.findByIdAndLandlordId(propertyId, landlordId))
+          .thenReturn(Optional.of(property));
+      when(property.getIsArchived()).thenReturn(false);
+
+      propertyService.archiveProperty(landlordUser, propertyId);
+
+      InOrder inOrder = inOrder(property, propertyRepository);
+      inOrder.verify(property).setIsArchived(true);
+      inOrder.verify(propertyRepository).save(property);
+    }
+
+    @Test
+    void shouldPropagateException_whenSaveFails() {
+      when(propertyRepository.findByIdAndLandlordId(propertyId, landlordId))
+          .thenReturn(Optional.of(property));
+      when(property.getIsArchived()).thenReturn(false);
+      when(propertyRepository.save(property))
+          .thenThrow(new RuntimeException("Database connection failed"));
+
+      assertThatThrownBy(() -> propertyService.archiveProperty(landlordUser, propertyId))
+          .isInstanceOf(RuntimeException.class)
+          .hasMessageContaining("Database connection failed");
+    }
+  }
+
+  @Nested
+  class GetPropertyByIdTests {
+
+    @Test
+    void shouldReturnProperty_whenPropertyExists() {
+      when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(property));
+
+      Property result = propertyService.getPropertyById(propertyId);
+
+      assertThat(result).isSameAs(property);
+    }
+
+    @Test
+    void shouldThrowPropertyNotFound_whenPropertyDoesNotExist() {
+      when(propertyRepository.findById(propertyId)).thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> propertyService.getPropertyById(propertyId))
+          .isInstanceOf(AppException.class)
+          .hasFieldOrPropertyWithValue("code", PropertyException.PROPERTY_NOT_FOUND);
     }
   }
 

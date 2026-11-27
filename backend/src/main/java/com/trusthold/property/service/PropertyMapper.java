@@ -9,5 +9,5 @@ import org.mapstruct.Mapper;
 public interface PropertyMapper {
 
   Property toPropertyEntity(CreatePropertyDto createPropertyDto);
-  PropertySummaryDto toPropertyInfo(Property property);
+  PropertySummaryDto toPropertySummary(Property property);
 }

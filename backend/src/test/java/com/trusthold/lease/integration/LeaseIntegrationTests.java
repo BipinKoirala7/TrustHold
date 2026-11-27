@@ -51,7 +51,7 @@ public class LeaseIntegrationTests extends IntegrationTestSupport {
     private LoginUserDto tenantLogin;
     private HttpHeaders landlordHeaders;
     private HttpHeaders tenantHeaders;
-    private UUID tenantId;
+    private String tenantEmail;
 
     @BeforeEach
     void setUp() {
@@ -64,7 +64,7 @@ public class LeaseIntegrationTests extends IntegrationTestSupport {
 
       landlordHeaders = authHeaders(landlordLogin);
       tenantHeaders = authHeaders(tenantLogin);
-      tenantId = userIdOf(tenantLogin);
+      tenantEmail = tenantLogin.email();
     }
 
     @AfterEach
@@ -101,7 +101,7 @@ public class LeaseIntegrationTests extends IntegrationTestSupport {
     @Test
     void shouldReturnLeaseWithPropertyAndTenantName_whenLandlordHasLease() {
       UUID propertyId = createProperty(landlordHeaders, userIdOf(landlordLogin), "Sunrise Apartment");
-      createLease(landlordHeaders, propertyId, tenantId);
+      createLease(landlordHeaders, propertyId, tenantEmail);
 
       ResponseEntity<ApiResponse<LeaseSummaryDto[]>> response = getLeases(landlordHeaders);
 
@@ -112,8 +112,8 @@ public class LeaseIntegrationTests extends IntegrationTestSupport {
 
       LeaseSummaryDto lease = leases[0];
       assertThat(lease.id()).isNotNull();
-      assertThat(lease.propertyInfo().name()).isEqualTo("Sunrise Apartment");
-      assertThat(lease.propertyInfo().city()).isEqualTo("Pokhara");
+      assertThat(lease.propertySummary().name()).isEqualTo("Sunrise Apartment");
+      assertThat(lease.propertySummary().city()).isEqualTo("Pokhara");
       assertThat(lease.tenantName()).isEqualTo("Tenant Person");
       assertThat(lease.depositAmount()).isNotNull();
       assertThat(lease.status()).isNotNull();
@@ -123,21 +123,21 @@ public class LeaseIntegrationTests extends IntegrationTestSupport {
     @Test
     void shouldReturnLease_whenUserIsTheTenantOfTheLease() {
       UUID propertyId = createProperty(landlordHeaders, userIdOf(landlordLogin), "Sunrise Apartment");
-      createLease(landlordHeaders, propertyId, tenantId);
+      createLease(landlordHeaders, propertyId, tenantEmail);
 
       ResponseEntity<ApiResponse<LeaseSummaryDto[]>> response = getLeases(tenantHeaders);
 
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
       assertThat(response.getBody()).isNotNull();
       assertThat(response.getBody().data()).hasSize(1);
-      assertThat(response.getBody().data()[0].propertyInfo().name()).isEqualTo("Sunrise Apartment");
+      assertThat(response.getBody().data()[0].propertySummary().name()).isEqualTo("Sunrise Apartment");
       assertThat(response.getBody().data()[0].tenantName()).isEqualTo("Tenant Person");
     }
 
     @Test
     void shouldNotReturnLeasesOfOtherLandlords() {
       UUID propertyId = createProperty(landlordHeaders, userIdOf(landlordLogin), "Sunrise Apartment");
-      createLease(landlordHeaders, propertyId, tenantId);
+      createLease(landlordHeaders, propertyId, tenantEmail);
 
       LoginUserDto otherLandlordLogin = registerUser("Landlord", "Two", "landlord2",
           "landlord2@example.com", "+9779800000003", RegistrationRole.LANDLORD);
@@ -152,7 +152,7 @@ public class LeaseIntegrationTests extends IntegrationTestSupport {
     @Test
     void shouldNotReturnLeasesOfOtherTenants() {
       UUID propertyId = createProperty(landlordHeaders, userIdOf(landlordLogin), "Sunrise Apartment");
-      createLease(landlordHeaders, propertyId, tenantId);
+      createLease(landlordHeaders, propertyId, tenantEmail);
 
       LoginUserDto otherTenantLogin = registerUser("Tenant", "Other", "tenant2",
           "tenant2@example.com", "+9779800000004", RegistrationRole.TENANT);
@@ -169,15 +169,15 @@ public class LeaseIntegrationTests extends IntegrationTestSupport {
       UUID landlordId = userIdOf(landlordLogin);
       UUID firstPropertyId = createProperty(landlordHeaders, landlordId, "Sunrise Apartment");
       UUID secondPropertyId = createProperty(landlordHeaders, landlordId, "Lakeside House");
-      createLease(landlordHeaders, firstPropertyId, tenantId);
-      createLease(landlordHeaders, secondPropertyId, tenantId);
+      createLease(landlordHeaders, firstPropertyId, tenantEmail);
+      createLease(landlordHeaders, secondPropertyId, tenantEmail);
 
       ResponseEntity<ApiResponse<LeaseSummaryDto[]>> response = getLeases(landlordHeaders);
 
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
       assertThat(response.getBody()).isNotNull();
       assertThat(response.getBody().data())
-          .extracting(lease -> lease.propertyInfo().name())
+          .extracting(lease -> lease.propertySummary().name())
           .containsExactlyInAnyOrder("Sunrise Apartment", "Lakeside House");
     }
 
@@ -195,6 +195,10 @@ public class LeaseIntegrationTests extends IntegrationTestSupport {
     private HttpHeaders authHeaders(LoginUserDto loginDto) {
       validLoginUserDto = loginDto;
       return getAuthenticatedHeaders();
+    }
+
+    private String tenantEmailOf(LoginUserDto loginDto) {
+      return loginDto.email();
     }
 
     private UUID userIdOf(LoginUserDto loginDto) {
@@ -221,15 +225,14 @@ public class LeaseIntegrationTests extends IntegrationTestSupport {
       return get(LEASES_URL, headers, LeaseSummaryDto[].class);
     }
 
-    private void createLease(HttpHeaders headers, UUID propertyId, UUID tenantId) {
+    private void createLease(HttpHeaders headers, UUID propertyId, String tenantEmail) {
       Instant startDate = Instant.now().plus(1, ChronoUnit.DAYS);
       CreateLeaseDto dto = new CreateLeaseDto(
           propertyId,
-          tenantId,
+          tenantEmail,
           new BigDecimal("25000.50"),   // ASSUMPTION: rent, matching your controller test order
           new BigDecimal("50000.00"),   // ASSUMPTION: deposit
-          startDate,
-          startDate.plus(365, ChronoUnit.DAYS));
+          startDate);
       assertThat(post(LEASES_URL, headers, dto).getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
 

@@ -5,6 +5,10 @@ import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
 import com.resend.services.emails.model.CreateEmailResponse;
 import com.trusthold.auth.service.PasswordResetTokenService;
+import com.trusthold.mail.dtos.LeaseInvitationDto;
+import com.trusthold.mail.events.LeaseJoinedEvent;
+import com.trusthold.mail.templates.LeaseInvitationEmailTemplate;
+import com.trusthold.mail.templates.LeaseJoinedEmailTemplate;
 import com.trusthold.mail.templates.PasswordResetEmailTemplate;
 import com.trusthold.mail.templates.WelcomeEmailTemplate;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +29,9 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class EmailService {
 
+  private final LeaseInvitationEmailTemplate leaseInvitationEmailTemplate;
   private final PasswordResetEmailTemplate passwordResetEmailTemplate;
+  private final LeaseJoinedEmailTemplate leaseJoinedEmailTemplate;
   private final WelcomeEmailTemplate welcomeEmailTemplate;
 
   @Value("${resend.api.key}")
@@ -74,6 +80,24 @@ public class EmailService {
       sendMail(to, PasswordResetEmailTemplate.SUBJECT, html);
     } catch (ResendException e) {
       log.warn("Failed to send password reset email to {}", to, e);
+    }
+  }
+
+  public void sendLeaseInvitationEmail(String to, LeaseInvitationDto dto, String rawToken) throws ResendException {
+    log.info("Sending Lease Invitation email to {}", to);
+    String inviteLink = frontendUrl + "/lease/invitation?token=" + rawToken;
+    String html = leaseInvitationEmailTemplate.render(dto, inviteLink);
+    sendMail(to, LeaseInvitationEmailTemplate.SUBJECT, html);
+  }
+
+  @Async
+  public void sendLeaseJoinedEmail(String to, LeaseJoinedEvent event) {
+    log.info("Sending Lease Joined email to {}", to);
+    String html = leaseJoinedEmailTemplate.render(event, frontendUrl + "/dashboard");
+    try{
+      sendMail(to, LeaseJoinedEmailTemplate.SUBJECT, html);
+    } catch (ResendException e) {
+      log.warn("Failed to send lease joined email to {}", to, e);
     }
   }
 

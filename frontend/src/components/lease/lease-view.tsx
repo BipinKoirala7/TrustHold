@@ -6,7 +6,8 @@ import { LeasesTableSkeleton } from "@/components/lease/lease-table-skeleton";
 import { LeasesTableError } from "@/components/lease/lease-table-error";
 import { LeasesTableEmpty } from "@/components/lease/lease-table-empty";
 import { LeasesToolbar } from "@/components/lease/lease-toolbar";
-import { getLeases, LeaseSummaryDto } from "@/lib/api/lease";
+import { getLeases } from "@/lib/api/lease";
+import { LeaseSummaryDto } from "@/lib/schema/leaseSchema";
 import { useQuery } from "@tanstack/react-query";
 
 export function LeasesView() {
